@@ -86,7 +86,7 @@ class KeywordModerationEngineTest {
         KeywordModerationEngine engine = engineWith(
                 rule("ABUSE", RuleSeverity.HIGH, List.of("idiot")));
 
-        ModerationRequest request = new ModerationRequest(
+        ModerationRequest request = ModerationRequest.of(
                 TargetType.POST, UUID.randomUUID(), "You idiot", "Perfectly ordinary body text.", UUID.randomUUID());
 
         assertThat(engine.evaluate(request).decision()).isEqualTo(ModerationDecision.REMOVE);
@@ -127,6 +127,6 @@ class KeywordModerationEngineTest {
     }
 
     private ModerationRequest request(String body) {
-        return new ModerationRequest(TargetType.POST, UUID.randomUUID(), null, body, UUID.randomUUID());
+        return ModerationRequest.of(TargetType.POST, UUID.randomUUID(), null, body, UUID.randomUUID());
     }
 }

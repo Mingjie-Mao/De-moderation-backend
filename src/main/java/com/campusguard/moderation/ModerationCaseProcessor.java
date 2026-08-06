@@ -102,31 +102,33 @@ public class ModerationCaseProcessor {
             return;
         }
 
-        ModerationEngine engine = engines.primary();
-        ModerationRequest request = toRequest(content.get());
+        ModerationEngine primary = engines.primary();
+        ModerationRequest request = toRequest(content.get()).forCase(caseId);
 
         long startedAt = System.nanoTime();
         ModerationVerdict verdict;
-        String engineName = engine.name();
+        String engineName;
+        boolean degraded = false;
 
         try {
-            verdict = engine.evaluate(request);
-        } catch (RuntimeException ex) {
-            // The queue must keep moving when an engine does not. This path is
-            // exercised by term matching only in tests today; it is the same path
-            // a timeout or a malformed model response will take.
-            log.warn("Engine {} failed on case {}; escalating instead.", engineName, caseId, ex);
-            verdict = ModerationVerdict.escalate(
-                    "Automated analysis failed (" + ex.getClass().getSimpleName() + "). Needs a human.");
-            engineName = engine.name() + "-failed";
+            verdict = primary.evaluate(request);
+            engineName = primary.name();
 
+        } catch (RuntimeException ex) {
+            log.warn("Engine {} failed on case {}.", primary.name(), caseId, ex);
             auditLogger.record(
                     AuditActorType.ENGINE,
                     null,
                     AuditLogger.ANALYSIS_FAILED,
                     moderationCase.getTargetType(),
                     moderationCase.getTargetId(),
-                    Map.of("caseId", caseId.toString(), "engine", engine.name(), "error", String.valueOf(ex.getMessage())));
+                    Map.of("caseId", caseId.toString(), "engine", primary.name(),
+                            "error", String.valueOf(ex.getMessage())));
+
+            Degradation degradation = degrade(moderationCase, request, primary);
+            verdict = degradation.verdict();
+            engineName = degradation.engineName();
+            degraded = true;
         }
 
         long millis = Duration.ofNanos(System.nanoTime() - startedAt).toMillis();
@@ -135,6 +137,7 @@ public class ModerationCaseProcessor {
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("latencyMs", millis);
+        payload.put("degraded", degraded);
         recordOutcome(moderationCase, payload);
     }
 
@@ -153,6 +156,60 @@ public class ModerationCaseProcessor {
             log.info("Returned {} stalled case(s) to the queue.", stalled.size());
         }
         return stalled.size();
+    }
+
+    /**
+     * What happens when the primary engine fails.
+     *
+     * <p>Falling back to the rule engine rather than escalating everything is the
+     * difference between a degraded service and a stalled one. If a model is
+     * unavailable for an hour, escalating every case in that hour hands a human
+     * queue the entire traffic of the forum; the rule engine still filters the
+     * obvious cases, and the reviewer sees which verdicts came from where.
+     *
+     * <p>The engine name recorded is the one that actually answered. Attributing a
+     * rule-engine verdict to the model would corrupt exactly the comparison the
+     * evaluation exists to make.
+     */
+    private Degradation degrade(
+            ModerationCase moderationCase, ModerationRequest request, ModerationEngine primary) {
+
+        ModerationEngine fallback = engines.fallback();
+
+        if (fallback == primary) {
+            // Nothing left to fall back to: the rule engine itself failed.
+            return new Degradation(
+                    "none",
+                    ModerationVerdict.escalate(
+                            "Automated analysis is unavailable. This case needs a human."));
+        }
+
+        try {
+            ModerationVerdict verdict = fallback.evaluate(request);
+
+            auditLogger.record(
+                    AuditActorType.ENGINE,
+                    null,
+                    AuditLogger.ENGINE_DEGRADED,
+                    moderationCase.getTargetType(),
+                    moderationCase.getTargetId(),
+                    Map.of(
+                            "caseId", moderationCase.getId().toString(),
+                            "from", primary.name(),
+                            "to", fallback.name()));
+
+            return new Degradation(fallback.name(), verdict);
+
+        } catch (RuntimeException ex) {
+            log.error("Fallback engine {} also failed on case {}.", fallback.name(), moderationCase.getId(), ex);
+            return new Degradation(
+                    "none",
+                    ModerationVerdict.escalate(
+                            "Automated analysis is unavailable. This case needs a human."));
+        }
+    }
+
+    private record Degradation(String engineName, ModerationVerdict verdict) {
     }
 
     private void recordOutcome(ModerationCase moderationCase, Map<String, Object> extraPayload) {

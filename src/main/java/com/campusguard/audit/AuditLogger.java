@@ -24,6 +24,7 @@ public class AuditLogger {
     public static final String CASE_CLAIMED = "CASE_CLAIMED";
     public static final String VERDICT_RECORDED = "VERDICT_RECORDED";
     public static final String ANALYSIS_FAILED = "ANALYSIS_FAILED";
+    public static final String ENGINE_DEGRADED = "ENGINE_DEGRADED";
     public static final String CASE_RESOLVED = "CASE_RESOLVED";
     public static final String CONTENT_HIDDEN = "CONTENT_HIDDEN";
     public static final String AUTHOR_BANNED = "AUTHOR_BANNED";

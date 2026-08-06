@@ -2,6 +2,24 @@ spring:
   application:
     name: campusguard-backend
 
+  ai:
+    model:
+      # Off unless explicitly switched on. Spring AI's Gemini autoconfiguration
+      # activates by default once the dependency is present and then fails to
+      # build its client without credentials, so merely adding the library turns
+      # a missing key from a degradation into a total outage. That is the exact
+      # opposite of what this integration is supposed to demonstrate.
+      chat: ${AI_CHAT_MODEL:none}
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY:}
+        chat:
+          options:
+            # Recorded against every invocation, so cost stays attributable after
+            # a model change.
+            model: ${GEMINI_MODEL:gemini-2.5-flash}
+            temperature: 0.0
+
   web:
     # Validation messages come from Hibernate Validator's bundled translations,
     # which otherwise resolve against the server's machine locale: the same
@@ -57,13 +75,30 @@ campusguard:
   moderation:
     # Which registered engine judges live traffic. Swapping implementations is a
     # configuration change rather than a code change.
-    engine: keyword-v1
+    engine: ${MODERATION_ENGINE:keyword-v1}
+    # What the queue degrades to. Never a model: an outage must not take the
+    # primary path and its fallback down together.
+    fallback-engine: keyword-v1
     batch-size: 20
     poll-interval: 2s
     # A case held longer than this is assumed to belong to a worker that died,
     # and goes back on the queue.
     stalled-after: 5m
     scheduler-enabled: true
+
+    ai:
+      # One call's budget. A slow queue recovers; a queue whose threads are all
+      # parked on calls that will never answer does not.
+      call-timeout: 10s
+      # Once half of the recent calls have failed, stop sending them. Without
+      # this, an outage costs the full timeout on every single case.
+      failure-rate-threshold: 50
+      open-duration: 30s
+      sliding-window-size: 10
+      # Two attempts means one corrective retry. A model that produced nonsense
+      # twice with the mistake spelled out will not produce sense on the third
+      # try, and every attempt is billed.
+      max-attempts: 2
 
 management:
   endpoints:

@@ -1,5 +1,6 @@
 package com.campusguard.moderation;
 
+import com.campusguard.moderation.engine.ai.AiProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,6 +12,6 @@ import org.springframework.context.annotation.Configuration;
  * needed by anything that drives the queue by hand.
  */
 @Configuration
-@EnableConfigurationProperties(ModerationProperties.class)
+@EnableConfigurationProperties({ModerationProperties.class, AiProperties.class})
 public class ModerationConfig {
 }
