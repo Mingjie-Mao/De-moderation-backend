@@ -2,6 +2,15 @@ spring:
   application:
     name: campusguard-backend
 
+  web:
+    # Validation messages come from Hibernate Validator's bundled translations,
+    # which otherwise resolve against the server's machine locale: the same
+    # request would return English on one host and Chinese on another. Pinning
+    # the fallback makes the response depend on the request instead of on the
+    # deployment. The resolver stays the default accept-header one, so a client
+    # that asks for another language still gets it.
+    locale: en
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:campusguard}
     username: ${DB_USER:campusguard}
@@ -24,6 +33,20 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    # Endpoints are grouped by tag rather than listed in discovery order, so the
+    # UI reads as a moderation console instead of a flat dump.
+    tags-sorter: alpha
+    operations-sorter: method
+
+campusguard:
+  dev:
+    # Local scaffolding: creates demo accounts because registration does not
+    # exist yet. Must be false anywhere real accounts exist.
+    seed-users: true
 
 management:
   endpoints:
