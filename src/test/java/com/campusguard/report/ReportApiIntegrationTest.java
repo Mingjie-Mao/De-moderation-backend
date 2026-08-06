@@ -17,7 +17,7 @@ import org.springframework.http.MediaType;
 class ReportApiIntegrationTest extends AbstractIntegrationTest {
 
     @Test
-    void reportsAPostAndStartsItInPendingState() throws Exception {
+    void reportsAPostAndAggregatesItIntoACaseImmediately() throws Exception {
         User author = newUser();
         User reporter = newUser();
         UUID postId = createPost(author);
@@ -27,7 +27,9 @@ class ReportApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreateReportRequest(TargetType.POST, postId, ReportReason.SPAM))))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("PENDING"))
+                // Filing a report opens or joins its case in the same
+                // transaction, so it is aggregated by the time anyone can see it.
+                .andExpect(jsonPath("$.status").value("AGGREGATED"))
                 .andExpect(jsonPath("$.targetType").value("POST"))
                 .andExpect(jsonPath("$.targetId").value(postId.toString()))
                 .andExpect(jsonPath("$.reporter.username").value(reporter.getUsername()))

@@ -49,6 +49,16 @@ public class User {
         this.status = UserStatus.ACTIVE;
     }
 
+    /**
+     * Takes effect for new logins immediately, and for an already-issued token
+     * only when that token expires. Nothing here revokes outstanding tokens; the
+     * short token lifetime is what bounds the gap, and closing it properly would
+     * need either a revocation list or a per-user token version.
+     */
+    public void ban() {
+        this.status = UserStatus.BANNED;
+    }
+
     public UUID getId() {
         return id;
     }

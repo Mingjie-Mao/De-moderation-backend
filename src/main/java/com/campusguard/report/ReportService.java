@@ -1,13 +1,17 @@
 package com.campusguard.report;
 
+import com.campusguard.audit.AuditActorType;
+import com.campusguard.audit.AuditLogger;
 import com.campusguard.comment.CommentRepository;
 import com.campusguard.common.ConflictException;
 import com.campusguard.common.NotFoundException;
 import com.campusguard.common.TargetType;
+import com.campusguard.moderation.ModerationCaseService;
 import com.campusguard.post.PostRepository;
 import com.campusguard.user.User;
 import com.campusguard.user.UserRepository;
 import com.campusguard.user.UserRole;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -20,16 +24,22 @@ public class ReportService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final ModerationCaseService moderationCaseService;
+    private final AuditLogger auditLogger;
 
     public ReportService(
             ReportRepository reportRepository,
             PostRepository postRepository,
             CommentRepository commentRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            ModerationCaseService moderationCaseService,
+            AuditLogger auditLogger) {
         this.reportRepository = reportRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
+        this.moderationCaseService = moderationCaseService;
+        this.auditLogger = auditLogger;
     }
 
     @Transactional
@@ -48,10 +58,24 @@ public class ReportService {
             throw new ConflictException("You have already reported this content.");
         }
 
+        // The case is opened before the report is written so that the report can
+        // be stored already pointing at it, rather than saved and then updated.
+        UUID caseId = moderationCaseService.openOrJoinCase(request.targetType(), request.targetId());
+
+        Report report =
+                new Report(request.targetType(), request.targetId(), reporter, request.reason(), caseId);
+
         // Flushed so that createdAt is populated for the response, and so that a
         // race lost to the unique index fails here rather than at commit.
-        Report report = reportRepository.saveAndFlush(
-                new Report(request.targetType(), request.targetId(), reporter, request.reason()));
+        reportRepository.saveAndFlush(report);
+
+        auditLogger.record(
+                AuditActorType.USER,
+                reporterId,
+                AuditLogger.REPORT_FILED,
+                request.targetType(),
+                request.targetId(),
+                Map.of("reportId", report.getId().toString(), "caseId", caseId.toString(), "reason", request.reason().name()));
 
         return ReportResponse.of(report);
     }

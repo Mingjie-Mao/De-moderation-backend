@@ -54,6 +54,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/posts/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*/comments").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        // Guarded by prefix rather than per endpoint, so a new
+                        // administrative route is restricted by default instead
+                        // of restricted only if somebody remembers to annotate it.
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(PUBLIC_DOCS).permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(resourceServer -> resourceServer

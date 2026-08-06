@@ -46,7 +46,11 @@ import org.testcontainers.containers.PostgreSQLContainer;
             // A fixed test key. Production has no default at all and refuses to
             // start without one; tests need determinism, not secrecy.
             "campusguard.security.jwt.secret=test-signing-key-that-is-long-enough-for-hs256",
-            "campusguard.security.jwt.ttl=15m"
+            "campusguard.security.jwt.ttl=15m",
+            // The queue is drained by calling the worker directly. A background
+            // poll would race every assertion about what state a case is in, and
+            // the resulting test would fail once in every few dozen runs.
+            "campusguard.moderation.scheduler-enabled=false"
         })
 public abstract class AbstractIntegrationTest {
 

@@ -49,6 +49,16 @@ public class Report {
     @Column(nullable = false, length = 20)
     private ReportStatus status;
 
+    /**
+     * The case this report was folded into.
+     *
+     * <p>A plain id rather than an association: cases already reach back into
+     * reports, and mapping the other direction as well would make the two
+     * packages depend on each other's types for no gain at either end.
+     */
+    @Column(name = "case_id")
+    private UUID caseId;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -57,12 +67,27 @@ public class Report {
         // for JPA
     }
 
-    public Report(TargetType targetType, UUID targetId, User reporter, ReportReason reason) {
+    /**
+     * A report is constructed already belonging to a case. Taking the case id
+     * here rather than through a later setter is what makes "a report without a
+     * case" unrepresentable instead of merely unlikely.
+     */
+    public Report(TargetType targetType, UUID targetId, User reporter, ReportReason reason, UUID caseId) {
         this.targetType = targetType;
         this.targetId = targetId;
         this.reporter = reporter;
         this.reason = reason;
-        this.status = ReportStatus.PENDING;
+        this.caseId = caseId;
+        this.status = ReportStatus.AGGREGATED;
+    }
+
+    /** Called when the case this report fed is decided. */
+    public void markResolved() {
+        this.status = ReportStatus.RESOLVED;
+    }
+
+    public UUID getCaseId() {
+        return caseId;
     }
 
     public UUID getId() {
