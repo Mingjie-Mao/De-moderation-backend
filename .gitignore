@@ -1,0 +1,33 @@
+# --- Secrets: never commit these ---
+.env
+.env.local
+*.key
+*.pem
+application-local.yml
+application-local.yaml
+src/main/resources/application-local.*
+
+# --- Maven ---
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# --- IDE ---
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+nbproject/private/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Logs / runtime ---
+*.log
+logs/

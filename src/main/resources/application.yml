@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: campusguard-backend
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:campusguard}
+    username: ${DB_USER:campusguard}
+    password: ${DB_PASSWORD:campusguard}
+
+  jpa:
+    # validate, not update: the schema is owned by Flyway. If an entity and a
+    # migration disagree, the app must fail at startup rather than silently
+    # mutating the database.
+    hibernate:
+      ddl-auto: validate
+    # Off by default here: keeping a session open through view rendering hides
+    # lazy-loading problems and holds connections longer than necessary.
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.campusguard: debug

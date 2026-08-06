@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: campusguard-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-campusguard}
+      POSTGRES_USER: ${DB_USER:-campusguard}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-campusguard}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - campusguard-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-campusguard} -d ${DB_NAME:-campusguard}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  campusguard-pgdata:
