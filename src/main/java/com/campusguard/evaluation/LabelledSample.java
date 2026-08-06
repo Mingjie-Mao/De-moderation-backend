@@ -1,0 +1,22 @@
+package com.campusguard.evaluation;
+
+import com.campusguard.moderation.ModerationDecision;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+/**
+ * One hand-labelled piece of content.
+ *
+ * @param category the five-way editorial label: NORMAL, ABUSE, SPAM, ILLEGAL or
+ *     BORDERLINE. Kept because it says what kind of mistake an engine made, which
+ *     a three-way action cannot.
+ * @param expected the action a correct system would take. Metrics are reported
+ *     over this rather than over {@code category}, because with a couple of
+ *     hundred samples split five ways each class has too few members for its F1
+ *     to mean much, and because these three are what the system can actually do.
+ * @param note why this sample was labelled the way it was; only read by humans,
+ *     and the thing that makes a disputed label settleable
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record LabelledSample(
+        String id, String category, ModerationDecision expected, String title, String body, String note) {
+}
