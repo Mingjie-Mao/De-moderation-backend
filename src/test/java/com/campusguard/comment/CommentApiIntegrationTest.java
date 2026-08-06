@@ -65,7 +65,7 @@ class CommentApiIntegrationTest extends AbstractIntegrationTest {
         UUID parentOnOtherPost = createComment(author, otherPostId, null, "Elsewhere");
 
         mockMvc.perform(post("/api/posts/{postId}/comments", postId)
-                        .header("X-User-Id", author.getId())
+                        .header("Authorization", bearer(author))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreateCommentRequest(parentOnOtherPost, "Orphan"))))
                 .andExpect(status().isNotFound());
@@ -77,7 +77,7 @@ class CommentApiIntegrationTest extends AbstractIntegrationTest {
         UUID postId = createPost(author);
 
         mockMvc.perform(post("/api/posts/{postId}/comments", postId)
-                        .header("X-User-Id", author.getId())
+                        .header("Authorization", bearer(author))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreateCommentRequest(null, "   "))))
                 .andExpect(status().isBadRequest())
@@ -92,7 +92,7 @@ class CommentApiIntegrationTest extends AbstractIntegrationTest {
 
     private UUID createPost(User author) throws Exception {
         String body = mockMvc.perform(post("/api/posts")
-                        .header("X-User-Id", author.getId())
+                        .header("Authorization", bearer(author))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreatePostRequest(uniqueForumKey(), "Title", "Body"))))
                 .andExpect(status().isCreated())
@@ -105,7 +105,7 @@ class CommentApiIntegrationTest extends AbstractIntegrationTest {
 
     private UUID createComment(User author, UUID postId, UUID parentId, String text) throws Exception {
         String body = mockMvc.perform(post("/api/posts/{postId}/comments", postId)
-                        .header("X-User-Id", author.getId())
+                        .header("Authorization", bearer(author))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreateCommentRequest(parentId, text))))
                 .andExpect(status().isCreated())

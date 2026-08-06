@@ -3,9 +3,12 @@ package com.campusguard.post;
 import com.campusguard.common.NotFoundException;
 import com.campusguard.user.User;
 import com.campusguard.user.UserRepository;
+import com.campusguard.user.UserRole;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,5 +66,38 @@ public class PostService {
                 .findLiveById(id)
                 .map(PostResponse::of)
                 .orElseThrow(() -> new NotFoundException("No post with id " + id));
+    }
+
+    /**
+     * Soft delete: the row survives so that reports already pointing at it still
+     * resolve, and so a moderation decision remains auditable after the content
+     * stops being visible.
+     *
+     * <p>The caller's role is re-read from the database instead of taken from the
+     * token. A token issued before someone was demoted still carries the old role
+     * until it expires, which is tolerable for reads and not tolerable for a
+     * destructive action.
+     *
+     * <p>No explicit save: the entity is managed inside this transaction, so
+     * Hibernate's dirty checking writes the timestamp at flush.
+     */
+    @Transactional
+    public void delete(UUID actorId, UUID postId) {
+        Post post = postRepository
+                .findLiveById(postId)
+                .orElseThrow(() -> new NotFoundException("No post with id " + postId));
+
+        User actor = userRepository
+                .findById(actorId)
+                .orElseThrow(() -> new NotFoundException("No user with id " + actorId));
+
+        boolean isAuthor = post.getAuthor().getId().equals(actorId);
+        boolean isAdmin = actor.getRole() == UserRole.ADMIN;
+
+        if (!isAuthor && !isAdmin) {
+            throw new AccessDeniedException("Only the author or an administrator can delete this post.");
+        }
+
+        post.softDelete(Instant.now());
     }
 }

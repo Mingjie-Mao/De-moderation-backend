@@ -7,7 +7,9 @@ import com.campusguard.common.TargetType;
 import com.campusguard.post.PostRepository;
 import com.campusguard.user.User;
 import com.campusguard.user.UserRepository;
+import com.campusguard.user.UserRole;
 import java.util.UUID;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,12 +56,32 @@ public class ReportService {
         return ReportResponse.of(report);
     }
 
+    /**
+     * Readable by the account that filed it and by administrators, nobody else.
+     *
+     * <p>The response names the reporter, and in content moderation a reporter's
+     * anonymity towards the person they reported is the whole reason people
+     * report at all. Without this check, anyone holding a report id could learn
+     * who turned them in.
+     */
     @Transactional(readOnly = true)
-    public ReportResponse get(UUID id) {
-        return reportRepository
+    public ReportResponse get(UUID actorId, UUID id) {
+        Report report = reportRepository
                 .findByIdWithReporter(id)
-                .map(ReportResponse::of)
                 .orElseThrow(() -> new NotFoundException("No report with id " + id));
+
+        User actor = userRepository
+                .findById(actorId)
+                .orElseThrow(() -> new NotFoundException("No user with id " + actorId));
+
+        boolean isReporter = report.getReporter().getId().equals(actorId);
+        boolean isAdmin = actor.getRole() == UserRole.ADMIN;
+
+        if (!isReporter && !isAdmin) {
+            throw new AccessDeniedException("Only the reporter or an administrator can read this report.");
+        }
+
+        return ReportResponse.of(report);
     }
 
     /**

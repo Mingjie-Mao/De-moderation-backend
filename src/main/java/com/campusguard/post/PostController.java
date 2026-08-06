@@ -1,6 +1,8 @@
 package com.campusguard.post;
 
+import com.campusguard.security.AuthenticatedUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -8,11 +10,13 @@ import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -29,19 +33,13 @@ public class PostController {
         this.postService = postService;
     }
 
-    /**
-     * The acting user arrives as a header until authentication exists. Making it
-     * an explicit parameter rather than hiding it behind a resolver keeps the
-     * temporary nature of it visible in the signature and in Swagger, and the
-     * swap to an authenticated principal touches this line only.
-     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @SecurityRequirement(name = "bearer-jwt")
     @Operation(summary = "Create a post")
     public PostResponse create(
-            @RequestHeader("X-User-Id") UUID actorId,
-            @Valid @RequestBody CreatePostRequest request) {
-        return postService.create(actorId, request);
+            @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreatePostRequest request) {
+        return postService.create(AuthenticatedUser.idOf(jwt), request);
     }
 
     @GetMapping
@@ -56,5 +54,13 @@ public class PostController {
     @Operation(summary = "Fetch a single live post")
     public PostResponse get(@PathVariable UUID id) {
         return postService.get(id);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @SecurityRequirement(name = "bearer-jwt")
+    @Operation(summary = "Soft-delete a post; permitted to its author or an administrator")
+    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        postService.delete(AuthenticatedUser.idOf(jwt), id);
     }
 }

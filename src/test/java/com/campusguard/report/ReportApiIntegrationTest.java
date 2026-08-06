@@ -23,7 +23,7 @@ class ReportApiIntegrationTest extends AbstractIntegrationTest {
         UUID postId = createPost(author);
 
         String body = mockMvc.perform(post("/api/reports")
-                        .header("X-User-Id", reporter.getId())
+                        .header("Authorization", bearer(reporter))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreateReportRequest(TargetType.POST, postId, ReportReason.SPAM))))
                 .andExpect(status().isCreated())
@@ -38,9 +38,59 @@ class ReportApiIntegrationTest extends AbstractIntegrationTest {
 
         UUID reportId = UUID.fromString(JsonPath.read(body, "$.id"));
 
-        mockMvc.perform(get("/api/reports/{id}", reportId))
+        mockMvc.perform(get("/api/reports/{id}", reportId).header("Authorization", bearer(reporter)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.reason").value("SPAM"));
+    }
+
+    /**
+     * A report names the person who filed it. Letting any authenticated account
+     * read any report by id would hand the reported user the identity of whoever
+     * turned them in, which is the one thing a reporting feature must not do.
+     */
+    @Test
+    void aStrangerCannotReadSomeoneElsesReport() throws Exception {
+        User author = newUser();
+        User reporter = newUser();
+        UUID postId = createPost(author);
+
+        UUID reportId = UUID.fromString(JsonPath.read(
+                submitReport(reporter, postId, ReportReason.SPAM)
+                        .andExpect(status().isCreated())
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString(),
+                "$.id"));
+
+        mockMvc.perform(get("/api/reports/{id}", reportId).header("Authorization", bearer(author)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.title").value("Access denied"));
+    }
+
+    @Test
+    void anAdministratorCanReadAnyReport() throws Exception {
+        User author = newUser();
+        User reporter = newUser();
+        User admin = newAdmin();
+        UUID postId = createPost(author);
+
+        UUID reportId = UUID.fromString(JsonPath.read(
+                submitReport(reporter, postId, ReportReason.ABUSE)
+                        .andExpect(status().isCreated())
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString(),
+                "$.id"));
+
+        mockMvc.perform(get("/api/reports/{id}", reportId).header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reporter.username").value(reporter.getUsername()));
+    }
+
+    @Test
+    void readingAReportWithoutATokenIsRejected() throws Exception {
+        mockMvc.perform(get("/api/reports/{id}", UUID.randomUUID()))
+                .andExpect(status().isUnauthorized());
     }
 
     /**
@@ -56,7 +106,7 @@ class ReportApiIntegrationTest extends AbstractIntegrationTest {
         submitReport(reporter, postId, ReportReason.SPAM).andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/reports")
-                        .header("X-User-Id", reporter.getId())
+                        .header("Authorization", bearer(reporter))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreateReportRequest(TargetType.POST, postId, ReportReason.ABUSE))))
                 .andExpect(status().isConflict())
@@ -83,7 +133,7 @@ class ReportApiIntegrationTest extends AbstractIntegrationTest {
     @Test
     void rejectsAReportAgainstContentThatDoesNotExist() throws Exception {
         mockMvc.perform(post("/api/reports")
-                        .header("X-User-Id", newUser().getId())
+                        .header("Authorization", bearer(newUser()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreateReportRequest(
                                 TargetType.POST, UUID.randomUUID(), ReportReason.SPAM))))
@@ -96,7 +146,7 @@ class ReportApiIntegrationTest extends AbstractIntegrationTest {
         UUID postId = createPost(author);
 
         mockMvc.perform(post("/api/reports")
-                        .header("X-User-Id", newUser().getId())
+                        .header("Authorization", bearer(newUser()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreateReportRequest(TargetType.POST, postId, null))))
                 .andExpect(status().isBadRequest())
@@ -106,14 +156,14 @@ class ReportApiIntegrationTest extends AbstractIntegrationTest {
     private org.springframework.test.web.servlet.ResultActions submitReport(
             User reporter, UUID postId, ReportReason reason) throws Exception {
         return mockMvc.perform(post("/api/reports")
-                .header("X-User-Id", reporter.getId())
+                .header("Authorization", bearer(reporter))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json(new CreateReportRequest(TargetType.POST, postId, reason))));
     }
 
     private UUID createPost(User author) throws Exception {
         String body = mockMvc.perform(post("/api/posts")
-                        .header("X-User-Id", author.getId())
+                        .header("Authorization", bearer(author))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreatePostRequest(uniqueForumKey(), "Title", "Body"))))
                 .andExpect(status().isCreated())

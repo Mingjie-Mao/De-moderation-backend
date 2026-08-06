@@ -1,14 +1,24 @@
 package com.campusguard;
 
+import com.campusguard.security.TokenIssuer;
 import com.campusguard.user.User;
 import com.campusguard.user.UserRepository;
 import com.campusguard.user.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -31,7 +41,13 @@ import org.testcontainers.containers.PostgreSQLContainer;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(properties = "campusguard.dev.seed-users=false")
+@TestPropertySource(
+        properties = {
+            // A fixed test key. Production has no default at all and refuses to
+            // start without one; tests need determinism, not secrecy.
+            "campusguard.security.jwt.secret=test-signing-key-that-is-long-enough-for-hs256",
+            "campusguard.security.jwt.ttl=15m"
+        })
 public abstract class AbstractIntegrationTest {
 
     @ServiceConnection
@@ -40,6 +56,8 @@ public abstract class AbstractIntegrationTest {
     static {
         POSTGRES.start();
     }
+
+    protected static final String RAW_PASSWORD = "correct-horse-battery";
 
     @Autowired
     protected MockMvc mockMvc;
@@ -50,6 +68,15 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected UserRepository userRepository;
 
+    @Autowired
+    protected PasswordEncoder passwordEncoder;
+
+    @Autowired
+    protected TokenIssuer tokenIssuer;
+
+    @Autowired
+    protected JwtEncoder jwtEncoder;
+
     /**
      * A fresh account per test. Tests share one database, so isolation comes from
      * each test owning its own actors and forum key rather than from rolling back
@@ -57,8 +84,45 @@ public abstract class AbstractIntegrationTest {
      * transactions being exercised.
      */
     protected User newUser() {
+        return newUser(UserRole.MEMBER);
+    }
+
+    protected User newAdmin() {
+        return newUser(UserRole.ADMIN);
+    }
+
+    protected User newUser(UserRole role) {
         String username = "user_" + UUID.randomUUID().toString().substring(0, 8);
-        return userRepository.save(new User(username, "not-a-real-hash", UserRole.MEMBER));
+        return userRepository.saveAndFlush(
+                new User(username, passwordEncoder.encode(RAW_PASSWORD), role));
+    }
+
+    /** Tokens are minted directly rather than through the login endpoint, so that a test of posting is not also a test of logging in. */
+    protected String bearer(User user) {
+        return "Bearer " + tokenIssuer.issue(user);
+    }
+
+    /**
+     * A correctly signed token whose subject is nobody. This is what an account
+     * deleted after its token was issued looks like from the server's side, and
+     * it is the only way to reach that path now that identity comes from a
+     * signature rather than from a header the caller writes.
+     */
+    protected String bearerForUnknownUser() {
+        Instant now = Instant.now();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("campusguard")
+                .issuedAt(now)
+                .expiresAt(now.plus(15, ChronoUnit.MINUTES))
+                .subject(UUID.randomUUID().toString())
+                .claim("roles", List.of(UserRole.MEMBER.name()))
+                .build();
+
+        String token = jwtEncoder
+                .encode(JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims))
+                .getTokenValue();
+
+        return "Bearer " + token;
     }
 
     protected String uniqueForumKey() {

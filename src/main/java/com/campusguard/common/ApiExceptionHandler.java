@@ -3,6 +3,10 @@ package com.campusguard.common;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -36,6 +40,43 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     public ProblemDetail handleConflict(ConflictException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Conflicting request");
+        return problem;
+    }
+
+    /**
+     * Raised by a service that has loaded the target and found the caller has no
+     * claim to it. Authentication already succeeded at this point, so the answer
+     * is 403 rather than 401: retrying with the same token will not help.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problem.setTitle("Access denied");
+        return problem;
+    }
+
+    /**
+     * Deliberately does not echo the exception message, which distinguishes an
+     * unknown username from a wrong password and would turn login into an account
+     * enumeration oracle.
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ProblemDetail handleBadCredentials(BadCredentialsException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED, "Invalid username or password.");
+        problem.setTitle("Authentication failed");
+        return problem;
+    }
+
+    /**
+     * Suspended and banned accounts, in contrast, are told exactly what happened:
+     * the caller has already proven they own the account, and a moderation action
+     * they cannot see is one they cannot appeal.
+     */
+    @ExceptionHandler({DisabledException.class, LockedException.class})
+    public ProblemDetail handleAccountUnavailable(RuntimeException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problem.setTitle("Account unavailable");
         return problem;
     }
 

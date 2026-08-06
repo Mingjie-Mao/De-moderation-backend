@@ -20,7 +20,7 @@ class PostApiIntegrationTest extends AbstractIntegrationTest {
         String forumKey = uniqueForumKey();
 
         mockMvc.perform(post("/api/posts")
-                        .header("X-User-Id", author.getId())
+                        .header("Authorization", bearer(author))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreatePostRequest(forumKey, "Lost keys", "Near the library."))))
                 .andExpect(status().isCreated())
@@ -46,7 +46,7 @@ class PostApiIntegrationTest extends AbstractIntegrationTest {
         String forumKey = uniqueForumKey();
 
         mockMvc.perform(post("/api/posts")
-                        .header("X-User-Id", author.getId())
+                        .header("Authorization", bearer(author))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreatePostRequest(forumKey, "Title", "Body"))))
                 .andExpect(status().isCreated())
@@ -90,7 +90,7 @@ class PostApiIntegrationTest extends AbstractIntegrationTest {
         User author = newUser();
 
         mockMvc.perform(post("/api/posts")
-                        .header("X-User-Id", author.getId())
+                        .header("Authorization", bearer(author))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreatePostRequest(uniqueForumKey(), "  ", "Body"))))
                 .andExpect(status().isBadRequest())
@@ -105,10 +105,15 @@ class PostApiIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.title").value("Resource not found"));
     }
 
+    /**
+     * A correctly signed token outlives the account it was issued for. The
+     * signature verifies, so the request gets past authentication and only fails
+     * when the service goes looking for the user.
+     */
     @Test
-    void returnsNotFoundWhenTheActingUserDoesNotExist() throws Exception {
+    void returnsNotFoundWhenTheTokenOutlivesItsAccount() throws Exception {
         mockMvc.perform(post("/api/posts")
-                        .header("X-User-Id", UUID.randomUUID())
+                        .header("Authorization", bearerForUnknownUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreatePostRequest(uniqueForumKey(), "Title", "Body"))))
                 .andExpect(status().isNotFound());
@@ -116,7 +121,7 @@ class PostApiIntegrationTest extends AbstractIntegrationTest {
 
     private void createPost(User author, String forumKey, String title) throws Exception {
         mockMvc.perform(post("/api/posts")
-                        .header("X-User-Id", author.getId())
+                        .header("Authorization", bearer(author))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreatePostRequest(forumKey, title, "Body"))))
                 .andExpect(status().isCreated());

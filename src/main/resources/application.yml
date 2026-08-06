@@ -43,10 +43,16 @@ springdoc:
     operations-sorter: method
 
 campusguard:
-  dev:
-    # Local scaffolding: creates demo accounts because registration does not
-    # exist yet. Must be false anywhere real accounts exist.
-    seed-users: true
+  security:
+    jwt:
+      # No default. A fallback signing key is the kind of thing that reaches
+      # production unnoticed, and a token signed with a publicly known key is not
+      # authentication at all, so startup fails when this is unset.
+      secret: ${JWT_SECRET}
+      # Short, because nothing revokes a token that has already been issued: a
+      # ban or a demotion only takes full effect once the outstanding token
+      # expires.
+      ttl: 1h
 
 management:
   endpoints:
