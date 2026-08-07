@@ -15,9 +15,14 @@ spring:
         api-key: ${GEMINI_API_KEY:}
         chat:
           options:
-            # Recorded against every invocation, so cost stays attributable after
-            # a model change.
-            model: ${GEMINI_MODEL:gemini-2.5-flash}
+            # An alias rather than a pinned version. A pinned one was the first
+            # thing to break on real contact: gemini-2.5-flash answered 404 with
+            # "no longer available to new users", which is a failure mode a
+            # version number invites and an alias does not.
+            #
+            # Recorded against every invocation regardless, so cost stays
+            # attributable across a model change.
+            model: ${GEMINI_MODEL:gemini-flash-latest}
             temperature: 0.0
 
   data:
@@ -104,7 +109,13 @@ campusguard:
     ai:
       # One call's budget. A slow queue recovers; a queue whose threads are all
       # parked on calls that will never answer does not.
-      call-timeout: 10s
+      #
+      # Was 10s, chosen before anything had been measured. On the first real run
+      # that cut off 14 of 24 calls, while the ones that did land had a median of
+      # 2.3s and a 95th percentile of 4.2s — a long tail rather than a broken
+      # provider. 30s keeps the tail and still bounds the damage, and the circuit
+      # breaker is what handles an outage.
+      call-timeout: 30s
       # Once half of the recent calls have failed, stop sending them. Without
       # this, an outage costs the full timeout on every single case.
       failure-rate-threshold: 50

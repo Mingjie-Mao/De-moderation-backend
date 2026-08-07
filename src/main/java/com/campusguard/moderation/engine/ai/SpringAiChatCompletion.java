@@ -57,8 +57,38 @@ public class SpringAiChatCompletion implements ChatCompletionPort {
             // Refused credentials, rate limiting and transport failures all arrive
             // as vendor-specific exceptions. They are flattened here so that
             // nothing above this class has to know a second SDK's type hierarchy.
-            throw new ModelCallException(InvocationStatus.ERROR, String.valueOf(ex.getMessage()), ex);
+            throw new ModelCallException(InvocationStatus.ERROR, describe(ex), ex);
         }
+    }
+
+    /**
+     * Flattens the cause chain into the message.
+     *
+     * <p>Taking only the top-level message lost every useful detail on the first
+     * real call this project ever made: the operator saw "Failed to generate
+     * content" while the cause underneath said the model had been retired, and on
+     * the next attempt that the project had no quota at all. Those are three
+     * different problems with three different fixes, and the wrapper was hiding
+     * all of them behind one sentence that named none.
+     */
+    private String describe(Throwable failure) {
+        StringBuilder message = new StringBuilder();
+        Throwable current = failure;
+        int depth = 0;
+
+        while (current != null && depth < 5) {
+            String text = current.getMessage();
+            if (text != null && !text.isBlank() && message.indexOf(text) < 0) {
+                if (!message.isEmpty()) {
+                    message.append(" | ");
+                }
+                message.append(current.getClass().getSimpleName()).append(": ").append(text.strip());
+            }
+            current = current.getCause() == current ? null : current.getCause();
+            depth++;
+        }
+
+        return message.isEmpty() ? failure.getClass().getSimpleName() : message.toString();
     }
 
     private Integer asInt(Number value) {
