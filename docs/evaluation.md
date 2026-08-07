@@ -31,8 +31,8 @@ easier than the real half and the headline number is flattering by that much.
 
 | engine | status | accuracy | macro-F1 | macro-P | macro-R | errors | mean | p50 | p95 | tokens | est. cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| `keyword-v1` | OK | 0.505 | 0.286 | 0.403 | 0.369 | 0 | 0.523 ms | 0.364 ms | 0.694 ms | 0 | $0 |
-| `gemini-3.5-flash-lite/v1` | OK | 0.807 | 0.636 | 0.787 | 0.671 | 0 | 1143.783 ms | 871.146 ms | 1884.582 ms | 64488 + 13264 | not priced |
+| `keyword-v1` | OK | 0.505 | 0.286 | 0.403 | 0.369 | 0 | 0.480 ms | 0.315 ms | 0.728 ms | 0 | $0 |
+| `gemini-3.5-flash-lite/v2` | OK | 0.943 | 0.924 | 0.940 | 0.912 | 0 | 999.456 ms | 857.614 ms | 1662.337 ms | 125751 + 11513 | not priced |
 
 An engine that answered nothing scores zero on every column, which on a table
 is indistinguishable from an engine that answered everything wrongly. The
@@ -44,17 +44,17 @@ A higher average is not by itself a reason to switch. What matters is whether
 the candidate fixed the baseline's mistakes or traded them for different
 ones, and only the per-sample comparison answers that.
 
-### `gemini-3.5-flash-lite/v1` against `keyword-v1`
+### `gemini-3.5-flash-lite/v2` against `keyword-v1`
 
 | | count |
 |---|---|
 | both right | 96 |
-| candidate fixed | 59 |
+| candidate fixed | 85 |
 | candidate broke | 1 |
-| both wrong | 36 |
-| **net** | **+58** |
+| both wrong | 10 |
+| **net** | **+84** |
 
-**Fixed by the candidate** (59)
+**Fixed by the candidate** (85)
 
 | sample | category | expected | baseline | candidate | content |
 |---|---|---|---|---|---|
@@ -84,45 +84,28 @@ ones, and only the per-sample comparison answers that.
 | s122 | SPAM | REMOVE | ALLOW | REMOVE | Our tutoring agency has ex-lecturers on staff. First session half price, contact us today. |
 | s123 | SPAM | REMOVE | ALLOW | REMOVE | Crypto signals group, 300% returns last month, spots limited, join before it closes. |
 
-_34 more in `evaluation-samples.csv`._
+_60 more in `evaluation-samples.csv`._
 
 **Broken by the candidate** (1)
 
 | sample | category | expected | baseline | candidate | content |
 |---|---|---|---|---|---|
-| s052 | NORMAL | ALLOW | ALLOW | REMOVE | Get someone to review your resume before the next batch. One revision doubled my callba... |
+| s003 | NORMAL | ALLOW | ALLOW | ESCALATE | The moment the PC stops updating, my soul leaves my body. |
 
-**Wrong in both** (36)
+**Wrong in both** (10)
 
 | sample | category | expected | baseline | candidate | content |
 |---|---|---|---|---|---|
 | s091 | BORDERLINE | ESCALATE | ALLOW | ALLOW | Stop overthinking it and just copy the layout. |
 | s092 | BORDERLINE | ESCALATE | ALLOW | ALLOW | I write my own notes first, then ask AI to find gaps. That keeps me from being carried ... |
 | s113 | ABUSE | REMOVE | ALLOW | ESCALATE | She only got the internship because of who she knows. Everyone can see it. |
-| s114 | ABUSE | REMOVE | ALLOW | ALLOW | 这个助教根本不懂装懂，上课就是在浪费我们的钱。 |
-| s159 | BORDERLINE | ESCALATE | REMOVE | REMOVE | Someone replied to my post with 'kill yourself'. Is that something I should report or a... |
-| s160 | BORDERLINE | ESCALATE | REMOVE | ALLOW | My group member called me an idiot in the chat. Where do I raise this? |
-| s161 | BORDERLINE | ESCALATE | ALLOW | ALLOW | That two hour lecture was so bad I wanted to die. |
-| s162 | BORDERLINE | ESCALATE | ALLOW | ALLOW | I am going to actually explode if the library is full again tomorrow. |
+| s114 | ABUSE | REMOVE | ALLOW | ESCALATE | 这个助教根本不懂装懂，上课就是在浪费我们的钱。 |
 | s163 | BORDERLINE | ESCALATE | REMOVE | ALLOW | My friend called me an idiot for forgetting the meeting, which honestly is fair. |
-| s164 | BORDERLINE | ESCALATE | ALLOW | ALLOW | Is it against the rules to sell my own lecture notes to another student? |
-| s165 | BORDERLINE | ESCALATE | ALLOW | ALLOW | Quoting the post that got removed: 'nobody wants you here'. Was that really a ban? |
-| s166 | BORDERLINE | ESCALATE | ALLOW | ALLOW | The tutor said our work was the worst he had seen. Is that acceptable feedback? |
-| s167 | BORDERLINE | ESCALATE | ALLOW | ALLOW | Not naming names, but someone in our group has done zero work for three weeks. |
 | s168 | BORDERLINE | ESCALATE | ALLOW | ALLOW | Half this subreddit is people complaining. I include myself in that. |
-| s169 | BORDERLINE | ESCALATE | ALLOW | ALLOW | Genuine question: is asking AI to rewrite my draft considered academic misconduct here? |
-| s170 | BORDERLINE | ESCALATE | ALLOW | ALLOW | A recruiter DMed me an offer that seems too good. Should I report it or just ignore it? |
 | s171 | BORDERLINE | ESCALATE | ALLOW | ALLOW | My landlord is threatening to keep the bond. Any advice, or is this the wrong forum? |
-| s172 | BORDERLINE | ESCALATE | ALLOW | ALLOW | Someone is posting my photo without permission. What do I do? |
 | s173 | BORDERLINE | ESCALATE | ALLOW | ALLOW | I said something rude in a thread last night and regret it. Can I delete it? |
-| s174 | BORDERLINE | ESCALATE | ALLOW | ALLOW | Is it okay to share a past exam paper the lecturer put on Wattle? |
-| s175 | BORDERLINE | ESCALATE | ALLOW | ALLOW | 这门课的作业量真的让人想死，每周都写不完。 |
-| s176 | BORDERLINE | ESCALATE | ALLOW | ALLOW | 有人在评论区骂我，我截图了，应该发给谁处理？ |
-| s178 | BORDERLINE | ESCALATE | ALLOW | ALLOW | 请问转卖自己整理的笔记算不算违规？ |
-| s179 | BORDERLINE | ESCALATE | ALLOW | ALLOW | 楼上说的那句话我觉得有点过分，但也可能是我太敏感了。 |
-| s180 | BORDERLINE | ESCALATE | ALLOW | ALLOW | 有人转发了一段很难听的话，说是别人说的，这种要不要举报？ |
-
-_11 more in `evaluation-samples.csv`._
+| s181 | BORDERLINE | ESCALATE | ALLOW | ALLOW | 我把小组里那个人说得有点重，现在有点后悔，能撤回吗？ |
+| s187 | BORDERLINE | ESCALATE | ALLOW | ALLOW | I think the marking for this assignment was unfair, but I do not want to accuse anyone. |
 
 ## `keyword-v1` in detail
 
@@ -189,20 +172,20 @@ Rows are the labelled answer, columns what the engine said.
 
 _70 more in `evaluation-samples.csv`._
 
-## `gemini-3.5-flash-lite/v1` in detail
+## `gemini-3.5-flash-lite/v2` in detail
 
 | decision | support | precision | recall | F1 |
 |---|---|---|---|---|
-| ALLOW | 90 | 0.724 | 0.989 | 0.836 |
-| REMOVE | 66 | 0.970 | 0.970 | 0.970 |
-| ESCALATE | 36 | 0.667 | 0.056 | 0.103 |
+| ALLOW | 90 | 0.918 | 0.989 | 0.952 |
+| REMOVE | 66 | 1.000 | 0.970 | 0.985 |
+| ESCALATE | 36 | 0.903 | 0.778 | 0.836 |
 
 Scored separately by where the samples came from:
 
 | samples | n | accuracy | macro-F1 |
 |---|---|---|---|
-| from the app | 92 | 0.967 | 0.328 |
-| written for this | 100 | 0.660 | 0.362 |
+| from the app | 92 | 0.967 | 0.492 |
+| written for this | 100 | 0.920 | 0.620 |
 
 These two rows are **not comparable**. Each source is dominated by a single
 expected answer — the real content is almost all ALLOW, the written content
@@ -218,41 +201,25 @@ Rows are the labelled answer, columns what the engine said.
 
 | actual \ predicted | ALLOW | REMOVE | ESCALATE |
 |---|---|---|---|
-| **ALLOW** | 89 | 1 | 0 |
-| **REMOVE** | 1 | 64 | 1 |
-| **ESCALATE** | 33 | 1 | 2 |
+| **ALLOW** | 89 | 0 | 1 |
+| **REMOVE** | 0 | 64 | 2 |
+| **ESCALATE** | 8 | 0 | 28 |
 
-37 of 192 answered samples were judged wrongly.
+11 of 192 answered samples were judged wrongly.
 
 | sample | category | expected | got | content | engine said |
 |---|---|---|---|---|---|
-| s052 | NORMAL | ALLOW | REMOVE | Get someone to review your resume before the next batch. One revision doubled my callba... | This post promotes external services for resume revision, which violates the prohibition on commercial promotion and spam. |
-| s091 | BORDERLINE | ESCALATE | ALLOW | Stop overthinking it and just copy the layout. | The post is a short, generic piece of advice regarding a layout and does not violate any rules. |
-| s092 | BORDERLINE | ESCALATE | ALLOW | I write my own notes first, then ask AI to find gaps. That keeps me from being carried ... | The post discusses a personal study method using AI and does not violate any forum rules. |
-| s113 | ABUSE | REMOVE | ESCALATE | She only got the internship because of who she knows. Everyone can see it. | The comment borders on targeted harassment or gossip about a specific student, but lacks enough context to definitively cross the line into ABUSE. |
-| s114 | ABUSE | REMOVE | ALLOW | 这个助教根本不懂装懂，上课就是在浪费我们的钱。 | The comment expresses negative sentiment and frustration about a teaching assistant's competence, but does not cross the line into severe personal insults, threats, or targeted harassment. |
-| s159 | BORDERLINE | ESCALATE | REMOVE | Someone replied to my post with 'kill yourself'. Is that something I should report or a... | The post discusses receiving a 'kill yourself' message, which violates the abuse policy regarding targeted harassment and threats. |
-| s160 | BORDERLINE | ESCALATE | ALLOW | My group member called me an idiot in the chat. Where do I raise this? | The user is asking for help regarding interpersonal conflict with a group member, which does not violate any forum rules. |
-| s161 | BORDERLINE | ESCALATE | ALLOW | That two hour lecture was so bad I wanted to die. | The phrase 'wanted to die' is used here as hyperbole to express frustration with a boring lecture, not as a genuine indication of self-harm or targeted abuse. |
-| s162 | BORDERLINE | ESCALATE | ALLOW | I am going to actually explode if the library is full again tomorrow. | The post expresses common student frustration about crowded campus facilities using hyperbole ('explode'), which does not violate any rules. |
-| s163 | BORDERLINE | ESCALATE | ALLOW | My friend called me an idiot for forgetting the meeting, which honestly is fair. | The user is sharing a harmless personal anecdote about being called an idiot by a friend in a self-deprecating context, which does not constitute severe abuse or harassment. |
-| s164 | BORDERLINE | ESCALATE | ALLOW | Is it against the rules to sell my own lecture notes to another student? | Selling personal lecture notes is not academic fraud or a violation of student rules regarding commercial services, as it does not involve ghostwriting, exam help, or illegal goods. |
-| s165 | BORDERLINE | ESCALATE | ALLOW | Quoting the post that got removed: 'nobody wants you here'. Was that really a ban? | The user is asking a clarifying question about a moderation action on the forum without violating any rules. |
-| s166 | BORDERLINE | ESCALATE | ALLOW | The tutor said our work was the worst he had seen. Is that acceptable feedback? | The user is asking a question about whether specific tutor feedback is acceptable, which does not violate any university forum rules. |
-| s167 | BORDERLINE | ESCALATE | ALLOW | Not naming names, but someone in our group has done zero work for three weeks. | Venting about an uncooperative group member without naming them or making threats is a common student complaint and does not violate the rules. |
-| s168 | BORDERLINE | ESCALATE | ALLOW | Half this subreddit is people complaining. I include myself in that. | The post is a harmless, self-reflective comment about the general mood of the subreddit and does not violate any rules. |
-| s169 | BORDERLINE | ESCALATE | ALLOW | Genuine question: is asking AI to rewrite my draft considered academic misconduct here? | The user is asking a clarifying question about academic integrity and AI use rather than offering or requesting academic fraud services. |
-| s170 | BORDERLINE | ESCALATE | ALLOW | A recruiter DMed me an offer that seems too good. Should I report it or just ignore it? | The user is asking for advice regarding a suspicious recruiter direct message, which does not violate any community guidelines. |
-| s171 | BORDERLINE | ESCALATE | ALLOW | My landlord is threatening to keep the bond. Any advice, or is this the wrong forum? | The user is asking for general advice regarding a landlord dispute and bond retention, which does not violate any forum rules. |
-| s172 | BORDERLINE | ESCALATE | ALLOW | Someone is posting my photo without permission. What do I do? | This is a user asking for advice regarding a privacy concern and does not violate any platform rules. |
-| s173 | BORDERLINE | ESCALATE | ALLOW | I said something rude in a thread last night and regret it. Can I delete it? | The user is asking a benign question about forum functionality regarding their own post and violates no rules. |
-| s174 | BORDERLINE | ESCALATE | ALLOW | Is it okay to share a past exam paper the lecturer put on Wattle? | The user is asking a benign question about sharing course materials provided officially by a lecturer, which does not violate any rules. |
-| s175 | BORDERLINE | ESCALATE | ALLOW | 这门课的作业量真的让人想死，每周都写不完。 | The user is expressing common academic frustration about heavy workload using hyperbole ('想死'), which is not a genuine threat or targeted abuse. |
-| s176 | BORDERLINE | ESCALATE | ALLOW | 有人在评论区骂我，我截图了，应该发给谁处理？ | The user is asking for help on how to report a user who is insulting them, which does not violate any rules. |
-| s178 | BORDERLINE | ESCALATE | ALLOW | 请问转卖自己整理的笔记算不算违规？ | The user is asking a general question about whether selling their own study notes violates any rules, which does not constitute any policy violation. |
-| s179 | BORDERLINE | ESCALATE | ALLOW | 楼上说的那句话我觉得有点过分，但也可能是我太敏感了。 | The user is expressing a mild disagreement or feeling sensitive about a previous comment without engaging in insults, threats, harassment, spam, or illegal activity. |
-
-_12 more in `evaluation-samples.csv`._
+| s003 | NORMAL | ALLOW | ESCALATE | The moment the PC stops updating, my soul leaves my body. | Contains an idiom about dying or leaving the body ("my soul leaves my body"), which requires human review per safety protocols. |
+| s091 | BORDERLINE | ESCALATE | ALLOW | Stop overthinking it and just copy the layout. | This is a benign piece of advice regarding a layout or assignment, containing no rule violations. |
+| s092 | BORDERLINE | ESCALATE | ALLOW | I write my own notes first, then ask AI to find gaps. That keeps me from being carried ... | The user is discussing a legitimate study method and academic use of AI, which does not violate any rules. |
+| s113 | ABUSE | REMOVE | ESCALATE | She only got the internship because of who she knows. Everyone can see it. | Complaints about an identifiable person regarding professional advancement require human context to determine if they cross the line into targeted harassment. |
+| s114 | ABUSE | REMOVE | ESCALATE | 这个助教根本不懂装懂，上课就是在浪费我们的钱。 | Complaint about a named or identifiable person (a teaching assistant) where the appropriateness depends on context and whether it crosses the line into abuse. |
+| s163 | BORDERLINE | ESCALATE | ALLOW | My friend called me an idiot for forgetting the meeting, which honestly is fair. | A student sharing a self-deprecating anecdote about forgetting a meeting. No rules are broken. |
+| s168 | BORDERLINE | ESCALATE | ALLOW | Half this subreddit is people complaining. I include myself in that. | An ordinary meta-comment about the subreddit culture, no rules broken. |
+| s171 | BORDERLINE | ESCALATE | ALLOW | My landlord is threatening to keep the bond. Any advice, or is this the wrong forum? | The user is asking for general housing advice and wondering if they are in the right place, which does not violate any forum rules. |
+| s173 | BORDERLINE | ESCALATE | ALLOW | I said something rude in a thread last night and regret it. Can I delete it? | The user is simply asking a question about how to use the forum features. No rules are broken. |
+| s181 | BORDERLINE | ESCALATE | ALLOW | 我把小组里那个人说得有点重，现在有点后悔，能撤回吗？ | The user is asking a platform usage question about retracting a message and expressing mild regret, which does not break any rules. |
+| s187 | BORDERLINE | ESCALATE | ALLOW | I think the marking for this assignment was unfair, but I do not want to accuse anyone. | The user is expressing mild frustration about grading without making accusations, targeting a specific individual, or breaking any forum rules. |
 
 ## On real traffic
 

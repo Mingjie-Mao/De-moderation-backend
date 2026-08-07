@@ -65,8 +65,11 @@ public class EvaluationRunner {
 
         List<SampleOutcome> outcomes = new ArrayList<>();
         long previousStart = 0;
+        boolean throttled = engine.callsAnExternalService();
         for (LabelledSample sample : dataset.samples()) {
-            previousStart = pace(previousStart);
+            if (throttled) {
+                previousStart = pace(previousStart);
+            }
             outcomes.add(evaluateOne(engine, sample));
         }
 
@@ -137,6 +140,11 @@ public class EvaluationRunner {
      *
      * <p>Measured from the previous sample's start rather than its end, so a slow
      * call already covers part of the interval instead of adding to it.
+     *
+     * <p>Only for engines that answer {@code true} to
+     * {@link ModerationEngine#callsAnExternalService()}. Throttling the rule
+     * engine to protect a quota it never touches added sixteen minutes to a
+     * two-hundred-sample run and bought nothing.
      *
      * @return the moment this sample is starting
      */

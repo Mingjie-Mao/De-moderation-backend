@@ -42,6 +42,12 @@ public class KeywordModerationEngine implements ModerationEngine {
         return NAME;
     }
 
+    /** Term matching in this process. There is no quota to stay under. */
+    @Override
+    public boolean callsAnExternalService() {
+        return false;
+    }
+
     @Override
     public ModerationVerdict evaluate(ModerationRequest request) {
         String haystack = request.fullText().toLowerCase(Locale.ROOT);

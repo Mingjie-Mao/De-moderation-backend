@@ -20,4 +20,21 @@ public interface ModerationEngine {
     String name();
 
     ModerationVerdict evaluate(ModerationRequest request);
+
+    /**
+     * Whether judging one sample spends a call on somebody else's metered service.
+     *
+     * <p>Only the benchmark asks. It throttles itself to stay under a provider's
+     * per-minute ceiling, and an engine with no provider should not be made to
+     * wait for a limit that does not apply to it — two hundred samples at five
+     * seconds each is sixteen minutes added to a run for an engine that answers
+     * in under a millisecond.
+     *
+     * <p>Defaults to true so that an engine added later is throttled until someone
+     * says otherwise. The cost of being wrong in that direction is a slow
+     * benchmark; the cost of being wrong in the other is a burnt quota.
+     */
+    default boolean callsAnExternalService() {
+        return true;
+    }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion" : 1,
-  "generatedAt" : "2026-08-07T16:16:55.408346Z",
+  "generatedAt" : "2026-08-07T16:53:39.039420Z",
   "dataset" : "evaluation-samples.json",
   "sampleCount" : 192,
   "starterDataset" : false,
@@ -15,9 +15,9 @@
     "macroF1" : 0.28612260989552535,
     "macroPrecision" : 0.40282485875706214,
     "macroRecall" : 0.3686868686868687,
-    "meanLatencyMs" : 0.5227083333333333,
-    "p50LatencyMs" : 0.364,
-    "p95LatencyMs" : 0.694,
+    "meanLatencyMs" : 0.4801666666666667,
+    "p50LatencyMs" : 0.315,
+    "p95LatencyMs" : 0.728,
     "promptTokens" : null,
     "completionTokens" : null,
     "estimatedCost" : "0",
@@ -87,49 +87,49 @@
       "count" : 0
     } ]
   }, {
-    "engine" : "gemini-3.5-flash-lite/v1",
+    "engine" : "gemini-3.5-flash-lite/v2",
     "status" : "OK",
     "unavailableReason" : null,
     "sampleCount" : 192,
     "judgedCount" : 192,
     "errorCount" : 0,
-    "accuracy" : 0.8072916666666666,
-    "macroF1" : 0.6359806078115938,
-    "macroPrecision" : 0.7866469573786646,
-    "macroRecall" : 0.6713804713804713,
-    "meanLatencyMs" : 1143.783171875,
-    "p50LatencyMs" : 871.146,
-    "p95LatencyMs" : 1884.582,
-    "promptTokens" : 64488,
-    "completionTokens" : 13264,
+    "accuracy" : 0.9427083333333334,
+    "macroF1" : 0.9241026459639278,
+    "macroPrecision" : 0.9402505265491631,
+    "macroRecall" : 0.9121212121212121,
+    "meanLatencyMs" : 999.4557083333334,
+    "p50LatencyMs" : 857.614,
+    "p95LatencyMs" : 1662.337,
+    "promptTokens" : 125751,
+    "completionTokens" : 11513,
     "estimatedCost" : null,
     "perDecision" : [ {
       "decision" : "ALLOW",
       "support" : 90,
       "truePositives" : 89,
-      "falsePositives" : 34,
+      "falsePositives" : 8,
       "falseNegatives" : 1,
-      "precision" : 0.7235772357723578,
+      "precision" : 0.9175257731958762,
       "recall" : 0.9888888888888889,
-      "f1" : 0.835680751173709
+      "f1" : 0.9518716577540107
     }, {
       "decision" : "REMOVE",
       "support" : 66,
       "truePositives" : 64,
-      "falsePositives" : 2,
+      "falsePositives" : 0,
       "falseNegatives" : 2,
-      "precision" : 0.9696969696969697,
+      "precision" : 1.0,
       "recall" : 0.9696969696969697,
-      "f1" : 0.9696969696969697
+      "f1" : 0.9846153846153847
     }, {
       "decision" : "ESCALATE",
       "support" : 36,
-      "truePositives" : 2,
-      "falsePositives" : 1,
-      "falseNegatives" : 34,
-      "precision" : 0.6666666666666666,
-      "recall" : 0.05555555555555555,
-      "f1" : 0.10256410256410256
+      "truePositives" : 28,
+      "falsePositives" : 3,
+      "falseNegatives" : 8,
+      "precision" : 0.9032258064516129,
+      "recall" : 0.7777777777777778,
+      "f1" : 0.835820895522388
     } ],
     "confusion" : [ {
       "actual" : "ALLOW",
@@ -138,15 +138,15 @@
     }, {
       "actual" : "ALLOW",
       "predicted" : "REMOVE",
-      "count" : 1
+      "count" : 0
     }, {
       "actual" : "ALLOW",
       "predicted" : "ESCALATE",
-      "count" : 0
+      "count" : 1
     }, {
       "actual" : "REMOVE",
       "predicted" : "ALLOW",
-      "count" : 1
+      "count" : 0
     }, {
       "actual" : "REMOVE",
       "predicted" : "REMOVE",
@@ -154,24 +154,24 @@
     }, {
       "actual" : "REMOVE",
       "predicted" : "ESCALATE",
-      "count" : 1
+      "count" : 2
     }, {
       "actual" : "ESCALATE",
       "predicted" : "ALLOW",
-      "count" : 33
+      "count" : 8
     }, {
       "actual" : "ESCALATE",
       "predicted" : "REMOVE",
-      "count" : 1
+      "count" : 0
     }, {
       "actual" : "ESCALATE",
       "predicted" : "ESCALATE",
-      "count" : 2
+      "count" : 28
     } ]
   } ],
   "comparisons" : [ {
     "baseline" : "keyword-v1",
-    "candidate" : "gemini-3.5-flash-lite/v1",
+    "candidate" : "gemini-3.5-flash-lite/v2",
     "bothRight" : 96,
     "candidateFixed" : [ {
       "sampleId" : "s093",
@@ -573,12 +573,194 @@
       "candidateSaid" : "REMOVE",
       "excerpt" : "Selling counterfeit designer bags, indistinguishable from real, campus pickup."
     }, {
+      "sampleId" : "s159",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "REMOVE",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone replied to my post with 'kill yourself'. Is that something I should report or a..."
+    }, {
+      "sampleId" : "s160",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "REMOVE",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "My group member called me an idiot in the chat. Where do I raise this?"
+    }, {
+      "sampleId" : "s161",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "That two hour lecture was so bad I wanted to die."
+    }, {
+      "sampleId" : "s162",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "I am going to actually explode if the library is full again tomorrow."
+    }, {
+      "sampleId" : "s164",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Is it against the rules to sell my own lecture notes to another student?"
+    }, {
+      "sampleId" : "s165",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Quoting the post that got removed: 'nobody wants you here'. Was that really a ban?"
+    }, {
+      "sampleId" : "s166",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "The tutor said our work was the worst he had seen. Is that acceptable feedback?"
+    }, {
+      "sampleId" : "s167",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Not naming names, but someone in our group has done zero work for three weeks."
+    }, {
+      "sampleId" : "s169",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Genuine question: is asking AI to rewrite my draft considered academic misconduct here?"
+    }, {
+      "sampleId" : "s170",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "A recruiter DMed me an offer that seems too good. Should I report it or just ignore it?"
+    }, {
+      "sampleId" : "s172",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone is posting my photo without permission. What do I do?"
+    }, {
+      "sampleId" : "s174",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Is it okay to share a past exam paper the lecturer put on Wattle?"
+    }, {
+      "sampleId" : "s175",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "这门课的作业量真的让人想死，每周都写不完。"
+    }, {
+      "sampleId" : "s176",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "有人在评论区骂我，我截图了，应该发给谁处理？"
+    }, {
       "sampleId" : "s177",
       "category" : "BORDERLINE",
       "expected" : "ESCALATE",
       "baselineSaid" : "ALLOW",
       "candidateSaid" : "ESCALATE",
       "excerpt" : "我室友说要弄死我，应该是开玩笑，但我有点不确定要不要当真。"
+    }, {
+      "sampleId" : "s178",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "请问转卖自己整理的笔记算不算违规？"
+    }, {
+      "sampleId" : "s179",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "楼上说的那句话我觉得有点过分，但也可能是我太敏感了。"
+    }, {
+      "sampleId" : "s180",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "有人转发了一段很难听的话，说是别人说的，这种要不要举报？"
+    }, {
+      "sampleId" : "s182",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "这算不算学术不端：让 AI 帮我改语法但内容都是自己写的？"
+    }, {
+      "sampleId" : "s183",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "有中介加我说能包offer，感觉像骗子，要不要在这里提醒大家？"
+    }, {
+      "sampleId" : "s184",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone posted a screenshot of a private chat in the thread. Is that allowed?"
+    }, {
+      "sampleId" : "s185",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Asking for a friend: what happens if you accidentally submit the wrong file?"
+    }, {
+      "sampleId" : "s186",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "The person selling textbooks earlier never replied after payment. Where do I report that?"
+    }, {
+      "sampleId" : "s188",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Is venting about a specific tutor allowed here, or does that count as harassment?"
+    }, {
+      "sampleId" : "s189",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "有同学在群里发了一个链接，看起来不太安全，要不要举报？"
+    }, {
+      "sampleId" : "s190",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "我觉得那条被删的帖子其实没什么问题，可以申诉吗？"
+    }, {
+      "sampleId" : "s191",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "This assignment made me question whether I belong at this university at all."
     }, {
       "sampleId" : "s192",
       "category" : "BORDERLINE",
@@ -588,12 +770,12 @@
       "excerpt" : "我最近压力很大，有时候会想干脆放弃算了。"
     } ],
     "candidateBroke" : [ {
-      "sampleId" : "s052",
+      "sampleId" : "s003",
       "category" : "NORMAL",
       "expected" : "ALLOW",
       "baselineSaid" : "ALLOW",
-      "candidateSaid" : "REMOVE",
-      "excerpt" : "Get someone to review your resume before the next batch. One revision doubled my callba..."
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "The moment the PC stops updating, my soul leaves my body."
     } ],
     "bothWrong" : [ {
       "sampleId" : "s091",
@@ -621,36 +803,8 @@
       "category" : "ABUSE",
       "expected" : "REMOVE",
       "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
       "excerpt" : "这个助教根本不懂装懂，上课就是在浪费我们的钱。"
-    }, {
-      "sampleId" : "s159",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "REMOVE",
-      "candidateSaid" : "REMOVE",
-      "excerpt" : "Someone replied to my post with 'kill yourself'. Is that something I should report or a..."
-    }, {
-      "sampleId" : "s160",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "REMOVE",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "My group member called me an idiot in the chat. Where do I raise this?"
-    }, {
-      "sampleId" : "s161",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "That two hour lecture was so bad I wanted to die."
-    }, {
-      "sampleId" : "s162",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "I am going to actually explode if the library is full again tomorrow."
     }, {
       "sampleId" : "s163",
       "category" : "BORDERLINE",
@@ -659,54 +813,12 @@
       "candidateSaid" : "ALLOW",
       "excerpt" : "My friend called me an idiot for forgetting the meeting, which honestly is fair."
     }, {
-      "sampleId" : "s164",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "Is it against the rules to sell my own lecture notes to another student?"
-    }, {
-      "sampleId" : "s165",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "Quoting the post that got removed: 'nobody wants you here'. Was that really a ban?"
-    }, {
-      "sampleId" : "s166",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "The tutor said our work was the worst he had seen. Is that acceptable feedback?"
-    }, {
-      "sampleId" : "s167",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "Not naming names, but someone in our group has done zero work for three weeks."
-    }, {
       "sampleId" : "s168",
       "category" : "BORDERLINE",
       "expected" : "ESCALATE",
       "baselineSaid" : "ALLOW",
       "candidateSaid" : "ALLOW",
       "excerpt" : "Half this subreddit is people complaining. I include myself in that."
-    }, {
-      "sampleId" : "s169",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "Genuine question: is asking AI to rewrite my draft considered academic misconduct here?"
-    }, {
-      "sampleId" : "s170",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "A recruiter DMed me an offer that seems too good. Should I report it or just ignore it?"
     }, {
       "sampleId" : "s171",
       "category" : "BORDERLINE",
@@ -715,61 +827,12 @@
       "candidateSaid" : "ALLOW",
       "excerpt" : "My landlord is threatening to keep the bond. Any advice, or is this the wrong forum?"
     }, {
-      "sampleId" : "s172",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "Someone is posting my photo without permission. What do I do?"
-    }, {
       "sampleId" : "s173",
       "category" : "BORDERLINE",
       "expected" : "ESCALATE",
       "baselineSaid" : "ALLOW",
       "candidateSaid" : "ALLOW",
       "excerpt" : "I said something rude in a thread last night and regret it. Can I delete it?"
-    }, {
-      "sampleId" : "s174",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "Is it okay to share a past exam paper the lecturer put on Wattle?"
-    }, {
-      "sampleId" : "s175",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "这门课的作业量真的让人想死，每周都写不完。"
-    }, {
-      "sampleId" : "s176",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "有人在评论区骂我，我截图了，应该发给谁处理？"
-    }, {
-      "sampleId" : "s178",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "请问转卖自己整理的笔记算不算违规？"
-    }, {
-      "sampleId" : "s179",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "楼上说的那句话我觉得有点过分，但也可能是我太敏感了。"
-    }, {
-      "sampleId" : "s180",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "有人转发了一段很难听的话，说是别人说的，这种要不要举报？"
     }, {
       "sampleId" : "s181",
       "category" : "BORDERLINE",
@@ -778,77 +841,14 @@
       "candidateSaid" : "ALLOW",
       "excerpt" : "我把小组里那个人说得有点重，现在有点后悔，能撤回吗？"
     }, {
-      "sampleId" : "s182",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "这算不算学术不端：让 AI 帮我改语法但内容都是自己写的？"
-    }, {
-      "sampleId" : "s183",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "有中介加我说能包offer，感觉像骗子，要不要在这里提醒大家？"
-    }, {
-      "sampleId" : "s184",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "Someone posted a screenshot of a private chat in the thread. Is that allowed?"
-    }, {
-      "sampleId" : "s185",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "Asking for a friend: what happens if you accidentally submit the wrong file?"
-    }, {
-      "sampleId" : "s186",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "The person selling textbooks earlier never replied after payment. Where do I report that?"
-    }, {
       "sampleId" : "s187",
       "category" : "BORDERLINE",
       "expected" : "ESCALATE",
       "baselineSaid" : "ALLOW",
       "candidateSaid" : "ALLOW",
       "excerpt" : "I think the marking for this assignment was unfair, but I do not want to accuse anyone."
-    }, {
-      "sampleId" : "s188",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "Is venting about a specific tutor allowed here, or does that count as harassment?"
-    }, {
-      "sampleId" : "s189",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "有同学在群里发了一个链接，看起来不太安全，要不要举报？"
-    }, {
-      "sampleId" : "s190",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "我觉得那条被删的帖子其实没什么问题，可以申诉吗？"
-    }, {
-      "sampleId" : "s191",
-      "category" : "BORDERLINE",
-      "expected" : "ESCALATE",
-      "baselineSaid" : "ALLOW",
-      "candidateSaid" : "ALLOW",
-      "excerpt" : "This assignment made me question whether I belong at this university at all."
     } ],
-    "netGain" : 58
+    "netGain" : 84
   } ],
   "production" : [ {
     "engine" : "gemini-v1",

@@ -15,6 +15,11 @@ timeout, a rate limit or an answer that fails validation all degrade to rule
 matching rather than stopping moderation. Not configuring a model at all is an
 ordinary configuration, not an error.
 
+Every engine is scored on one labelled dataset by one harness, so choosing
+between them is reading a table. On 192 samples, term matching reaches macro-F1
+0.286, the model reaches 0.636, and rewording the prompt — no code, no model
+change — reaches 0.924. [How, and what it cost.](#evaluation)
+
 ## Stack
 
 Java 21 · Spring Boot 3.5 · PostgreSQL 16 · Flyway · Spring Security (JWT) ·
@@ -116,8 +121,14 @@ Off unless configured. With no `AI_CHAT_MODEL` set there is no model engine at
 all, the registry finds only rule matching, and everything above still works.
 
 ```bash
-printf 'AI_CHAT_MODEL=google-genai\nMODERATION_ENGINE=gemini-flash-latest/v1\nGEMINI_API_KEY=...\n' >> .env
+printf 'AI_CHAT_MODEL=google-genai\nGEMINI_MODELS=gemini-3.5-flash-lite\nMODERATION_ENGINE=gemini-3.5-flash-lite/v2\nGEMINI_API_KEY=...\n' >> .env
 ```
+
+An engine's name is `model/prompt-version`, and both halves are registered: each
+model in `GEMINI_MODELS` is paired with each prompt version on the classpath.
+That is what makes "the newer wording is better" a row in a table rather than an
+opinion — the two versions differ in nothing else, so the comparison isolates
+the text. `MODERATION_ENGINE` then picks which of them judges live traffic.
 
 What surrounds the call is the part worth reading:
 
@@ -127,10 +138,12 @@ What surrounds the call is the part worth reading:
 - **Validation, not trust.** A response that parses is not a response that is
   correct. Confidence outside `[0,1]`, a decision that is not one of the three,
   or a rule code that does not exist are all rejected, and the complaint is fed
-  back to the model as one corrective retry.
+  back to the model as one corrective retry. It is load-bearing: on the v2 run it
+  caught eleven answers whose rule code carried the severity along with it, and
+  all eleven came back correct on the second ask.
 - **Timeout, then circuit.** A timeout alone still spends the full budget on
-  every request while a provider is down; the circuit turns a ten-second failure
-  into an instant one so the queue degrades at full speed.
+  every request while a provider is down; the circuit turns a thirty-second
+  failure into an instant one so the queue degrades at full speed.
 - **Backoff only where it helps.** Rate limiting is retried with exponential
   backoff and jitter, outside the call budget. A refused credential is not: it
   will still be refused in two seconds.
@@ -154,33 +167,58 @@ ending the run.
 
 The rule baseline exists so that a model's score means something. On 192 samples:
 
-| engine | macro-F1 | REMOVE recall | ESCALATE recall | p50 | p95 |
-|---|---|---|---|---|---|
-| `keyword-v1` | 0.286 | 0.106 | 0.000 | 0.4 ms | 0.7 ms |
-| `gemini-3.5-flash-lite/v1` | 0.636 | 0.970 | 0.056 | 871 ms | 1885 ms |
+| engine | macro-F1 | ALLOW recall | REMOVE recall | ESCALATE recall | p50 | tokens/sample |
+|---|---|---|---|---|---|---|
+| `keyword-v1` | 0.286 | 1.000 | 0.106 | 0.000 | 0.3 ms | — |
+| `gemini-3.5-flash-lite/v1` | 0.636 | 0.989 | 0.970 | 0.056 | 871 ms | 336 |
+| `gemini-3.5-flash-lite/v2` | **0.924** | 0.989 | 0.970 | **0.778** | 858 ms | 655 |
 
-Fifty-nine samples the baseline got wrong the model gets right, against one it
-breaks — and the fifty-nine are the ones that matter, abuse phrased in words no
-term list contains, in both languages the forum is written in. That is what
-2 300× the latency buys.
+Two separate results, and the second is the one worth explaining.
 
-The rest of the table is the part worth reading. The model's REMOVE recall is
-0.970 and its ESCALATE recall is 0.056: of thirty-six samples where the right
-answer is *ask a person*, it answers ALLOW to thirty-three. Its whole remaining
-error is one behaviour, and reading the rationales says why — asked whether a
-post breaks a rule, it correctly answers no, when the question the label is
-asking is whether a machine should be the one to close the matter. "Someone is
-posting my photo without permission, what do I do?" breaks no rule and still
-needs a human.
+**The model beats the rules where rules cannot be patched.** Fifty-nine samples
+the term list missed, v1 gets right: abuse phrased in words no term list
+contains, in both languages the forum is written in. That is what a thousandfold
+increase in latency buys.
 
-So macro-F1 0.636 is not "the model is 64% good". It is one class nearly solved
-and one class barely attempted, and averaging them hides which.
+**The prompt beats the model.** v1's remaining error was almost entirely one
+behaviour — ESCALATE recall 0.056, thirty-three of thirty-six samples that
+should reach a person answered ALLOW. Reading its rationales said why: asked
+whether a post breaks a rule it answered correctly, when the question the queue
+is actually asking is whether a machine should be the one to close the matter.
+"Someone is posting my photo without permission, what do I do?" breaks no rule
+and still needs a human.
 
-The report states its own limits rather than leaving them to be discovered. The
-benign half of the dataset is real forum content; the violating half was written
-for the evaluation, because a seeded demo application contains no abuse to
-sample. Since provenance and label are almost perfectly correlated, the report
-detects that and refuses to present the per-source gap as a finding.
+v2 changes no code and no model. It defines the three answers by what happens
+next rather than by what the text is, names the situations where reading
+correctly still is not enough, and — the part that mattered — keeps an explicit
+floor under REMOVE, because the cheapest way to raise ESCALATE recall is to
+escalate everything. ESCALATE recall goes to 0.778 with ALLOW and REMOVE
+unmoved.
+
+The costs are in the table and in the report: roughly twice the prompt tokens on
+every call forever, three samples over-escalated, and eleven answers that came
+back with a malformed rule code and had to be asked again. Both prompts stay
+registered as separate engines, so none of this is a claim — it is a row.
+
+Three limits, stated rather than left to be discovered.
+
+**v2's score is optimistic and there is no way to say by how much.** Its wording
+was written after reading v1's mistakes on this dataset, so 0.924 measures a
+diagnosis confirmed on the data that produced it, not a held-out result. What it
+does establish is that the diagnosis was right: the change was aimed at one
+class and that class is what moved. Treating it as an estimate of live traffic
+would be wrong.
+
+**The violating half of the dataset was written for it.** The benign half is real
+forum content; a seeded demo application contains no abuse to sample. Since
+provenance and label are then almost perfectly correlated, the report detects
+that and refuses to present the per-source gap as a finding.
+
+**The three engines were measured in two runs, not one.** The free tier allows
+500 requests a day and three engines over 192 samples needs 588. The committed
+report holds `keyword-v1` and `gemini-3.5-flash-lite/v2`; v1's row is the
+previous run, in git history, on the same dataset and the same code. Rerun with
+`--campusguard.evaluation.engines=...` to scope a run to what a quota allows.
 
 ## The Android client
 
