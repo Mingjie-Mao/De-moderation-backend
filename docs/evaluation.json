@@ -1,0 +1,99 @@
+{
+  "schemaVersion" : 1,
+  "generatedAt" : "2026-08-07T07:02:24.502539Z",
+  "dataset" : "evaluation/starter-samples.json",
+  "sampleCount" : 24,
+  "starterDataset" : true,
+  "engines" : [ {
+    "engine" : "keyword-v1",
+    "status" : "OK",
+    "unavailableReason" : null,
+    "sampleCount" : 24,
+    "judgedCount" : 24,
+    "errorCount" : 0,
+    "accuracy" : 0.5416666666666666,
+    "macroF1" : 0.43274853801169594,
+    "macroPrecision" : 0.42948717948717946,
+    "macroRecall" : 0.47348484848484845,
+    "meanLatencyMs" : 0.114875,
+    "p50LatencyMs" : 0.096,
+    "p95LatencyMs" : 0.24,
+    "promptTokens" : null,
+    "completionTokens" : null,
+    "estimatedCost" : "0",
+    "perDecision" : [ {
+      "decision" : "ALLOW",
+      "support" : 8,
+      "truePositives" : 7,
+      "falsePositives" : 6,
+      "falseNegatives" : 1,
+      "precision" : 0.5384615384615384,
+      "recall" : 0.875,
+      "f1" : 0.6666666666666667
+    }, {
+      "decision" : "REMOVE",
+      "support" : 11,
+      "truePositives" : 6,
+      "falsePositives" : 2,
+      "falseNegatives" : 5,
+      "precision" : 0.75,
+      "recall" : 0.5454545454545454,
+      "f1" : 0.631578947368421
+    }, {
+      "decision" : "ESCALATE",
+      "support" : 5,
+      "truePositives" : 0,
+      "falsePositives" : 3,
+      "falseNegatives" : 5,
+      "precision" : 0.0,
+      "recall" : 0.0,
+      "f1" : 0.0
+    } ],
+    "confusion" : [ {
+      "actual" : "ALLOW",
+      "predicted" : "ALLOW",
+      "count" : 7
+    }, {
+      "actual" : "ALLOW",
+      "predicted" : "REMOVE",
+      "count" : 0
+    }, {
+      "actual" : "ALLOW",
+      "predicted" : "ESCALATE",
+      "count" : 1
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ALLOW",
+      "count" : 3
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "REMOVE",
+      "count" : 6
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ESCALATE",
+      "count" : 2
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ALLOW",
+      "count" : 3
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "REMOVE",
+      "count" : 2
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ESCALATE",
+      "count" : 0
+    } ]
+  }, {
+    "engine" : "gemini-v1",
+    "status" : "UNAVAILABLE",
+    "unavailableReason" : "No engine named 'gemini-v1'. Available: [keyword-v1]",
+    "sampleCount" : 0,
+    "judgedCount" : 0,
+    "errorCount" : 0
+  } ],
+  "comparisons" : [ ],
+  "production" : [ ]
+}

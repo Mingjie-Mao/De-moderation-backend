@@ -95,6 +95,27 @@ public final class ConfusionMatrix {
         return sum / labels.size();
     }
 
+    /** Unweighted mean of per-class precision, averaged over the same labels as {@link #macroF1()}. */
+    public double macroPrecision() {
+        return macroAverage(ClassMetrics::precision);
+    }
+
+    public double macroRecall() {
+        return macroAverage(ClassMetrics::recall);
+    }
+
+    private double macroAverage(java.util.function.ToDoubleFunction<ClassMetrics> field) {
+        List<ModerationDecision> labels = labels();
+        if (labels.isEmpty()) {
+            return 0;
+        }
+        double sum = 0;
+        for (ModerationDecision label : labels) {
+            sum += field.applyAsDouble(metricsFor(label));
+        }
+        return sum / labels.size();
+    }
+
     public double accuracy() {
         if (total == 0) {
             return 0;

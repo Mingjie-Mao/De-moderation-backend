@@ -1,33 +1,35 @@
-# Moderation evaluation
+# Moderation engine benchmark
 
-_Generated 2026-08-06 by `EvaluationCommand`. Do not edit by hand._
+_Generated 2026-08-07 by `EvaluationCommand`. Do not edit by hand._
 
 > **These numbers measure nothing.**
 > The run used the bundled starter set, which exists to prove the harness works.
 > Its samples were written to exercise the code, not sampled from real posts, so
-> scores on it say only whether the engine matches the terms it was configured with.
+> scores on it say only whether an engine matches the terms it was configured with.
 > A real dataset has to be sampled from genuine forum content and labelled by hand.
-
-## Engine: `keyword-v1`
 
 Dataset `evaluation/starter-samples.json`, 24 samples.
 
-| metric | value |
-|---|---|
-| macro-F1 | 0.433 |
-| accuracy | 0.542 |
-| p50 latency | 0.229 ms |
-| p95 latency | 0.460 ms |
+## Side by side
 
-### Per-decision
+| engine | status | accuracy | macro-F1 | macro-P | macro-R | errors | mean | p50 | p95 | tokens | est. cost |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `keyword-v1` | OK | 0.542 | 0.433 | 0.429 | 0.473 | 0 | 0.115 ms | 0.096 ms | 0.240 ms | 0 | $0 |
+| `gemini-v1` | **UNAVAILABLE** | — | — | — | — | 0 | — | — | — | — | — |
+
+`gemini-v1` answered nothing: No engine named 'gemini-v1'. Available: [keyword-v1]
+
+An engine that answered nothing scores zero on every column, which on a table
+is indistinguishable from an engine that answered everything wrongly. The
+status column is there so those two are never confused.
+
+## `keyword-v1` in detail
 
 | decision | support | precision | recall | F1 |
 |---|---|---|---|---|
 | ALLOW | 8 | 0.538 | 0.875 | 0.667 |
 | REMOVE | 11 | 0.750 | 0.545 | 0.632 |
 | ESCALATE | 5 | 0.000 | 0.000 | 0.000 |
-
-### Confusion matrix
 
 Rows are the labelled answer, columns what the engine said.
 
@@ -37,9 +39,7 @@ Rows are the labelled answer, columns what the engine said.
 | **REMOVE** | 3 | 6 | 2 |
 | **ESCALATE** | 3 | 2 | 0 |
 
-### Failure modes
-
-11 of 24 samples were judged wrongly.
+11 of 24 answered samples were judged wrongly.
 
 | sample | category | expected | got | content | engine said |
 |---|---|---|---|---|---|
@@ -55,6 +55,14 @@ Rows are the labelled answer, columns what the engine said.
 | s23 | BORDERLINE | ESCALATE | ALLOW | rules question / Is it against the rules to sell my own lecture notes to another student? | No configured term matched. This engine cannot detect wording it has not been given. |
 | s24 | BORDERLINE | ESCALATE | ALLOW | 吐槽 / 这门课的作业量真的让人想死，每周都写不完。 | No configured term matched. This engine cannot detect wording it has not been given. |
 
+## `gemini-v1` in detail
+
+Answered nothing. No engine named 'gemini-v1'. Available: [keyword-v1]
+
+## On real traffic
+
+No model calls have been recorded yet.
+
 ## Reproducing this
 
 ```bash
@@ -63,4 +71,11 @@ set -a && . ./.env && set +a && mvn spring-boot:run \
   --campusguard.evaluation.dataset=docs/evaluation-samples.json"
 ```
 
-Omitting `--campusguard.evaluation.dataset` uses the bundled starter set.
+Omitting `--campusguard.evaluation.dataset` uses the bundled starter set. Every
+registered engine runs; one that is unavailable is reported and skipped
+rather than ending the run. Machine-readable output lands beside this file as
+`evaluation.json` and `evaluation-samples.csv`.
+
+Token prices are not built in, because a plausible default would put a number
+in this report that nobody checked. Configure them per engine under
+`campusguard.evaluation.pricing` to fill in the cost column.

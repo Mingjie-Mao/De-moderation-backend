@@ -12,6 +12,10 @@ import org.springframework.context.annotation.Configuration;
  * needed by anything that drives the queue by hand.
  */
 @Configuration
-@EnableConfigurationProperties({ModerationProperties.class, AiProperties.class})
+@EnableConfigurationProperties({
+    ModerationProperties.class,
+    AiProperties.class,
+    com.campusguard.evaluation.EvaluationProperties.class
+})
 public class ModerationConfig {
 }

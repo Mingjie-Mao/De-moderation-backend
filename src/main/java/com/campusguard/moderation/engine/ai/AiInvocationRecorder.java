@@ -1,5 +1,6 @@
 package com.campusguard.moderation.engine.ai;
 
+import com.campusguard.evaluation.EvaluationUsageCollector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.UUID;
@@ -19,10 +20,15 @@ public class AiInvocationRecorder {
 
     private final AiInvocationRepository repository;
     private final ObjectMapper objectMapper;
+    private final EvaluationUsageCollector usageCollector;
 
-    public AiInvocationRecorder(AiInvocationRepository repository, ObjectMapper objectMapper) {
+    public AiInvocationRecorder(
+            AiInvocationRepository repository,
+            ObjectMapper objectMapper,
+            EvaluationUsageCollector usageCollector) {
         this.repository = repository;
         this.objectMapper = objectMapper;
+        this.usageCollector = usageCollector;
     }
 
     @Transactional
@@ -40,8 +46,14 @@ public class AiInvocationRecorder {
             String rawText,
             String error) {
 
-        // No case means the engine is being measured rather than used, and there
-        // is nothing to attribute the call to.
+        // Announced before the case check, because an evaluation run has no case
+        // and still needs the token counts. This is the only path every model call
+        // passes through, so it is the only place usage can be observed once
+        // rather than in each caller.
+        usageCollector.observe(engine, status, promptTokens, completionTokens, latencyMs);
+
+        // No case means the engine is being measured rather than used. Writing a
+        // row here would fill the production cost table with benchmark traffic.
         if (caseId == null) {
             return;
         }
