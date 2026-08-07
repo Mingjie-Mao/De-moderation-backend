@@ -1,61 +1,90 @@
 {
   "schemaVersion" : 1,
-  "generatedAt" : "2026-08-07T07:47:36.031461Z",
-  "dataset" : "evaluation/starter-samples.json",
-  "sampleCount" : 24,
-  "starterDataset" : true,
+  "generatedAt" : "2026-08-07T10:41:05.420663Z",
+  "dataset" : "evaluation-samples.json",
+  "sampleCount" : 192,
+  "starterDataset" : false,
   "engines" : [ {
-    "engine" : "gemini-v1",
-    "status" : "DEGRADED",
+    "engine" : "keyword-v1",
+    "status" : "OK",
     "unavailableReason" : null,
-    "sampleCount" : 24,
-    "judgedCount" : 10,
-    "errorCount" : 14,
-    "accuracy" : 1.0,
-    "macroF1" : 1.0,
-    "macroPrecision" : 1.0,
-    "macroRecall" : 1.0,
-    "meanLatencyMs" : 2613.3862000000004,
-    "p50LatencyMs" : 2294.035,
-    "p95LatencyMs" : 4230.59,
-    "promptTokens" : 2899,
-    "completionTokens" : 419,
-    "estimatedCost" : null,
+    "sampleCount" : 192,
+    "judgedCount" : 192,
+    "errorCount" : 0,
+    "accuracy" : 0.5052083333333334,
+    "macroF1" : 0.28612260989552535,
+    "macroPrecision" : 0.40282485875706214,
+    "macroRecall" : 0.3686868686868687,
+    "meanLatencyMs" : 0.06023958333333333,
+    "p50LatencyMs" : 0.052,
+    "p95LatencyMs" : 0.126,
+    "promptTokens" : null,
+    "completionTokens" : null,
+    "estimatedCost" : "0",
     "perDecision" : [ {
       "decision" : "ALLOW",
-      "support" : 6,
-      "truePositives" : 6,
-      "falsePositives" : 0,
+      "support" : 90,
+      "truePositives" : 90,
+      "falsePositives" : 87,
       "falseNegatives" : 0,
-      "precision" : 1.0,
+      "precision" : 0.5084745762711864,
       "recall" : 1.0,
-      "f1" : 1.0
+      "f1" : 0.6741573033707865
     }, {
       "decision" : "REMOVE",
-      "support" : 4,
-      "truePositives" : 4,
-      "falsePositives" : 0,
-      "falseNegatives" : 0,
-      "precision" : 1.0,
-      "recall" : 1.0,
-      "f1" : 1.0
+      "support" : 66,
+      "truePositives" : 7,
+      "falsePositives" : 3,
+      "falseNegatives" : 59,
+      "precision" : 0.7,
+      "recall" : 0.10606060606060606,
+      "f1" : 0.18421052631578946
+    }, {
+      "decision" : "ESCALATE",
+      "support" : 36,
+      "truePositives" : 0,
+      "falsePositives" : 5,
+      "falseNegatives" : 36,
+      "precision" : 0.0,
+      "recall" : 0.0,
+      "f1" : 0.0
     } ],
     "confusion" : [ {
       "actual" : "ALLOW",
       "predicted" : "ALLOW",
-      "count" : 6
+      "count" : 90
     }, {
       "actual" : "ALLOW",
       "predicted" : "REMOVE",
       "count" : 0
     }, {
-      "actual" : "REMOVE",
-      "predicted" : "ALLOW",
+      "actual" : "ALLOW",
+      "predicted" : "ESCALATE",
       "count" : 0
     }, {
       "actual" : "REMOVE",
+      "predicted" : "ALLOW",
+      "count" : 54
+    }, {
+      "actual" : "REMOVE",
       "predicted" : "REMOVE",
-      "count" : 4
+      "count" : 7
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ESCALATE",
+      "count" : 5
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ALLOW",
+      "count" : 33
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "REMOVE",
+      "count" : 3
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ESCALATE",
+      "count" : 0
     } ]
   } ],
   "comparisons" : [ ],

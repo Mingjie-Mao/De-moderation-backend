@@ -20,6 +20,9 @@ ordinary configuration, not an error.
 Java 21 · Spring Boot 3.5 · PostgreSQL 16 · Flyway · Spring Security (JWT) ·
 Spring AI (Gemini) · Resilience4j · Testcontainers · Docker Compose
 
+[Architecture](docs/architecture.md) · [Evaluation](docs/evaluation.md) ·
+[Demo script](docs/demo-script.md)
+
 ## The moderation workflow
 
 ```
@@ -160,6 +163,28 @@ benign half of the dataset is real forum content; the violating half was written
 for the evaluation, because a seeded demo application contains no abuse to
 sample. Since provenance and label are almost perfectly correlated, the report
 detects that and refuses to present the per-source gap as a finding.
+
+## The Android client
+
+The forum's feed, posting and reporting are served by this backend from a screen
+in the [De-discussion](https://github.com/Mingjie-Mao/De-discussion) app, reached
+under **Settings → CampusGuard backend**. Screenshots of it running against a
+live server are in [`docs/screenshots`](docs/screenshots).
+
+The client source is copied into [`android-client/`](android-client) so this
+repository stands on its own. It lives on a local branch of that app which is
+deliberately not pushed: that repository belongs to a university team, and a
+branch on it is theirs to accept rather than mine to publish. Its `main` is
+untouched.
+
+It is a separate screen rather than a new data source for the existing feed:
+that app's `Post` model belongs to its course-provided data-structures module and
+is threaded through the adapters and the moderation tools, none of which are
+mine to destabilise. The transport is `HttpURLConnection` and `org.json`, because
+three endpoints do not repay two new dependencies in a shared build file.
+
+The emulator reaches the backend at `10.0.2.2:8080`, and cleartext is permitted
+only to that address and to localhost.
 
 ## Tests
 
