@@ -1,10 +1,12 @@
 package com.campusguard.moderation.engine.ai;
 
+import java.util.List;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
 
 /**
  * The one place this project touches a vendor's model API.
@@ -33,8 +35,13 @@ public class SpringAiChatCompletion implements ChatCompletionPort {
     @Override
     public CompletionResult complete(String systemPrompt, String userPrompt) {
         try {
-            ChatResponse response = chatModel.call(
-                    new Prompt(new SystemMessage(systemPrompt), new UserMessage(userPrompt)));
+            // The model is named per call rather than taken from the bean's
+            // defaults, so several models can be registered as separate engines
+            // and scored against each other on one dataset. Choosing between them
+            // by reading spec sheets is guessing; this makes it a measurement.
+            ChatResponse response = chatModel.call(new Prompt(
+                    List.of(new SystemMessage(systemPrompt), new UserMessage(userPrompt)),
+                    GoogleGenAiChatOptions.builder().model(modelName).temperature(0.0).build()));
 
             if (response == null || response.getResult() == null) {
                 throw new ModelCallException(InvocationStatus.ERROR, "The provider returned no result.");

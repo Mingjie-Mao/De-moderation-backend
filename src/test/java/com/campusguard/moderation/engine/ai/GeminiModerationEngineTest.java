@@ -126,10 +126,10 @@ class GeminiModerationEngineTest {
     }
 
     @Test
-    void namesItselfAfterThePromptVersionSoLaterPromptsAreASeparateEngine() {
+    void namesItselfAfterTheModelAndThePromptSoEachPairIsASeparateEngine() {
         ChatCompletionPort port = stub(new ArrayList<>(), () -> "{}");
 
-        assertThat(engine(port).name()).isEqualTo("gemini-" + ModerationPromptV1.VERSION);
+        assertThat(engine(port).name()).isEqualTo("stub-model/" + ModerationPromptV1.VERSION);
     }
 
     private GeminiModerationEngine engine(ChatCompletionPort port) {
@@ -141,7 +141,7 @@ class GeminiModerationEngineTest {
                 new ModerationPromptV1(rules),
                 new VerdictParser(new ObjectMapper(), rules),
                 recorder,
-                new AiProperties(Duration.ofSeconds(10), 50, Duration.ofSeconds(30), 10, 2, 0, Duration.ofMillis(1)));
+                new AiProperties(Duration.ofSeconds(10), 50, Duration.ofSeconds(30), 10, 2, 0, Duration.ofMillis(1), List.of("stub-model")));
     }
 
     private ModerationRequest request() {

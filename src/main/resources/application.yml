@@ -73,6 +73,13 @@ springdoc:
     operations-sorter: method
 
 campusguard:
+  evaluation:
+    # Two hundred samples back to back is a burst no real traffic produces, and
+    # it is the one workload that reliably trips a provider's per-minute ceiling.
+    # 5s paces a run to 12 requests a minute; raise the interval if the account's
+    # limit is lower, lower it if higher.
+    min-call-interval: ${EVAL_CALL_INTERVAL:5s}
+
   reports:
     # Every distinct target reported becomes a case, and every case is an engine
     # call. One account working through a hundred posts files a hundred
@@ -131,6 +138,10 @@ campusguard:
       # key running a two-hundred sample benchmark will meet it constantly.
       rate-limit-retries: 4
       rate-limit-backoff: 2s
+      # One engine per entry. Listing several is how "which model" becomes a
+      # measurement on the evaluation set rather than a reading of a spec sheet.
+      # The first is what live traffic uses.
+      models: ${GEMINI_MODELS:gemini-flash-latest}
 
 management:
   endpoints:

@@ -116,7 +116,7 @@ Off unless configured. With no `AI_CHAT_MODEL` set there is no model engine at
 all, the registry finds only rule matching, and everything above still works.
 
 ```bash
-printf 'AI_CHAT_MODEL=google-genai\nMODERATION_ENGINE=gemini-v1\nGEMINI_API_KEY=...\n' >> .env
+printf 'AI_CHAT_MODEL=google-genai\nMODERATION_ENGINE=gemini-flash-latest/v1\nGEMINI_API_KEY=...\n' >> .env
 ```
 
 What surrounds the call is the part worth reading:
@@ -171,7 +171,7 @@ in the [De-discussion](https://github.com/Mingjie-Mao/De-discussion) app, reache
 under **Settings → CampusGuard backend**. Screenshots of it running against a
 live server are in [`docs/screenshots`](docs/screenshots).
 
-The client source is copied into [`android-client/`](android-client) so this
+The client source is copied into [`examples/android-client`](examples/android-client) so this
 repository stands on its own. It lives on a local branch of that app which is
 deliberately not pushed: that repository belongs to a university team, and a
 branch on it is theirs to accept rather than mine to publish. Its `main` is

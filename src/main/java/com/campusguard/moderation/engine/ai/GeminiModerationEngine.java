@@ -47,12 +47,17 @@ public class GeminiModerationEngine implements ModerationEngine {
         this.properties = properties;
     }
 
+    /**
+     * The model and the prompt version together are the identity.
+     *
+     * <p>Both change what the engine answers, so both belong in the name. Two
+     * models are then two engines the harness scores side by side, and a later
+     * prompt is a third — rather than any of them silently changing the meaning of
+     * numbers already published under one label.
+     */
     @Override
     public String name() {
-        // The prompt version is part of the identity, so that a later prompt is a
-        // separate engine the evaluation harness can score side by side rather
-        // than a silent change to the meaning of existing numbers.
-        return "gemini-" + ModerationPromptV1.VERSION;
+        return completions.modelName() + "/" + ModerationPromptV1.VERSION;
     }
 
     @Override

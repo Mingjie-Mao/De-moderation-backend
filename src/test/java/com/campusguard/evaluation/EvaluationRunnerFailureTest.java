@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 class EvaluationRunnerFailureTest {
 
     private final EvaluationUsageCollector usageCollector = new EvaluationUsageCollector();
-    private final EvaluationProperties properties = new EvaluationProperties(Map.of(), 0);
+    private final EvaluationProperties properties = new EvaluationProperties(Map.of(), 0, Duration.ZERO);
     private final CostEstimator costEstimator = new CostEstimator(properties);
 
     @Test
@@ -92,7 +92,7 @@ class EvaluationRunnerFailureTest {
         ModerationProperties moderation = new ModerationProperties(
                 "keyword-v1", "keyword-v1", 20, Duration.ofSeconds(2), Duration.ofMinutes(5));
         return new EvaluationRunner(
-                new EngineRegistry(List.of(engines), moderation), usageCollector, costEstimator, properties);
+                new EngineRegistry(List.of(engines), List.of(), moderation), usageCollector, costEstimator, properties);
     }
 
     private EvaluationDataset.Loaded dataset() {

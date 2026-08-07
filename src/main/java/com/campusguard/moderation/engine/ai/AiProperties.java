@@ -1,6 +1,7 @@
 package com.campusguard.moderation.engine.ai;
 
 import java.time.Duration;
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
@@ -23,6 +24,10 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param rateLimitBackoff the first wait. Each retry doubles it, with jitter, so
  *     a batch that all hit the limit at once does not march back in step and
  *     collide again.
+ * @param models one engine is registered per entry. Listing more than one is how
+ *     "which model should this use" becomes a measurement on the evaluation set
+ *     instead of a reading of the vendor's spec sheet; the first is the one live
+ *     traffic uses unless configured otherwise.
  */
 @ConfigurationProperties(prefix = "campusguard.moderation.ai")
 public record AiProperties(
@@ -32,5 +37,6 @@ public record AiProperties(
         @DefaultValue("10") int slidingWindowSize,
         @DefaultValue("2") int maxAttempts,
         @DefaultValue("4") int rateLimitRetries,
-        @DefaultValue("2s") Duration rateLimitBackoff) {
+        @DefaultValue("2s") Duration rateLimitBackoff,
+        @DefaultValue("gemini-flash-latest") List<String> models) {
 }

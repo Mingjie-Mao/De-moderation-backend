@@ -149,7 +149,7 @@ class ResilientChatCompletionTest {
     private AiProperties properties(Duration timeout, int window) {
         // Two retries with a 1ms base: the behaviour under test is the retrying,
         // not the waiting, and a real backoff would make the suite sleep.
-        return new AiProperties(timeout, 50, Duration.ofSeconds(30), window, 2, 2, Duration.ofMillis(1));
+        return new AiProperties(timeout, 50, Duration.ofSeconds(30), window, 2, 2, Duration.ofMillis(1), java.util.List.of("stub-model"));
     }
 
     private ChatCompletionPort stub(ThrowingSupplier body) {

@@ -45,7 +45,7 @@ import org.springframework.test.context.TestPropertySource;
  * mocked above the transport, so the path under test is the production one.
  */
 @Import(ModerationDegradationIntegrationTest.UnreachableModelConfig.class)
-@TestPropertySource(properties = "campusguard.moderation.engine=gemini-v1")
+@TestPropertySource(properties = "campusguard.moderation.engine=gemini-unreachable/v1")
 class ModerationDegradationIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -103,7 +103,7 @@ class ModerationDegradationIntegrationTest extends AbstractIntegrationTest {
         assertThat(invocations).hasSize(1);
         assertThat(invocations.getFirst().getStatus()).isEqualTo(InvocationStatus.ERROR);
         assertThat(invocations.getFirst().getError()).contains("API key not valid");
-        assertThat(invocations.getFirst().getEngine()).isEqualTo("gemini-v1");
+        assertThat(invocations.getFirst().getEngine()).isEqualTo("gemini-unreachable/v1");
         assertThat(invocations.getFirst().getPromptVersion()).isEqualTo(ModerationPromptV1.VERSION);
         // A refused credential is not retried; the circuit breaker handles repetition.
         assertThat(invocations.getFirst().getAttempt()).isEqualTo(1);

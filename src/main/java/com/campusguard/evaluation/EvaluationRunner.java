@@ -64,7 +64,9 @@ public class EvaluationRunner {
         warmUp(engine, dataset);
 
         List<SampleOutcome> outcomes = new ArrayList<>();
+        long previousStart = 0;
         for (LabelledSample sample : dataset.samples()) {
+            previousStart = pace(previousStart);
             outcomes.add(evaluateOne(engine, sample));
         }
 
@@ -122,6 +124,37 @@ public class EvaluationRunner {
                 // Diagnosed by the measured run.
             }
         });
+    }
+
+    /**
+     * Holds the run to at most one sample per configured interval.
+     *
+     * <p>A benchmark is the one workload that reliably exceeds a provider's
+     * requests-per-minute ceiling: two hundred samples back to back is a burst no
+     * real traffic produces. The backoff in the transport layer recovers from
+     * hitting the limit; this avoids hitting it, which is cheaper in both wall
+     * time and quota.
+     *
+     * <p>Measured from the previous sample's start rather than its end, so a slow
+     * call already covers part of the interval instead of adding to it.
+     *
+     * @return the moment this sample is starting
+     */
+    private long pace(long previousStartNanos) {
+        long interval = properties.minCallInterval().toNanos();
+        if (interval <= 0 || previousStartNanos == 0) {
+            return System.nanoTime();
+        }
+
+        long waitFor = interval - (System.nanoTime() - previousStartNanos);
+        if (waitFor > 0) {
+            try {
+                Thread.sleep(waitFor / 1_000_000, (int) (waitFor % 1_000_000));
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        return System.nanoTime();
     }
 
     private SampleOutcome evaluateOne(ModerationEngine engine, LabelledSample sample) {

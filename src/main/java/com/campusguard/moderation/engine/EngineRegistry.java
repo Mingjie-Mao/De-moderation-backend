@@ -28,8 +28,21 @@ public class EngineRegistry {
     private final String configuredPrimary;
     private final String fallbackName;
 
-    public EngineRegistry(List<ModerationEngine> engines, ModerationProperties properties) {
-        this.byName = engines.stream().collect(Collectors.toMap(ModerationEngine::name, Function.identity()));
+    /**
+     * @param engines the ones declared a class at a time, which Spring collects
+     * @param bundles the ones whose number is a configuration value, such as a
+     *     model per entry in a list, which Spring cannot
+     */
+    public EngineRegistry(
+            List<ModerationEngine> engines,
+            List<ModerationEngineBundle> bundles,
+            ModerationProperties properties) {
+
+        List<ModerationEngine> all = new java.util.ArrayList<>(engines);
+        bundles.forEach(bundle -> all.addAll(bundle.engines()));
+
+        this.byName = all.stream()
+                .collect(Collectors.toMap(ModerationEngine::name, Function.identity(), (first, second) -> first));
         this.configuredPrimary = properties.engine();
         this.fallbackName = properties.fallbackEngine();
 
