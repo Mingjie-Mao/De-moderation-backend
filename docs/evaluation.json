@@ -1,50 +1,50 @@
 {
   "schemaVersion" : 1,
-  "generatedAt" : "2026-08-07T07:02:24.502539Z",
-  "dataset" : "evaluation/starter-samples.json",
-  "sampleCount" : 24,
-  "starterDataset" : true,
+  "generatedAt" : "2026-08-07T07:31:48.054730Z",
+  "dataset" : "evaluation-samples.json",
+  "sampleCount" : 192,
+  "starterDataset" : false,
   "engines" : [ {
     "engine" : "keyword-v1",
     "status" : "OK",
     "unavailableReason" : null,
-    "sampleCount" : 24,
-    "judgedCount" : 24,
+    "sampleCount" : 192,
+    "judgedCount" : 192,
     "errorCount" : 0,
-    "accuracy" : 0.5416666666666666,
-    "macroF1" : 0.43274853801169594,
-    "macroPrecision" : 0.42948717948717946,
-    "macroRecall" : 0.47348484848484845,
-    "meanLatencyMs" : 0.114875,
-    "p50LatencyMs" : 0.096,
-    "p95LatencyMs" : 0.24,
+    "accuracy" : 0.5052083333333334,
+    "macroF1" : 0.28612260989552535,
+    "macroPrecision" : 0.40282485875706214,
+    "macroRecall" : 0.3686868686868687,
+    "meanLatencyMs" : 0.08401041666666667,
+    "p50LatencyMs" : 0.057,
+    "p95LatencyMs" : 0.168,
     "promptTokens" : null,
     "completionTokens" : null,
     "estimatedCost" : "0",
     "perDecision" : [ {
       "decision" : "ALLOW",
-      "support" : 8,
-      "truePositives" : 7,
-      "falsePositives" : 6,
-      "falseNegatives" : 1,
-      "precision" : 0.5384615384615384,
-      "recall" : 0.875,
-      "f1" : 0.6666666666666667
+      "support" : 90,
+      "truePositives" : 90,
+      "falsePositives" : 87,
+      "falseNegatives" : 0,
+      "precision" : 0.5084745762711864,
+      "recall" : 1.0,
+      "f1" : 0.6741573033707865
     }, {
       "decision" : "REMOVE",
-      "support" : 11,
-      "truePositives" : 6,
-      "falsePositives" : 2,
-      "falseNegatives" : 5,
-      "precision" : 0.75,
-      "recall" : 0.5454545454545454,
-      "f1" : 0.631578947368421
+      "support" : 66,
+      "truePositives" : 7,
+      "falsePositives" : 3,
+      "falseNegatives" : 59,
+      "precision" : 0.7,
+      "recall" : 0.10606060606060606,
+      "f1" : 0.18421052631578946
     }, {
       "decision" : "ESCALATE",
-      "support" : 5,
+      "support" : 36,
       "truePositives" : 0,
-      "falsePositives" : 3,
-      "falseNegatives" : 5,
+      "falsePositives" : 5,
+      "falseNegatives" : 36,
       "precision" : 0.0,
       "recall" : 0.0,
       "f1" : 0.0
@@ -52,7 +52,7 @@
     "confusion" : [ {
       "actual" : "ALLOW",
       "predicted" : "ALLOW",
-      "count" : 7
+      "count" : 90
     }, {
       "actual" : "ALLOW",
       "predicted" : "REMOVE",
@@ -60,27 +60,27 @@
     }, {
       "actual" : "ALLOW",
       "predicted" : "ESCALATE",
-      "count" : 1
+      "count" : 0
     }, {
       "actual" : "REMOVE",
       "predicted" : "ALLOW",
-      "count" : 3
+      "count" : 54
     }, {
       "actual" : "REMOVE",
       "predicted" : "REMOVE",
-      "count" : 6
+      "count" : 7
     }, {
       "actual" : "REMOVE",
       "predicted" : "ESCALATE",
-      "count" : 2
+      "count" : 5
     }, {
       "actual" : "ESCALATE",
       "predicted" : "ALLOW",
-      "count" : 3
+      "count" : 33
     }, {
       "actual" : "ESCALATE",
       "predicted" : "REMOVE",
-      "count" : 2
+      "count" : 3
     }, {
       "actual" : "ESCALATE",
       "predicted" : "ESCALATE",

@@ -13,10 +13,24 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *     over this rather than over {@code category}, because with a couple of
  *     hundred samples split five ways each class has too few members for its F1
  *     to mean much, and because these three are what the system can actually do.
+ * @param provenance whether the text is real application content or was written
+ *     for the evaluation. Defaults to {@link SampleProvenance#AUTHORED}, the less
+ *     flattering assumption, so an unlabelled sample cannot quietly claim to be
+ *     real.
  * @param note why this sample was labelled the way it was; only read by humans,
  *     and the thing that makes a disputed label settleable
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record LabelledSample(
-        String id, String category, ModerationDecision expected, String title, String body, String note) {
+        String id,
+        String category,
+        ModerationDecision expected,
+        String title,
+        String body,
+        SampleProvenance provenance,
+        String note) {
+
+    public LabelledSample {
+        provenance = provenance == null ? SampleProvenance.AUTHORED : provenance;
+    }
 }

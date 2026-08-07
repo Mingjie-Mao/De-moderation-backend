@@ -37,6 +37,21 @@ public record EvaluationResult(
         return (int) outcomes.stream().filter(SampleOutcome::failed).count();
     }
 
+    /**
+     * The same scoring restricted to one source of samples.
+     *
+     * <p>A wide gap between the two is the most useful single number this report
+     * produces about its own dataset: it means the authored half is easier than
+     * the real half, and the headline score is flattering by however much.
+     */
+    public ConfusionMatrix matrixFor(SampleProvenance provenance) {
+        ConfusionMatrix restricted = new ConfusionMatrix();
+        outcomes.stream()
+                .filter(outcome -> !outcome.failed() && outcome.provenance() == provenance)
+                .forEach(outcome -> restricted.record(outcome.expected(), outcome.actual()));
+        return restricted;
+    }
+
     public List<SampleOutcome> misses() {
         return outcomes.stream().filter(SampleOutcome::misjudged).toList();
     }

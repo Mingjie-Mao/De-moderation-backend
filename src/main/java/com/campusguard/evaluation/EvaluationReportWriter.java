@@ -35,6 +35,7 @@ public class EvaluationReportWriter {
         out.append("Dataset `").append(report.datasetName()).append("`, ")
                 .append(report.sampleCount()).append(" samples.\n\n");
 
+        renderComposition(out, report);
         renderComparison(out, report);
         renderDisagreements(out, report);
         report.results().forEach(result -> renderEngine(out, result));
@@ -42,6 +43,55 @@ public class EvaluationReportWriter {
         renderReproduction(out);
 
         return out.toString();
+    }
+
+    /**
+     * States what the dataset is made of before any score is shown, because the
+     * composition bounds what every number below it can mean.
+     */
+    private void renderComposition(StringBuilder out, BenchmarkReport report) {
+        List<SampleOutcome> all = report.results().stream()
+                .filter(result -> result.status() != EngineRunStatus.UNAVAILABLE)
+                .findFirst()
+                .map(EvaluationResult::outcomes)
+                .orElse(List.of());
+
+        if (all.isEmpty()) {
+            return;
+        }
+
+        out.append("## What this dataset is\n\n");
+        out.append("| expected action | from the app | written for this | total |\n|---|---|---|---|\n");
+
+        for (ModerationDecision decision : ModerationDecision.values()) {
+            long real = count(all, decision, SampleProvenance.REAL_SEED);
+            long authored = count(all, decision, SampleProvenance.AUTHORED);
+            if (real + authored == 0) {
+                continue;
+            }
+            out.append("| ").append(decision).append(" | ").append(real)
+                    .append(" | ").append(authored).append(" | ").append(real + authored).append(" |\n");
+        }
+        out.append('\n');
+
+        out.append("`from the app` is text taken verbatim from the seeded content of the\n")
+                .append("De-discussion campus forum: the right register, the right two languages, and\n")
+                .append("written with no engine in mind. It is also almost entirely benign, because\n")
+                .append("nobody seeds a demo application with abuse.\n\n");
+        out.append("`written for this` is the rest, and it is the weakest part of the dataset. It\n")
+                .append("measures an engine against one person's idea of what a violation looks like.\n")
+                .append("The violating classes are made of it because there was no honest alternative.\n")
+                .append("Most of it deliberately avoids the wording in the rule term lists, since an\n")
+                .append("engine that only has to recognise the words it was configured with is being\n")
+                .append("asked nothing.\n\n");
+        out.append("The two are scored separately below. A wide gap means the authored half is\n")
+                .append("easier than the real half and the headline number is flattering by that much.\n\n");
+    }
+
+    private long count(List<SampleOutcome> outcomes, ModerationDecision decision, SampleProvenance provenance) {
+        return outcomes.stream()
+                .filter(outcome -> outcome.expected() == decision && outcome.provenance() == provenance)
+                .count();
     }
 
     private void renderComparison(StringBuilder out, BenchmarkReport report) {
@@ -159,8 +209,74 @@ public class EvaluationReportWriter {
         }
         out.append('\n');
 
+        renderBySource(out, result);
         renderMatrix(out, result);
         renderMisses(out, result);
+    }
+
+    private void renderBySource(StringBuilder out, EvaluationResult result) {
+        ConfusionMatrix real = result.matrixFor(SampleProvenance.REAL_SEED);
+        ConfusionMatrix authored = result.matrixFor(SampleProvenance.AUTHORED);
+
+        if (real.total() == 0 || authored.total() == 0) {
+            return;
+        }
+
+        out.append("Scored separately by where the samples came from:\n\n");
+        out.append("| samples | n | accuracy | macro-F1 |\n|---|---|---|---|\n");
+        out.append("| from the app | ").append(real.total()).append(" | ").append(decimal(real.accuracy()))
+                .append(" | ").append(decimal(real.macroF1())).append(" |\n");
+        out.append("| written for this | ").append(authored.total()).append(" | ")
+                .append(decimal(authored.accuracy())).append(" | ").append(decimal(authored.macroF1()))
+                .append(" |\n\n");
+
+        double gap = authored.accuracy() - real.accuracy();
+        boolean confounded = dominatedBySingleLabel(result, SampleProvenance.REAL_SEED)
+                || dominatedBySingleLabel(result, SampleProvenance.AUTHORED);
+
+        if (confounded) {
+            // Saying "the written samples are harder" would be reading a class
+            // imbalance as a difficulty difference. The two halves do not contain
+            // the same mix of answers, so this split cannot separate the two.
+            out.append("These two rows are **not comparable**. Each source is dominated by a single\n")
+                    .append("expected answer — the real content is almost all ALLOW, the written content\n")
+                    .append("almost all violations — so the difference between them measures the class\n")
+                    .append("mix rather than the difficulty. An engine that answered ALLOW to everything\n")
+                    .append("would score near 1.000 on the real half and near 0.000 on the written half\n")
+                    .append("without knowing anything.\n\n")
+                    .append("Fixing this needs violating content drawn from real traffic, which a seeded\n")
+                    .append("demo application does not contain. It is the honest limit of this dataset.\n\n");
+            return;
+        }
+
+        if (Math.abs(gap) >= 0.10) {
+            out.append("The written samples are ").append(decimal(Math.abs(gap)))
+                    .append(gap > 0 ? " easier" : " harder")
+                    .append(" than the real ones by accuracy. Read the headline number with that in mind.\n\n");
+        }
+    }
+
+    /**
+     * Whether one source is so dominated by a single expected answer that scoring
+     * it separately says more about the label mix than about the engine.
+     */
+    private boolean dominatedBySingleLabel(EvaluationResult result, SampleProvenance provenance) {
+        List<SampleOutcome> subset = result.outcomes().stream()
+                .filter(outcome -> outcome.provenance() == provenance)
+                .toList();
+
+        if (subset.isEmpty()) {
+            return false;
+        }
+
+        long largest = subset.stream()
+                .collect(java.util.stream.Collectors.groupingBy(SampleOutcome::expected, java.util.stream.Collectors.counting()))
+                .values().stream()
+                .mapToLong(Long::longValue)
+                .max()
+                .orElse(0);
+
+        return (double) largest / subset.size() >= 0.80;
     }
 
     private void renderMatrix(StringBuilder out, EvaluationResult result) {

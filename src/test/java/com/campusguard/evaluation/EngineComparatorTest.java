@@ -94,10 +94,10 @@ class EngineComparatorTest {
     }
 
     private SampleOutcome outcome(String id, ModerationDecision expected, ModerationDecision actual) {
-        return new SampleOutcome(id, "NORMAL", expected, actual, 0.8, List.of(), "because", "excerpt", 100, null, null, null);
+        return new SampleOutcome(id, "NORMAL", SampleProvenance.AUTHORED, expected, actual, 0.8, List.of(), "because", "excerpt", 100, null, null, null);
     }
 
     private SampleOutcome failed(String id, ModerationDecision expected) {
-        return new SampleOutcome(id, "NORMAL", expected, null, 0, List.of(), null, "excerpt", 100, null, null, "timed out");
+        return new SampleOutcome(id, "NORMAL", SampleProvenance.AUTHORED, expected, null, 0, List.of(), null, "excerpt", 100, null, null, "timed out");
     }
 }

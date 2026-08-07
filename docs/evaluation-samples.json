@@ -1,0 +1,1730 @@
+[
+  {
+    "id": "s001",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "我知道计算机组成会很难，但 COMP2300 感觉像一份全职工作。每次 lab 开始我都以为自己理解电路，最后都会开始怀疑自己到底懂不懂二进制。QuAC CPU 确实很酷，但凌晨两点调 Digital 是另一种痛苦。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s002",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "同感。Digital 里一个小小接线错误都像是在针对我本人。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s003",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "The moment the PC stops updating, my soul leaves my body.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s004",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Lowkey though, once the datapath clicks, it is actually kind of satisfying.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s005",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "赞成，尤其是如果我们把侧边栏改成只负责切论坛，首页就会清爽很多。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s006",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Using separators instead of cards would feel much closer to Reddit and speed up the visual rhythm.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s007",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "三楼也可以保留得很简洁，只要头像、昵称和操作按钮还在就够了。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s008",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Borrow the structure if it helps, but keep the tone constructive. The real story is product clarity plus moderation.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s009",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "我打算先把 ANU 论坛的帖子和评论做完整，UNSW、USYD、UM 先显示为空状态，这样论坛切换的逻辑也能先验收。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s010",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "可以。老师能一眼看出我们已经有多论坛结构，只是暂时没往另外三个论坛灌内容。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s011",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "我觉得至少要有两层回复。只要楼层缩进清楚、头像和昵称层级明显，老师就能看出来评论树已经建好了。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s012",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "What should the UNSW forum open with?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s013",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "If the goal is to prove multi-forum switching, I think a few lightweight posts about coursework and student clubs are enough. Every forum does not need the same content density.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s014",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "I will take the first-floor slot here and use this thread as another nesting example.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s015",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "What are the must-know topics for COMP1511 finals?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s016",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Finals are coming and I still can't get my head around linked lists and recursion. Has anyone compiled a cheat sheet? Where can I find past papers?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s017",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Draw the diagram before every pointer step. If it's clear on paper you won't mess up in the exam.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s018",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Agreed. Nail the base case first and the rest follows naturally.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s019",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Past papers are on UNSW Teams in the COMP1511 channel.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s020",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "The café next to the library just hiked prices to $7 a cup. Anyone know a better deal around Kensington?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s021",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Brewtown on Anzac Parade does a flat white for $4.50 and it's actually good.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s022",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "The vending machine on Main Walkway does $2.50 coffee for emergencies.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s023",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "看到很多 JD 写 penultimate，想知道大二学生有没有机会？还是先做一些 casual 的项目积累一下比较好？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s024",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "大二完全可以投。很多公司的 internship program 对年级要求没那么严，关键是 GitHub 要有东西。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s025",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "小公司会更灵活，可以先从 startup 开始积累，再往大厂走。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s026",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "The USYD forum could lean a bit more academic",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s027",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "We could use it for topics like data-structure explanations, project retrospectives, or clearer UML storytelling. That gives each forum a distinct personality.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s028",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "I also want one cleaner nested thread in this forum.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s029",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Looking for a Data Science project partner – Python required",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s030",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Working on a sentiment analysis project for the final and looking for 1-2 people with Python experience — ideally some NLP background. DM or reply here.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s031",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "我也想加，之前做过一个 Twitter 情感分析的小项目，经验可以分享。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s032",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Is Wentworth getting worse or am I just broke now",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s033",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "I swear $12 used to feel like a feast. Now $16 gets me half the plate. Anyone know a better spot near Carslaw?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s034",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "The sushi rolls across from Carslaw are great value — $10 and actually filling.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s035",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "I'm surviving exclusively on Fisher Library vending machines at this point…",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s036",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "每次到期末前两周就开始失眠，脑子根本停不下来。试过冥想但效果不稳定，有没有真的有用的方法？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s037",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "把明天要做的事情写出来，放下手机，通常 20 分钟内就睡着了。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s038",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "我会把复习进度做成清单，每划掉一项都有成就感，焦虑感也少很多。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s039",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Short moderator flows matter more than flashy UI",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s040",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "I care most about how quickly a moderator can move from seeing a reported comment to opening the thread and taking action. The visuals can keep improving, but the flow has to stay tight.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s041",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "比如校园生活、咖啡店推荐、社团活动分享，这样四个论坛切换时不会全是同一种项目讨论。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s042",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "I like that direction. It makes the app feel more like a community people would actually keep using.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s043",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "What's on campus this week worth going to?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s044",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Been stuck in my room for weeks. Anyone know what's on this week? Club events, talks, anything beats staring at the ceiling.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s045",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Film club screening Thursday evening at Student Hub — it's free.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s046",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "There's a language exchange Friday afternoon on the third floor of the Main Library. Very chill.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s047",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "宿舍真的太舒适了根本坐不住，图书馆关门又早。有没有在宿舍也能高效学习的方法分享一下？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s048",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "I charge my phone across the room. Physical distance actually works.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s049",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Pomodoro method — 25 minutes focus, 5 minute break. Sounds dumb but my output tripled.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s050",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Break tasks into tiny chunks and allow one episode per chunk completed. Weirdly motivating.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s051",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "已经海投了十几家公司的实习，只有两家给面试邀请。不知道是简历问题还是现在市场真的太难了，求有经验的同学支招。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s052",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Get someone to review your resume before the next batch. One revision doubled my callback rate.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s053",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "LinkedIn referrals beat cold applications. Try searching for UM alumni at the companies you want.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s054",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "现在演示层里已经能切论坛了，但如果后面要持久化或者做真实多论坛查询，帖子所属论坛最好正式进 Post 数据结构。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s055",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "明天要和三个人一起过 presentation，不想打扰安静区。有没有相对不吵、又能说话的位置？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s056",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "The round tables near the windows are good, usually free before 3pm.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s057",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Yep, Marie Reay has much better sound isolation.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s058",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "我会把 lecture transcript 丢给 AI 生成重点，但担心自己只是看总结，没有真正理解。你们怎么平衡效率和学习质量？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s059",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "我会先自己写一版，再让 AI 找遗漏，这样不会完全被带着走。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s060",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "AI-generated quizzes are more useful than summaries. If you can't answer them, you don't understand it yet.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s061",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "O-Week 逛了一圈感觉每个社团都说自己很 active。有没有判断一个社团是不是真的有活动的方法？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s062",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "看他们最近三个月 Instagram 有没有真实活动照片，比看宣传语靠谱。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s063",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Join the Discord first. Dead societies are obvious immediately.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s064",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "课程说明说可以用 AI 辅助 debug 和 brainstorming，但必须 disclose。有没有人知道标准写法？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s065",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "写清楚工具、用途、你自己修改了什么，别把 AI 输出当最终答案。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s066",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "这样写比只贴一句 ChatGPT assisted 清楚很多。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s067",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Is the walk from Redfern to campus safe at night?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s068",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "My classes finish late this semester. How does the Redfern walk feel at night, and is there a better route?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s069",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "晚于十点我会坐 bus 到 closer stop，省心一点。",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s070",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "tutorial 不说话会影响 participation 分吗？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s071",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "我每周都有去 tutorial，也做了题，但真的不太会主动发言。老师会看出席和小组讨论，还是必须举手回答？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s072",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Ask the tutor one question after class. That usually counts as solid participation.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s073",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "How long is too long for an off-campus commute?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s074",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Found a place with decent rent, but it's 45 minutes each way to campus. Is that too much long-term?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s075",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Factor in 8am classes and rainy days. You'll want to be closer.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s076",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "每次开头都只会说 hi everyone today we will talk about... 感觉很僵。有没有更自然的开场方式？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s077",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Open with a question, then say your talk will answer it. Easier for the audience to follow.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s078",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Is week 2 too late to swap courses?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s079",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "This course workload is much heavier than I expected and I want to swap into another elective. It's already week 2 though, so I'm worried about tutorials and quizzes. Has anyone done this?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s080",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Week 2 is still okay. Email the course convenor and ask whether tutorial records can be caught up.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s081",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Has anyone found a student card around Kambri?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s082",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Lost my student card after lunch at Kambri today, probably near the seating area or grass. Initial M. Please let me know if you spotted it.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s083",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Check the Kambri information desk. Student cards often get handed in there.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s084",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Weekend hackathon team needs one UI person",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s085",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "I can also help with a few pitch deck slides if needed.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s086",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "这周每次十点到都已经很满了。想问 exam season 期间大家一般几点去占座？有没有不那么卷的楼层？",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s087",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Before 8:30 is pretty safe. After 10 it's pure luck.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s088",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "What do you do when a group member never replies?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s089",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "One person in our group hasn't replied on Discord for three days and the deadline is close. Is it too early to tell the tutor?",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s090",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Exactly. Clear evidence makes it much easier for the tutor to handle.",
+    "provenance": "REAL_SEED",
+    "note": "Verbatim seeded content from the De-discussion campus forum."
+  },
+  {
+    "id": "s091",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Stop overthinking it and just copy the layout.",
+    "provenance": "REAL_SEED",
+    "note": "Real seeded content that is dismissive enough to be worth a human glance."
+  },
+  {
+    "id": "s092",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "I write my own notes first, then ask AI to find gaps. That keeps me from being carried by it.",
+    "provenance": "REAL_SEED",
+    "note": "Real seeded content that is dismissive enough to be worth a human glance."
+  },
+  {
+    "id": "s093",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "You contribute nothing to this group and everyone in the tutorial knows it.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s094",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Honestly just drop out, you are wasting a place someone competent could have.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s095",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Nobody in this cohort can stand you. Take the hint and stop posting.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s096",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Every time you open your mouth in class the whole room cringes. Pathetic.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s097",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "You are an idiot and your code is garbage.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s098",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Go kill yourself, nobody would notice.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s099",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Whoever wrote this is functionally illiterate. Learn English before posting.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s100",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "I hope you fail this course. You deserve it for how you treated the group.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s101",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Stop pretending you did any work. You are a parasite on this team.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s102",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Your accent makes you impossible to understand, maybe stay quiet in tutorials.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s103",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Keep crying about the marks, it is the only thing you are good at.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s104",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Get out of this forum, you are worthless here.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s105",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "楼主脑子进水了吧，说的都是什么垃圾东西。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s106",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "你这种人就该被踢出小组，什么都不做还好意思发言。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s107",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "楼主傻逼，别再发这种帖了。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s108",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "看到你就烦，能不能滚出去别在这刷屏。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s109",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "就你这水平也敢来讨论？回去重修吧，别浪费大家时间。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s110",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "长得丑还爱出风头，真是服了。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s111",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "你们组那个人真的又懒又蠢，谁跟他一组谁倒霉。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s112",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "有些人就是又菜又爱玩，说的就是楼上。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s113",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "She only got the internship because of who she knows. Everyone can see it.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s114",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "这个助教根本不懂装懂，上课就是在浪费我们的钱。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s115",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Anyone else think the international students in this course are dragging the average down?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s116",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "别理楼上那个智障，天天在这发疯。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s117",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Click here for free money, limited offer for students only.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s118",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Buy now and get 50% off our exam prep bundle, DM for the link.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s119",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Professional academic support service. Fast turnaround, competitive rates, message me.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s120",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Selling verified accounts for all major streaming platforms, cheap and instant delivery.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s121",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Make $500 a week from your phone. No experience needed, just message me to start.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s122",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Our tutoring agency has ex-lecturers on staff. First session half price, contact us today.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s123",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Crypto signals group, 300% returns last month, spots limited, join before it closes.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s124",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Need followers? We deliver real engagement to your account within 24 hours.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s125",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "DM me for discounted textbooks, all editions available, bulk orders welcome.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s126",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Best VPN deal for students, use my referral link and we both get a month free.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s127",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "加微信 xk8823，兼职日结，学生优先，工资当天到账。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s128",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "代刷各平台评分，安全快速，需要的私聊。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s129",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "专业留学文书辅导，名校导师一对一，前二十名咨询有优惠。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s130",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "出售各类会员账号，价格实惠，长期稳定，有需要加我。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s131",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "招募校园代理，无需经验，月入过万不是梦，详情私信。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s132",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "低价出各种考试资料，包括往年真题和答案整理，量大从优。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s133",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "我们工作室承接各类设计与视频剪辑，学生价，欢迎咨询。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s134",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "投资交流群，带你稳健理财，第一个月免费体验，名额有限。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s135",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Get your assignment done by verified experts. Plagiarism-free guarantee, 24/7 support.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s136",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Selling my Chegg and Coursehero logins, monthly access, cheaper than official.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s137",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "免费领取学习资料，加群即送，仅限今天。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s138",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Looking for people to join my downline. Passive income, work from anywhere.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s139",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "代写各科作业，价格公道，准时交付，保过。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s140",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Student discount codes bot, join our channel for daily drops.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s141",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Anyone know where to buy weed near campus without getting ripped off?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s142",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Need a fake id before Friday, does anyone have a reliable contact?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s143",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Selling my old ADHD prescription, still sealed, message me if interested.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s144",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Who has the answer key for this semester's final? Willing to pay well.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s145",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "I can sit the online exam for you, done it before, never been caught.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s146",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Looking for someone to take my proctored test remotely, paying $300.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s147",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Selling nangs by the box, delivery around campus tonight.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s148",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Anyone selling study drugs before exam week? Cash only.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s149",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "代写论文，包过，价格私聊，已帮很多学长学姐通过。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s150",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "出售本学期期末答案，有需要的私信，先付后发。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation."
+  },
+  {
+    "id": "s151",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "有人代考吗？线上考试，价格好商量。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s152",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "需要办一个假的学生证，有渠道的联系我。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s153",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "可以帮忙改成绩单，正规操作，安全可靠。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s154",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "低价出一些处方药，不需要处方，量少先到先得。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s155",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "I have access to the exam bank through a staff account, split the cost with me.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s156",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Anyone want to buy a stolen bike? Cheap, no questions asked.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s157",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "帮忙代刷学时和考勤，价格美丽，需要的私聊。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s158",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Selling counterfeit designer bags, indistinguishable from real, campus pickup.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Wording deliberately outside the rule term lists."
+  },
+  {
+    "id": "s159",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Someone replied to my post with 'kill yourself'. Is that something I should report or am I overreacting?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s160",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "My group member called me an idiot in the chat. Where do I raise this?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s161",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "That two hour lecture was so bad I wanted to die.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s162",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "I am going to actually explode if the library is full again tomorrow.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s163",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "My friend called me an idiot for forgetting the meeting, which honestly is fair.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s164",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Is it against the rules to sell my own lecture notes to another student?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s165",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Quoting the post that got removed: 'nobody wants you here'. Was that really a ban?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s166",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "The tutor said our work was the worst he had seen. Is that acceptable feedback?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s167",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Not naming names, but someone in our group has done zero work for three weeks.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s168",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Half this subreddit is people complaining. I include myself in that.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s169",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Genuine question: is asking AI to rewrite my draft considered academic misconduct here?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s170",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "A recruiter DMed me an offer that seems too good. Should I report it or just ignore it?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s171",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "My landlord is threatening to keep the bond. Any advice, or is this the wrong forum?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s172",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Someone is posting my photo without permission. What do I do?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s173",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "I said something rude in a thread last night and regret it. Can I delete it?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s174",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Is it okay to share a past exam paper the lecturer put on Wattle?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s175",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "这门课的作业量真的让人想死，每周都写不完。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s176",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "有人在评论区骂我，我截图了，应该发给谁处理？",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s177",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "我室友说要弄死我，应该是开玩笑，但我有点不确定要不要当真。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s178",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "请问转卖自己整理的笔记算不算违规？",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s179",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "楼上说的那句话我觉得有点过分，但也可能是我太敏感了。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s180",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "有人转发了一段很难听的话，说是别人说的，这种要不要举报？",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s181",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "我把小组里那个人说得有点重，现在有点后悔，能撤回吗？",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s182",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "这算不算学术不端：让 AI 帮我改语法但内容都是自己写的？",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s183",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "有中介加我说能包offer，感觉像骗子，要不要在这里提醒大家？",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s184",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Someone posted a screenshot of a private chat in the thread. Is that allowed?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s185",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Asking for a friend: what happens if you accidentally submit the wrong file?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s186",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "The person selling textbooks earlier never replied after payment. Where do I report that?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s187",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "I think the marking for this assignment was unfair, but I do not want to accuse anyone.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s188",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Is venting about a specific tutor allowed here, or does that count as harassment?",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s189",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "有同学在群里发了一个链接，看起来不太安全，要不要举报？",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s190",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "我觉得那条被删的帖子其实没什么问题，可以申诉吗？",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s191",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "This assignment made me question whether I belong at this university at all.",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  },
+  {
+    "id": "s192",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "我最近压力很大，有时候会想干脆放弃算了。",
+    "provenance": "AUTHORED",
+    "note": "Written for this evaluation. Context decides; a keyword cannot."
+  }
+]

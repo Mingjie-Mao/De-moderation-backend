@@ -99,10 +99,10 @@ class EvaluationRunnerFailureTest {
         return new EvaluationDataset.Loaded(
                 "test",
                 List.of(
-                        new LabelledSample("s1", "NORMAL", ModerationDecision.ALLOW, "t", "ordinary", null),
-                        new LabelledSample("s2", "ABUSE", ModerationDecision.REMOVE, "t", "abusive", null),
-                        new LabelledSample("s3", "NORMAL", ModerationDecision.ALLOW, "t", "also fine", null),
-                        new LabelledSample("s4", "SPAM", ModerationDecision.REMOVE, "t", "buy now", null)),
+                        new LabelledSample("s1", "NORMAL", ModerationDecision.ALLOW, "t", "ordinary", SampleProvenance.AUTHORED, null),
+                        new LabelledSample("s2", "ABUSE", ModerationDecision.REMOVE, "t", "abusive", SampleProvenance.AUTHORED, null),
+                        new LabelledSample("s3", "NORMAL", ModerationDecision.ALLOW, "t", "also fine", SampleProvenance.AUTHORED, null),
+                        new LabelledSample("s4", "SPAM", ModerationDecision.REMOVE, "t", "buy now", SampleProvenance.AUTHORED, null)),
                 false);
     }
 

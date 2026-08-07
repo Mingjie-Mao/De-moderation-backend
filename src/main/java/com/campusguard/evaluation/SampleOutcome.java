@@ -19,6 +19,7 @@ import java.util.List;
 public record SampleOutcome(
         String sampleId,
         String category,
+        SampleProvenance provenance,
         ModerationDecision expected,
         ModerationDecision actual,
         double confidence,

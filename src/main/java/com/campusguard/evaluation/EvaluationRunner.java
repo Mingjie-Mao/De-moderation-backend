@@ -149,6 +149,7 @@ public class EvaluationRunner {
         return new SampleOutcome(
                 sample.id(),
                 sample.category(),
+                sample.provenance(),
                 sample.expected(),
                 verdict == null ? null : verdict.decision(),
                 verdict == null ? 0 : verdict.confidence(),
