@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -56,10 +57,15 @@ public class ContentLocator {
     /**
      * Soft-delete the target.
      *
+     * <p>Joins the caller's transaction rather than opening its own, which is what
+     * makes hiding the content and closing the case one atomic decision. The
+     * annotation is here to declare that a transaction is required, not to
+     * suggest this is independent of the one around it.
+     *
      * @return false when there was nothing live to hide, which happens when the
      *     author removed their own content between the report and the decision
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public boolean hide(TargetType targetType, UUID targetId) {
         Instant now = Instant.now();
         return switch (targetType) {

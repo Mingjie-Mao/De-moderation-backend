@@ -20,6 +20,13 @@ spring:
             model: ${GEMINI_MODEL:gemini-2.5-flash}
             temperature: 0.0
 
+  data:
+    web:
+      pageable:
+        # Spring's own ceiling is 2000, which lets any caller ask for the whole
+        # forum in one request and turns a feed read into a scan.
+        max-page-size: 100
+
   web:
     # Validation messages come from Hibernate Validator's bundled translations,
     # which otherwise resolve against the server's machine locale: the same
@@ -61,6 +68,14 @@ springdoc:
     operations-sorter: method
 
 campusguard:
+  reports:
+    # Every distinct target reported becomes a case, and every case is an engine
+    # call. One account working through a hundred posts files a hundred
+    # individually legitimate reports, and nothing else in the workflow stops it:
+    # the per-target uniqueness only prevents reporting the same thing twice.
+    per-user-limit: 20
+    per-user-window: 1h
+
   security:
     jwt:
       # No default. A fallback signing key is the kind of thing that reaches

@@ -6,11 +6,13 @@ import com.campusguard.comment.CommentRepository;
 import com.campusguard.common.ConflictException;
 import com.campusguard.common.NotFoundException;
 import com.campusguard.common.TargetType;
+import com.campusguard.common.TooManyRequestsException;
 import com.campusguard.moderation.ModerationCaseService;
 import com.campusguard.post.PostRepository;
 import com.campusguard.user.User;
 import com.campusguard.user.UserRepository;
 import com.campusguard.user.UserRole;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,6 +28,7 @@ public class ReportService {
     private final UserRepository userRepository;
     private final ModerationCaseService moderationCaseService;
     private final AuditLogger auditLogger;
+    private final ReportProperties reportProperties;
 
     public ReportService(
             ReportRepository reportRepository,
@@ -33,13 +36,15 @@ public class ReportService {
             CommentRepository commentRepository,
             UserRepository userRepository,
             ModerationCaseService moderationCaseService,
-            AuditLogger auditLogger) {
+            AuditLogger auditLogger,
+            ReportProperties reportProperties) {
         this.reportRepository = reportRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.moderationCaseService = moderationCaseService;
         this.auditLogger = auditLogger;
+        this.reportProperties = reportProperties;
     }
 
     @Transactional
@@ -49,6 +54,7 @@ public class ReportService {
                 .orElseThrow(() -> new NotFoundException("No user with id " + reporterId));
 
         requireLiveTarget(request.targetType(), request.targetId());
+        requireWithinRateLimit(reporterId);
 
         // A friendly 409 for the ordinary case. The unique index behind it is
         // what makes this correct under concurrency; this check only spares the
@@ -106,6 +112,26 @@ public class ReportService {
         }
 
         return ReportResponse.of(report);
+    }
+
+    /**
+     * Caps how fast one account can open moderation cases.
+     *
+     * <p>Every distinct target reported is a case, and every case is an engine
+     * call. One account working through a hundred posts is a hundred billable
+     * calls and a hundred items in a human queue, all of them individually
+     * legitimate, which is why nothing else in the workflow stops it: the
+     * per-target uniqueness only prevents reporting the same thing twice.
+     */
+    private void requireWithinRateLimit(UUID reporterId) {
+        Instant since = Instant.now().minus(reportProperties.perUserWindow());
+        long recent = reportRepository.countByReporterIdAndCreatedAtAfter(reporterId, since);
+
+        if (recent >= reportProperties.perUserLimit()) {
+            throw new TooManyRequestsException(
+                    "You have filed %d reports in the last %s. Try again later."
+                            .formatted(recent, reportProperties.perUserWindow()));
+        }
     }
 
     /**
