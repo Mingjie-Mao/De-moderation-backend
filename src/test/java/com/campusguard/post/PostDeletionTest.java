@@ -45,15 +45,15 @@ class PostDeletionTest extends AbstractIntegrationTest {
         UUID removed = createPost(author, forumKey);
 
         mockMvc.perform(get("/api/posts").param("forum", forumKey))
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.items", hasSize(2)));
 
         mockMvc.perform(delete("/api/posts/{id}", removed).header("Authorization", bearer(author)))
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/api/posts").param("forum", forumKey))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id").value(kept.toString()));
+                .andExpect(jsonPath("$.items", hasSize(1)))
+                .andExpect(jsonPath("$.items[0].id").value(kept.toString()));
     }
 
     /**

@@ -96,7 +96,7 @@ class ModerationWorkflowIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/posts/{id}", postId)).andExpect(status().isNotFound());
         mockMvc.perform(get("/api/posts").param("forum", forumKey))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.items.length()").value(0));
 
         List<String> actions = auditEntryRepository
                 .findByTargetTypeAndTargetIdOrderByCreatedAtAsc(TargetType.POST, postId)

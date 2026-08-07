@@ -82,8 +82,74 @@ class ResilientChatCompletionTest {
         assertThat(result.promptTokens()).isEqualTo(12);
     }
 
+    /**
+     * Being throttled is the one failure that waiting fixes, so it is the one
+     * failure that gets retried.
+     */
+    @Test
+    void waitsAndTriesAgainWhenThrottled() {
+        AtomicInteger calls = new AtomicInteger();
+        ChatCompletionPort throttlesTwice = stub(() -> {
+            if (calls.incrementAndGet() <= 2) {
+                throw new ModelCallException(InvocationStatus.RATE_LIMITED, "429 quota exceeded");
+            }
+            return new ChatCompletionPort.CompletionResult("{\"ok\":true}", 1, 1);
+        });
+
+        ResilientChatCompletion resilient =
+                new ResilientChatCompletion(throttlesTwice, properties(Duration.ofSeconds(5), 10));
+
+        assertThat(resilient.complete("s", "u").text()).isEqualTo("{\"ok\":true}");
+        assertThat(calls.get()).isEqualTo(3);
+    }
+
+    /**
+     * A refused credential will still be refused two seconds later. Retrying it
+     * spends the budget twice to learn the same thing.
+     */
+    @Test
+    void doesNotRetryAFailureThatWaitingCannotFix() {
+        AtomicInteger calls = new AtomicInteger();
+        ChatCompletionPort refuses = stub(() -> {
+            calls.incrementAndGet();
+            throw new ModelCallException(InvocationStatus.ERROR, "API key not valid");
+        });
+
+        ResilientChatCompletion resilient =
+                new ResilientChatCompletion(refuses, properties(Duration.ofSeconds(5), 10));
+
+        assertThatThrownBy(() -> resilient.complete("s", "u"))
+                .isInstanceOf(ModelCallException.class)
+                .extracting(ex -> ((ModelCallException) ex).status())
+                .isEqualTo(InvocationStatus.ERROR);
+
+        assertThat(calls.get()).isEqualTo(1);
+    }
+
+    @Test
+    void givesUpAsThrottledRatherThanAsBrokenWhenTheLimitPersists() {
+        AtomicInteger calls = new AtomicInteger();
+        ChatCompletionPort alwaysThrottles = stub(() -> {
+            calls.incrementAndGet();
+            throw new ModelCallException(InvocationStatus.RATE_LIMITED, "429 quota exceeded");
+        });
+
+        ResilientChatCompletion resilient =
+                new ResilientChatCompletion(alwaysThrottles, properties(Duration.ofSeconds(5), 10));
+
+        assertThatThrownBy(() -> resilient.complete("s", "u"))
+                .isInstanceOf(ModelCallException.class)
+                .extracting(ex -> ((ModelCallException) ex).status())
+                .isEqualTo(InvocationStatus.RATE_LIMITED);
+
+        // The first call plus the configured retries.
+        assertThat(calls.get()).isEqualTo(3);
+    }
+
     private AiProperties properties(Duration timeout, int window) {
-        return new AiProperties(timeout, 50, Duration.ofSeconds(30), window, 2);
+        // Two retries with a 1ms base: the behaviour under test is the retrying,
+        // not the waiting, and a real backoff would make the suite sleep.
+        return new AiProperties(timeout, 50, Duration.ofSeconds(30), window, 2, 2, Duration.ofMillis(1));
     }
 
     private ChatCompletionPort stub(ThrowingSupplier body) {

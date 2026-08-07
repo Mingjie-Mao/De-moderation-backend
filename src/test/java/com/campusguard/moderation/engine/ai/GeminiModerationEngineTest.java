@@ -141,7 +141,7 @@ class GeminiModerationEngineTest {
                 new ModerationPromptV1(rules),
                 new VerdictParser(new ObjectMapper(), rules),
                 recorder,
-                new AiProperties(Duration.ofSeconds(10), 50, Duration.ofSeconds(30), 10, 2));
+                new AiProperties(Duration.ofSeconds(10), 50, Duration.ofSeconds(30), 10, 2, 0, Duration.ofMillis(1)));
     }
 
     private ModerationRequest request() {

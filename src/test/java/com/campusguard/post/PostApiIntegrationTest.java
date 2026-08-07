@@ -32,8 +32,8 @@ class PostApiIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/api/posts").param("forum", forumKey))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].title").value("Lost keys"));
+                .andExpect(jsonPath("$.items", hasSize(1)))
+                .andExpect(jsonPath("$.items[0].title").value("Lost keys"));
     }
 
     /**
@@ -65,9 +65,9 @@ class PostApiIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/api/posts").param("forum", forumKey))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].title").value("Second"))
-                .andExpect(jsonPath("$[1].title").value("First"));
+                .andExpect(jsonPath("$.items", hasSize(2)))
+                .andExpect(jsonPath("$.items[0].title").value("Second"))
+                .andExpect(jsonPath("$.items[1].title").value("First"));
     }
 
     @Test
@@ -81,8 +81,8 @@ class PostApiIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/api/posts").param("forum", mine))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].title").value("Mine"));
+                .andExpect(jsonPath("$.items", hasSize(1)))
+                .andExpect(jsonPath("$.items[0].title").value("Mine"));
     }
 
     @Test

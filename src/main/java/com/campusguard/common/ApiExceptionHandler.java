@@ -1,5 +1,6 @@
 package com.campusguard.common;
 
+import jakarta.validation.ConstraintViolationException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -45,6 +46,32 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     public ProblemDetail handleTooManyRequests(TooManyRequestsException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
         problem.setTitle("Rate limit exceeded");
+        return problem;
+    }
+
+    /**
+     * Constraints on request parameters rather than on a request body.
+     *
+     * <p>Bean validation reports these through a different exception than the one
+     * {@link #handleMethodArgumentNotValid} covers, so without this a query
+     * parameter outside its allowed range escaped as a 500 — the caller told
+     * nothing except that the server broke, for a request that was simply wrong.
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> violations = new LinkedHashMap<>();
+        ex.getConstraintViolations().forEach(violation -> {
+            String path = violation.getPropertyPath().toString();
+            // Drop the method name that bean validation prefixes onto the path,
+            // so the client sees "size" rather than "feed.size".
+            String parameter = path.contains(".") ? path.substring(path.lastIndexOf('.') + 1) : path;
+            violations.putIfAbsent(parameter, violation.getMessage());
+        });
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, "One or more parameters are invalid.");
+        problem.setTitle("Validation failed");
+        problem.setProperty("fieldErrors", violations);
         return problem;
     }
 

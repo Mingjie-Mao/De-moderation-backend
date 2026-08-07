@@ -8,6 +8,7 @@ import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +35,11 @@ public class ResilientChatCompletion implements ChatCompletionPort {
     private final CircuitBreaker circuitBreaker;
     private final TimeLimiter timeLimiter;
     private final ExecutorService executor;
+    private final AiProperties properties;
 
     public ResilientChatCompletion(ChatCompletionPort delegate, AiProperties properties) {
         this.delegate = delegate;
+        this.properties = properties;
 
         this.circuitBreaker = CircuitBreaker.of(
                 "moderation-model",
@@ -73,8 +76,60 @@ public class ResilientChatCompletion implements ChatCompletionPort {
         return delegate.modelName();
     }
 
+    /**
+     * Waits and tries again when the provider says we are asking too fast, and
+     * only then.
+     *
+     * <p>The wait happens here rather than inside the time limiter on purpose: a
+     * backoff counted against the call budget would guarantee the retry times out
+     * before it is even sent.
+     *
+     * <p>Nothing else is retried. A refused credential will still be refused after
+     * two seconds, and retrying it just spends the budget twice to learn the same
+     * thing.
+     */
     @Override
     public CompletionResult complete(String systemPrompt, String userPrompt) {
+        ModelCallException throttled = null;
+
+        for (int attempt = 0; attempt <= properties.rateLimitRetries(); attempt++) {
+            if (attempt > 0) {
+                backOff(attempt);
+            }
+            try {
+                return callOnce(systemPrompt, userPrompt);
+            } catch (ModelCallException ex) {
+                if (ex.status() != InvocationStatus.RATE_LIMITED) {
+                    throw ex;
+                }
+                throttled = ex;
+                log.warn("Rate limited by the model provider, attempt {} of {}.",
+                        attempt + 1, properties.rateLimitRetries() + 1);
+            }
+        }
+
+        throw throttled;
+    }
+
+    /**
+     * Exponential, with jitter. Without the jitter a batch that all hit the limit
+     * at the same moment would wait the same interval and arrive together again,
+     * reproducing the collision at every step.
+     */
+    private void backOff(int attempt) {
+        long base = properties.rateLimitBackoff().toMillis() * (1L << (attempt - 1));
+        long jitter = ThreadLocalRandom.current().nextLong(base / 2 + 1);
+
+        try {
+            Thread.sleep(base + jitter);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new ModelCallException(
+                    InvocationStatus.RATE_LIMITED, "Interrupted while backing off from a rate limit.", ex);
+        }
+    }
+
+    private CompletionResult callOnce(String systemPrompt, String userPrompt) {
         Callable<CompletionResult> timed = TimeLimiter.decorateFutureSupplier(
                 timeLimiter, () -> executor.submit(() -> delegate.complete(systemPrompt, userPrompt)));
 

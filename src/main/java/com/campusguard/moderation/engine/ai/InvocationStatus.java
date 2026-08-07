@@ -14,6 +14,16 @@ public enum InvocationStatus {
     /** Refused locally without being sent, because recent calls were failing. */
     CIRCUIT_OPEN,
 
+    /**
+     * The provider refused because we are asking too fast.
+     *
+     * <p>Kept apart from {@link #ERROR} because it is the one failure that waiting
+     * fixes. A refused credential will still be refused in thirty seconds; a 429
+     * usually will not. Counted together, a healthy service under load and a dead
+     * one produce the same failure rate.
+     */
+    RATE_LIMITED,
+
     /** Anything else: transport failure, refused credentials, rate limiting. */
     ERROR
 }

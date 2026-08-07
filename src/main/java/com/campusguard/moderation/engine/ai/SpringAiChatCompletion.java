@@ -57,8 +57,28 @@ public class SpringAiChatCompletion implements ChatCompletionPort {
             // Refused credentials, rate limiting and transport failures all arrive
             // as vendor-specific exceptions. They are flattened here so that
             // nothing above this class has to know a second SDK's type hierarchy.
-            throw new ModelCallException(InvocationStatus.ERROR, describe(ex), ex);
+            String detail = describe(ex);
+            throw new ModelCallException(classify(detail), detail, ex);
         }
+    }
+
+    /**
+     * Separates being throttled from being broken.
+     *
+     * <p>Matched on the message rather than an exception type because the Google
+     * SDK reports every HTTP status through the same {@code ClientException}, so
+     * the status code is only available as text. Fragile in principle; the
+     * alternative is treating a 429 as permanent, which turns a provider saying
+     * "not yet" into a fallback to the rule engine for every case in the batch.
+     */
+    private InvocationStatus classify(String detail) {
+        String lower = detail.toLowerCase(java.util.Locale.ROOT);
+        boolean throttled = lower.contains("429")
+                || lower.contains("resource_exhausted")
+                || lower.contains("quota")
+                || lower.contains("rate limit");
+
+        return throttled ? InvocationStatus.RATE_LIMITED : InvocationStatus.ERROR;
     }
 
     /**

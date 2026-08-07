@@ -125,6 +125,12 @@ campusguard:
       # twice with the mistake spelled out will not produce sense on the third
       # try, and every attempt is billed.
       max-attempts: 2
+      # Separate from max-attempts: that is for the model getting the answer's
+      # shape wrong, this is for the provider declining to answer yet. Being
+      # throttled is the one failure that waiting actually fixes, and a free-tier
+      # key running a two-hundred sample benchmark will meet it constantly.
+      rate-limit-retries: 4
+      rate-limit-backoff: 2s
 
 management:
   endpoints:

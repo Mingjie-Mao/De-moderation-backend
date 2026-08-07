@@ -5,11 +5,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.UUID;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/posts")
 @Tag(name = "Posts", description = "Forum posts")
+@Validated
 public class PostController {
 
     private final PostService postService;
@@ -42,12 +43,18 @@ public class PostController {
         return postService.create(AuthenticatedUser.idOf(jwt), request);
     }
 
+    /**
+     * @param cursor the {@code nextCursor} from the previous page, or absent for
+     *     the first. Opaque on purpose: what is inside it is this service's
+     *     business, and a client that parses it will break when that changes.
+     */
     @GetMapping
     @Operation(summary = "List live posts in a forum, newest first")
-    public List<PostResponse> feed(
+    public FeedPage feed(
             @RequestParam("forum") String forumKey,
-            @PageableDefault(size = 20) Pageable pageable) {
-        return postService.feed(forumKey, pageable);
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        return postService.feed(forumKey, cursor, size);
     }
 
     @GetMapping("/{id}")

@@ -7,7 +7,7 @@ import com.campusguard.user.UserRole;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,10 +54,25 @@ public class PostService {
      * first lazy association it touched.
      */
     @Transactional(readOnly = true)
-    public List<PostResponse> feed(String forumKey, Pageable pageable) {
-        return postRepository.findFeed(forumKey, pageable).stream()
-                .map(PostResponse::of)
-                .toList();
+    public FeedPage feed(String forumKey, String cursor, int size) {
+        FeedCursor from = cursor == null || cursor.isBlank() ? null : FeedCursor.decode(cursor);
+
+        // One row past the page. Reading it is how the answer to "is there more"
+        // is obtained without a second query, and counting every live post in the
+        // forum to render twenty of them would be work nobody reads.
+        PageRequest lookahead = PageRequest.of(0, size + 1);
+        List<Post> rows = from == null
+                ? postRepository.findFeedFirstPage(forumKey, lookahead)
+                : postRepository.findFeedAfter(forumKey, from.createdAt(), from.id(), lookahead);
+
+        boolean hasMore = rows.size() > size;
+        List<PostResponse> items = rows.stream().limit(size).map(PostResponse::of).toList();
+
+        String next = hasMore && !items.isEmpty()
+                ? FeedCursor.of(items.getLast()).encode()
+                : null;
+
+        return new FeedPage(items, hasMore, next);
     }
 
     @Transactional(readOnly = true)
