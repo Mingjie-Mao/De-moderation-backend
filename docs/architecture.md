@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-    android["Android client<br/>De-discussion"]
+    clients["HTTP clients<br/>any forum front end"]
     swagger["Swagger UI<br/>moderation console"]
 
     subgraph backend["CampusGuard backend"]
@@ -13,14 +13,14 @@ flowchart LR
         worker["Async worker<br/>SKIP LOCKED"]
         registry["ModerationEngine<br/>registry"]
         keyword["keyword-v1<br/>rules"]
-        gemini["gemini-v1<br/>Spring AI"]
+        gemini["model/prompt-version<br/>Spring AI"]
         eval["Evaluation harness"]
     end
 
     db[("PostgreSQL 16")]
     google["Gemini API"]
 
-    android -->|"feed, post, report"| api
+    clients -->|"feed, post, report"| api
     swagger -->|"review, decide"| api
     api --> workflow
     workflow --> db
@@ -34,9 +34,13 @@ flowchart LR
     eval --> db
 ```
 
-The dotted edges are the ones worth reading. `gemini-v1` exists only when a model
+The dotted edges are the ones worth reading. A model engine exists only when one
 is configured, and when it fails the queue falls back to `keyword-v1` rather than
 stopping. Nothing else in the diagram changes shape when the model is absent.
+
+There is one model box per model-and-prompt pair, named `model/version` — two
+prompt revisions of one model are two engines, so the harness scores them against
+each other instead of the newer one quietly replacing the older one's numbers.
 
 ## What happens to a report
 

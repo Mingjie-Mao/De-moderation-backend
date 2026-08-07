@@ -220,28 +220,6 @@ report holds `keyword-v1` and `gemini-3.5-flash-lite/v2`; v1's row is the
 previous run, in git history, on the same dataset and the same code. Rerun with
 `--campusguard.evaluation.engines=...` to scope a run to what a quota allows.
 
-## The Android client
-
-The forum's feed, posting and reporting are served by this backend from a screen
-in the [De-discussion](https://github.com/Mingjie-Mao/De-discussion) app, reached
-under **Settings → CampusGuard backend**. Screenshots of it running against a
-live server are in [`docs/screenshots`](docs/screenshots).
-
-The client source is copied into [`examples/android-client`](examples/android-client) so this
-repository stands on its own. It lives on a local branch of that app which is
-deliberately not pushed: that repository belongs to a university team, and a
-branch on it is theirs to accept rather than mine to publish. Its `main` is
-untouched.
-
-It is a separate screen rather than a new data source for the existing feed:
-that app's `Post` model belongs to its course-provided data-structures module and
-is threaded through the adapters and the moderation tools, none of which are
-mine to destabilise. The transport is `HttpURLConnection` and `org.json`, because
-three endpoints do not repay two new dependencies in a shared build file.
-
-The emulator reaches the backend at `10.0.2.2:8080`, and cleartext is permitted
-only to that address and to localhost.
-
 ## Tests
 
 ```bash
@@ -272,9 +250,11 @@ than turning a feed into one query per row.
 
 ## Project ownership
 
-The Spring Boot backend, moderation workflow, database design, evaluation harness
-and tests are designed and implemented by Mingjie Mao.
+Everything here — the Spring Boot backend, the moderation workflow, the database
+design, the evaluation harness and the tests — is designed and implemented by
+Mingjie Mao.
 
-The Android client is based on an earlier ANU team project; see that repository
-for its own contributor list. The seeded forum content from that project is used
-as the benign half of the evaluation dataset.
+The benign half of the evaluation dataset is seeded forum content taken verbatim
+from an earlier ANU team project, [De-discussion](https://github.com/Mingjie-Mao/De-discussion).
+It is used as data and nothing else; none of that project's code is in this
+repository.

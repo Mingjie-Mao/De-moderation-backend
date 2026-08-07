@@ -7,6 +7,9 @@ moment where the engine has decided something and the content is still there.
 
 ```bash
 docker compose up -d
+```
+
+```bash
 set -a && . ./.env && set +a && mvn spring-boot:run
 ```
 
@@ -17,30 +20,47 @@ docker exec -e PGPASSWORD="$DB_PASSWORD" campusguard-postgres \
   psql -U "$DB_USER" -d "$DB_NAME" -c "update users set role='ADMIN' where username='<your admin>';"
 ```
 
-Have open: the Android emulator, Swagger UI, and a terminal on the application
-log.
+Have open: Swagger UI, and a terminal on the application log.
 
-## 1 — The client is talking to the backend (30s)
+## 1 — It is an ordinary HTTP API (30s)
 
-Open the app, **Settings → CampusGuard backend**. Register and sign in.
-
-Create a post through the app. Then show the same post over the API:
+Register a member and keep the token:
 
 ```bash
-curl 'http://localhost:8080/api/posts?forum=anu-general&size=5'
+TOKEN=$(curl -s -X POST localhost:8080/api/auth/register -H 'Content-Type: application/json' \
+  -d '{"username":"kai","password":"DemoPassw0rd1"}' | jq -r .accessToken)
 ```
 
-Say: the feed is not demo data any more, and it pages by cursor rather than
-offset so a post arriving mid-scroll does not shift the list.
+Post something that breaks a rule, then read the feed back:
+
+```bash
+curl -s -X POST localhost:8080/api/posts -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"forumKey":"anu-general","title":"About the group project",
+       "body":"You contribute nothing to this group and everyone in the tutorial knows it."}'
+```
+
+```bash
+curl -s 'localhost:8080/api/posts?forum=anu-general&size=5'
+```
+
+Say: the feed pages by cursor rather than offset, so a post arriving mid-scroll
+does not shift the list and a reader never sees the same post twice.
 
 ## 2 — Report it (20s)
 
-Long press the post in the app, choose a reason. Point out the response says
-`AGGREGATED`, not `PENDING`: the report has already been folded into a case.
+```bash
+curl -s -X POST localhost:8080/api/reports -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"targetType":"POST","targetId":"<post id>","reason":"ABUSE"}'
+```
 
-Report the same post again from the app. It is refused with the backend's own
-sentence, "you have already reported this content" — that is a unique index
-answering, not a check in application code.
+Point out the response says `AGGREGATED`, not `PENDING`: the report has already
+been folded into a case.
+
+Send the identical request again. It is refused with the backend's own sentence,
+"you have already reported this content" — that is a unique index answering, not
+a check in application code.
 
 ## 3 — The queue moves on its own (20s)
 
@@ -54,7 +74,13 @@ starts so row locks are not held across a model call.
 In Swagger, `GET /api/admin/moderation-cases`. Show the case: engine name,
 recommendation, confidence, rationale, rule codes.
 
-Then switch back to the app and refresh. **The post is still there.**
+Then read the public feed again:
+
+```bash
+curl -s 'localhost:8080/api/posts?forum=anu-general&size=5'
+```
+
+**The post is still the first item.**
 
 Say it plainly: the engine recommended removal and nothing happened, because an
 automated system that takes content down on its own is one nobody can appeal to.
@@ -69,7 +95,7 @@ SYSTEM CASE_OPENED · USER REPORT_FILED · SYSTEM CASE_CLAIMED
 · ENGINE VERDICT_RECORDED · ADMIN CONTENT_HIDDEN · ADMIN CASE_RESOLVED
 ```
 
-Refresh the app. The post is gone.
+Read the feed once more. The post is gone.
 
 ## 6 — Pull the plug (30s)
 
@@ -81,17 +107,27 @@ a missing key degrades moderation to rules; it does not stop it. There are
 automated tests for the three ways this fails — credentials refused, a call that
 never returns, and a response that parses but carries an impossible confidence.
 
+Worth adding if there is time: a worker killed mid-analysis is also covered.
+The case goes back to the queue and gets judged by the next one, and the sweep
+that does it is tested in both directions — it must return a case whose worker
+died, and must not touch one somebody is still working on.
+
 ## 7 — The numbers (30s)
 
 Open [`evaluation.md`](evaluation.md). Do not read the accuracy figure out loud;
 read the recall.
 
 The rule engine catches 10.6% of violations and never once asks for a human. That
-is the floor. A model has to beat it by enough to justify roughly 2.3 seconds a
-call against 0.05 milliseconds — which is the comparison the harness exists to
-make, and why the baseline was measured before there was anything to compare it
-to.
+is the floor, and it is why the baseline was measured before there was anything
+to compare it to.
 
-Close on the dataset's limits: the benign half is real forum content, the
-violating half was written for the evaluation, and the report says so itself
-rather than waiting to be caught.
+Then the two model rows, which are the more interesting result. Same code, same
+model, two prompt versions: macro-F1 0.636 and 0.924. The difference is entirely
+one class — the first prompt answered ALLOW to thirty-three of the thirty-six
+samples that should have reached a person, because it was answering "does this
+break a rule" when the queue is asking "can this be closed without a person".
+
+Close on the limits, and do not wait to be asked: the violating half of the
+dataset was written for the evaluation, and the second prompt was written after
+reading the first one's mistakes on that same data, so its score there is
+optimistic. The report says both itself.
