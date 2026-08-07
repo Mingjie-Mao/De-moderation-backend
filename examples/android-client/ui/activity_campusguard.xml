@@ -1,123 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  A deliberately plain screen. Its job is to show that the feed, posting and
-  reporting are travelling over REST to the moderation backend, and anything more
-  decorative would only make that harder to see in a demo.
+  Built from the app's own colours, card background and spacing rather than from
+  raw platform defaults, so a backend-served feed looks like the rest of the
+  product instead of like a debug screen someone left in.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/cgRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/page_background"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingStart="16dp"
+    android:paddingTop="24dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="12dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/cg_title"
-        android:textSize="20sp"
+        android:textColor="@color/ink_primary"
+        android:textSize="22sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/cgStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="4dp"
-        android:paddingBottom="8dp"
+        android:layout_marginTop="2dp"
         android:text="@string/cg_status_signed_out"
+        android:textColor="@color/ink_secondary"
         android:textSize="13sp" />
 
+    <!-- Sign in -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_card"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <EditText
-            android:id="@+id/cgUsername"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:autofillHints="username"
-            android:hint="@string/cg_hint_username"
-            android:inputType="text" />
+            android:orientation="horizontal">
 
-        <EditText
-            android:id="@+id/cgPassword"
-            android:layout_width="0dp"
+            <EditText
+                android:id="@+id/cgUsername"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:autofillHints="username"
+                android:background="@null"
+                android:hint="@string/cg_hint_username"
+                android:inputType="text"
+                android:textColor="@color/ink_primary"
+                android:textColorHint="@color/ink_faint"
+                android:textSize="15sp" />
+
+            <EditText
+                android:id="@+id/cgPassword"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:autofillHints="password"
+                android:background="@null"
+                android:hint="@string/cg_hint_password"
+                android:inputType="textPassword"
+                android:textColor="@color/ink_primary"
+                android:textColorHint="@color/ink_faint"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:autofillHints="password"
-            android:hint="@string/cg_hint_password"
-            android:inputType="textPassword" />
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/cgRegister"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="@string/cg_action_register" />
+
+            <Button
+                android:id="@+id/cgSignIn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/cg_action_sign_in" />
+        </LinearLayout>
     </LinearLayout>
 
+    <!-- Forum -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_card"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp">
 
-        <Button
-            android:id="@+id/cgRegister"
+        <EditText
+            android:id="@+id/cgForum"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/cg_action_register" />
-
-        <Button
-            android:id="@+id/cgSignIn"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/cg_action_sign_in" />
-    </LinearLayout>
-
-    <EditText
-        android:id="@+id/cgForum"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:autofillHints=""
-        android:hint="@string/cg_hint_forum"
-        android:inputType="text"
-        android:text="anu-general" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+            android:autofillHints=""
+            android:background="@null"
+            android:hint="@string/cg_hint_forum"
+            android:inputType="text"
+            android:text="anu-general"
+            android:textColor="@color/ink_primary"
+            android:textColorHint="@color/ink_faint"
+            android:textSize="15sp" />
 
         <Button
             android:id="@+id/cgRefresh"
-            android:layout_width="0dp"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
             android:text="@string/cg_action_refresh" />
 
         <Button
             android:id="@+id/cgNewPost"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="@string/cg_action_new_post" />
     </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="8dp"
+        android:paddingTop="14dp"
         android:paddingBottom="4dp"
         android:text="@string/cg_hint_long_press"
+        android:textColor="@color/ink_tertiary"
         android:textSize="12sp" />
 
     <ListView
         android:id="@+id/cgFeed"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:divider="@color/surface_border"
+        android:dividerHeight="1dp"
+        android:scrollbars="none" />
 
     <Button
         android:id="@+id/cgLoadMore"
+        style="?attr/materialButtonOutlinedStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:enabled="false"
         android:text="@string/cg_action_load_more" />
 </LinearLayout>

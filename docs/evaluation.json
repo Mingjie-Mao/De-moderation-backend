@@ -1,6 +1,6 @@
 {
   "schemaVersion" : 1,
-  "generatedAt" : "2026-08-07T10:41:05.420663Z",
+  "generatedAt" : "2026-08-07T16:16:55.408346Z",
   "dataset" : "evaluation-samples.json",
   "sampleCount" : 192,
   "starterDataset" : false,
@@ -15,9 +15,9 @@
     "macroF1" : 0.28612260989552535,
     "macroPrecision" : 0.40282485875706214,
     "macroRecall" : 0.3686868686868687,
-    "meanLatencyMs" : 0.06023958333333333,
-    "p50LatencyMs" : 0.052,
-    "p95LatencyMs" : 0.126,
+    "meanLatencyMs" : 0.5227083333333333,
+    "p50LatencyMs" : 0.364,
+    "p95LatencyMs" : 0.694,
     "promptTokens" : null,
     "completionTokens" : null,
     "estimatedCost" : "0",
@@ -86,7 +86,778 @@
       "predicted" : "ESCALATE",
       "count" : 0
     } ]
+  }, {
+    "engine" : "gemini-3.5-flash-lite/v1",
+    "status" : "OK",
+    "unavailableReason" : null,
+    "sampleCount" : 192,
+    "judgedCount" : 192,
+    "errorCount" : 0,
+    "accuracy" : 0.8072916666666666,
+    "macroF1" : 0.6359806078115938,
+    "macroPrecision" : 0.7866469573786646,
+    "macroRecall" : 0.6713804713804713,
+    "meanLatencyMs" : 1143.783171875,
+    "p50LatencyMs" : 871.146,
+    "p95LatencyMs" : 1884.582,
+    "promptTokens" : 64488,
+    "completionTokens" : 13264,
+    "estimatedCost" : null,
+    "perDecision" : [ {
+      "decision" : "ALLOW",
+      "support" : 90,
+      "truePositives" : 89,
+      "falsePositives" : 34,
+      "falseNegatives" : 1,
+      "precision" : 0.7235772357723578,
+      "recall" : 0.9888888888888889,
+      "f1" : 0.835680751173709
+    }, {
+      "decision" : "REMOVE",
+      "support" : 66,
+      "truePositives" : 64,
+      "falsePositives" : 2,
+      "falseNegatives" : 2,
+      "precision" : 0.9696969696969697,
+      "recall" : 0.9696969696969697,
+      "f1" : 0.9696969696969697
+    }, {
+      "decision" : "ESCALATE",
+      "support" : 36,
+      "truePositives" : 2,
+      "falsePositives" : 1,
+      "falseNegatives" : 34,
+      "precision" : 0.6666666666666666,
+      "recall" : 0.05555555555555555,
+      "f1" : 0.10256410256410256
+    } ],
+    "confusion" : [ {
+      "actual" : "ALLOW",
+      "predicted" : "ALLOW",
+      "count" : 89
+    }, {
+      "actual" : "ALLOW",
+      "predicted" : "REMOVE",
+      "count" : 1
+    }, {
+      "actual" : "ALLOW",
+      "predicted" : "ESCALATE",
+      "count" : 0
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ALLOW",
+      "count" : 1
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "REMOVE",
+      "count" : 64
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ESCALATE",
+      "count" : 1
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ALLOW",
+      "count" : 33
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "REMOVE",
+      "count" : 1
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ESCALATE",
+      "count" : 2
+    } ]
   } ],
-  "comparisons" : [ ],
-  "production" : [ ]
+  "comparisons" : [ {
+    "baseline" : "keyword-v1",
+    "candidate" : "gemini-3.5-flash-lite/v1",
+    "bothRight" : 96,
+    "candidateFixed" : [ {
+      "sampleId" : "s093",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "You contribute nothing to this group and everyone in the tutorial knows it."
+    }, {
+      "sampleId" : "s094",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Honestly just drop out, you are wasting a place someone competent could have."
+    }, {
+      "sampleId" : "s095",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Nobody in this cohort can stand you. Take the hint and stop posting."
+    }, {
+      "sampleId" : "s096",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Every time you open your mouth in class the whole room cringes. Pathetic."
+    }, {
+      "sampleId" : "s099",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Whoever wrote this is functionally illiterate. Learn English before posting."
+    }, {
+      "sampleId" : "s100",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "I hope you fail this course. You deserve it for how you treated the group."
+    }, {
+      "sampleId" : "s101",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Stop pretending you did any work. You are a parasite on this team."
+    }, {
+      "sampleId" : "s102",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Your accent makes you impossible to understand, maybe stay quiet in tutorials."
+    }, {
+      "sampleId" : "s103",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Keep crying about the marks, it is the only thing you are good at."
+    }, {
+      "sampleId" : "s104",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Get out of this forum, you are worthless here."
+    }, {
+      "sampleId" : "s105",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "楼主脑子进水了吧，说的都是什么垃圾东西。"
+    }, {
+      "sampleId" : "s106",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "你这种人就该被踢出小组，什么都不做还好意思发言。"
+    }, {
+      "sampleId" : "s109",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "就你这水平也敢来讨论？回去重修吧，别浪费大家时间。"
+    }, {
+      "sampleId" : "s110",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "长得丑还爱出风头，真是服了。"
+    }, {
+      "sampleId" : "s111",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "你们组那个人真的又懒又蠢，谁跟他一组谁倒霉。"
+    }, {
+      "sampleId" : "s112",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "有些人就是又菜又爱玩，说的就是楼上。"
+    }, {
+      "sampleId" : "s115",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Anyone else think the international students in this course are dragging the average down?"
+    }, {
+      "sampleId" : "s116",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "别理楼上那个智障，天天在这发疯。"
+    }, {
+      "sampleId" : "s117",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ESCALATE",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Click here for free money, limited offer for students only."
+    }, {
+      "sampleId" : "s118",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ESCALATE",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Buy now and get 50% off our exam prep bundle, DM for the link."
+    }, {
+      "sampleId" : "s119",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Professional academic support service. Fast turnaround, competitive rates, message me."
+    }, {
+      "sampleId" : "s120",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Selling verified accounts for all major streaming platforms, cheap and instant delivery."
+    }, {
+      "sampleId" : "s121",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Make $500 a week from your phone. No experience needed, just message me to start."
+    }, {
+      "sampleId" : "s122",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Our tutoring agency has ex-lecturers on staff. First session half price, contact us today."
+    }, {
+      "sampleId" : "s123",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Crypto signals group, 300% returns last month, spots limited, join before it closes."
+    }, {
+      "sampleId" : "s124",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Need followers? We deliver real engagement to your account within 24 hours."
+    }, {
+      "sampleId" : "s125",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "DM me for discounted textbooks, all editions available, bulk orders welcome."
+    }, {
+      "sampleId" : "s126",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Best VPN deal for students, use my referral link and we both get a month free."
+    }, {
+      "sampleId" : "s127",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ESCALATE",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "加微信 xk8823，兼职日结，学生优先，工资当天到账。"
+    }, {
+      "sampleId" : "s128",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ESCALATE",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "代刷各平台评分，安全快速，需要的私聊。"
+    }, {
+      "sampleId" : "s129",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "专业留学文书辅导，名校导师一对一，前二十名咨询有优惠。"
+    }, {
+      "sampleId" : "s130",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "出售各类会员账号，价格实惠，长期稳定，有需要加我。"
+    }, {
+      "sampleId" : "s131",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "招募校园代理，无需经验，月入过万不是梦，详情私信。"
+    }, {
+      "sampleId" : "s132",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "低价出各种考试资料，包括往年真题和答案整理，量大从优。"
+    }, {
+      "sampleId" : "s133",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "我们工作室承接各类设计与视频剪辑，学生价，欢迎咨询。"
+    }, {
+      "sampleId" : "s134",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "投资交流群，带你稳健理财，第一个月免费体验，名额有限。"
+    }, {
+      "sampleId" : "s135",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Get your assignment done by verified experts. Plagiarism-free guarantee, 24/7 support."
+    }, {
+      "sampleId" : "s136",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Selling my Chegg and Coursehero logins, monthly access, cheaper than official."
+    }, {
+      "sampleId" : "s137",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "免费领取学习资料，加群即送，仅限今天。"
+    }, {
+      "sampleId" : "s138",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Looking for people to join my downline. Passive income, work from anywhere."
+    }, {
+      "sampleId" : "s139",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "代写各科作业，价格公道，准时交付，保过。"
+    }, {
+      "sampleId" : "s140",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Student discount codes bot, join our channel for daily drops."
+    }, {
+      "sampleId" : "s143",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Selling my old ADHD prescription, still sealed, message me if interested."
+    }, {
+      "sampleId" : "s144",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Who has the answer key for this semester's final? Willing to pay well."
+    }, {
+      "sampleId" : "s145",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "I can sit the online exam for you, done it before, never been caught."
+    }, {
+      "sampleId" : "s146",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Looking for someone to take my proctored test remotely, paying $300."
+    }, {
+      "sampleId" : "s147",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Selling nangs by the box, delivery around campus tonight."
+    }, {
+      "sampleId" : "s148",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Anyone selling study drugs before exam week? Cash only."
+    }, {
+      "sampleId" : "s150",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "出售本学期期末答案，有需要的私信，先付后发。"
+    }, {
+      "sampleId" : "s151",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "有人代考吗？线上考试，价格好商量。"
+    }, {
+      "sampleId" : "s152",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "需要办一个假的学生证，有渠道的联系我。"
+    }, {
+      "sampleId" : "s153",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "可以帮忙改成绩单，正规操作，安全可靠。"
+    }, {
+      "sampleId" : "s154",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "低价出一些处方药，不需要处方，量少先到先得。"
+    }, {
+      "sampleId" : "s155",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "I have access to the exam bank through a staff account, split the cost with me."
+    }, {
+      "sampleId" : "s156",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Anyone want to buy a stolen bike? Cheap, no questions asked."
+    }, {
+      "sampleId" : "s157",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ESCALATE",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "帮忙代刷学时和考勤，价格美丽，需要的私聊。"
+    }, {
+      "sampleId" : "s158",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Selling counterfeit designer bags, indistinguishable from real, campus pickup."
+    }, {
+      "sampleId" : "s177",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "我室友说要弄死我，应该是开玩笑，但我有点不确定要不要当真。"
+    }, {
+      "sampleId" : "s192",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "我最近压力很大，有时候会想干脆放弃算了。"
+    } ],
+    "candidateBroke" : [ {
+      "sampleId" : "s052",
+      "category" : "NORMAL",
+      "expected" : "ALLOW",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Get someone to review your resume before the next batch. One revision doubled my callba..."
+    } ],
+    "bothWrong" : [ {
+      "sampleId" : "s091",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Stop overthinking it and just copy the layout."
+    }, {
+      "sampleId" : "s092",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "I write my own notes first, then ask AI to find gaps. That keeps me from being carried ..."
+    }, {
+      "sampleId" : "s113",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "She only got the internship because of who she knows. Everyone can see it."
+    }, {
+      "sampleId" : "s114",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "这个助教根本不懂装懂，上课就是在浪费我们的钱。"
+    }, {
+      "sampleId" : "s159",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "REMOVE",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Someone replied to my post with 'kill yourself'. Is that something I should report or a..."
+    }, {
+      "sampleId" : "s160",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "REMOVE",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "My group member called me an idiot in the chat. Where do I raise this?"
+    }, {
+      "sampleId" : "s161",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "That two hour lecture was so bad I wanted to die."
+    }, {
+      "sampleId" : "s162",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "I am going to actually explode if the library is full again tomorrow."
+    }, {
+      "sampleId" : "s163",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "REMOVE",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "My friend called me an idiot for forgetting the meeting, which honestly is fair."
+    }, {
+      "sampleId" : "s164",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Is it against the rules to sell my own lecture notes to another student?"
+    }, {
+      "sampleId" : "s165",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Quoting the post that got removed: 'nobody wants you here'. Was that really a ban?"
+    }, {
+      "sampleId" : "s166",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "The tutor said our work was the worst he had seen. Is that acceptable feedback?"
+    }, {
+      "sampleId" : "s167",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Not naming names, but someone in our group has done zero work for three weeks."
+    }, {
+      "sampleId" : "s168",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Half this subreddit is people complaining. I include myself in that."
+    }, {
+      "sampleId" : "s169",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Genuine question: is asking AI to rewrite my draft considered academic misconduct here?"
+    }, {
+      "sampleId" : "s170",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "A recruiter DMed me an offer that seems too good. Should I report it or just ignore it?"
+    }, {
+      "sampleId" : "s171",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "My landlord is threatening to keep the bond. Any advice, or is this the wrong forum?"
+    }, {
+      "sampleId" : "s172",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Someone is posting my photo without permission. What do I do?"
+    }, {
+      "sampleId" : "s173",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "I said something rude in a thread last night and regret it. Can I delete it?"
+    }, {
+      "sampleId" : "s174",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Is it okay to share a past exam paper the lecturer put on Wattle?"
+    }, {
+      "sampleId" : "s175",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "这门课的作业量真的让人想死，每周都写不完。"
+    }, {
+      "sampleId" : "s176",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "有人在评论区骂我，我截图了，应该发给谁处理？"
+    }, {
+      "sampleId" : "s178",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "请问转卖自己整理的笔记算不算违规？"
+    }, {
+      "sampleId" : "s179",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "楼上说的那句话我觉得有点过分，但也可能是我太敏感了。"
+    }, {
+      "sampleId" : "s180",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "有人转发了一段很难听的话，说是别人说的，这种要不要举报？"
+    }, {
+      "sampleId" : "s181",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "我把小组里那个人说得有点重，现在有点后悔，能撤回吗？"
+    }, {
+      "sampleId" : "s182",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "这算不算学术不端：让 AI 帮我改语法但内容都是自己写的？"
+    }, {
+      "sampleId" : "s183",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "有中介加我说能包offer，感觉像骗子，要不要在这里提醒大家？"
+    }, {
+      "sampleId" : "s184",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Someone posted a screenshot of a private chat in the thread. Is that allowed?"
+    }, {
+      "sampleId" : "s185",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Asking for a friend: what happens if you accidentally submit the wrong file?"
+    }, {
+      "sampleId" : "s186",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "The person selling textbooks earlier never replied after payment. Where do I report that?"
+    }, {
+      "sampleId" : "s187",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "I think the marking for this assignment was unfair, but I do not want to accuse anyone."
+    }, {
+      "sampleId" : "s188",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "Is venting about a specific tutor allowed here, or does that count as harassment?"
+    }, {
+      "sampleId" : "s189",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "有同学在群里发了一个链接，看起来不太安全，要不要举报？"
+    }, {
+      "sampleId" : "s190",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "我觉得那条被删的帖子其实没什么问题，可以申诉吗？"
+    }, {
+      "sampleId" : "s191",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ALLOW",
+      "excerpt" : "This assignment made me question whether I belong at this university at all."
+    } ],
+    "netGain" : 58
+  } ],
+  "production" : [ {
+    "engine" : "gemini-v1",
+    "calls" : 1,
+    "successes" : 1,
+    "failures" : 0,
+    "avgLatencyMs" : 3384.0,
+    "p95LatencyMs" : 3384.0,
+    "promptTokens" : 285,
+    "completionTokens" : 39
+  } ]
 }

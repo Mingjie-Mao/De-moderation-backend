@@ -13,6 +13,7 @@ campusguard/CampusGuardApi.java     transport, auth, feed, posting, reporting
 campusguard/BackendPost.java        the backend's post payload
 ui/CampusGuardActivity.java         the screen
 ui/activity_campusguard.xml         its layout
+ui/item_campusguard_post.xml        one feed row
 ui/campusguard_network_security_config.xml
                                     cleartext scoped to the emulator's loopback
 ```
@@ -40,5 +41,10 @@ about sixty lines here.
 **Failures show the backend's own sentence.** It answers errors as RFC 7807
 problem documents, so unwrapping `detail` turns "HTTP 409" into "you have already
 reported this content".
+
+**It is styled like the rest of the app**, from that app's own card background,
+accent colour and text hierarchy, and it follows the light or dark setting
+already chosen. A feed served over REST is not a lesser feed, and drawing it in
+platform defaults would say otherwise.
 
 Screenshots of it running are in [`../docs/screenshots`](../docs/screenshots).

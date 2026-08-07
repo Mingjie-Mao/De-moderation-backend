@@ -38,7 +38,7 @@ public class CampusGuardActivity extends AppCompatActivity {
     private final CampusGuardApi api = CampusGuardApi.getInstance();
     private final List<BackendPost> loaded = new ArrayList<>();
 
-    private ArrayAdapter<String> adapter;
+    private PostRowAdapter adapter;
     private TextView status;
     private EditText forumField;
     private Button loadMore;
@@ -46,6 +46,9 @@ public class CampusGuardActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Same call every other screen makes, so this one follows the light or
+        // dark choice the user already made rather than looking like a visitor.
+        UiPreferences.applyAppearance(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_campusguard);
 
@@ -57,7 +60,7 @@ public class CampusGuardActivity extends AppCompatActivity {
         EditText password = findViewById(R.id.cgPassword);
         ListView feed = findViewById(R.id.cgFeed);
 
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<>());
+        adapter = new PostRowAdapter();
         feed.setAdapter(adapter);
 
         findViewById(R.id.cgRegister).setOnClickListener(v -> api.register(
@@ -99,7 +102,7 @@ public class CampusGuardActivity extends AppCompatActivity {
 
     private void refresh() {
         loaded.clear();
-        adapter.clear();
+        adapter.notifyDataSetChanged();
         nextCursor = null;
         loadPage(null);
     }
@@ -114,10 +117,7 @@ public class CampusGuardActivity extends AppCompatActivity {
         api.loadFeed(forumKey, cursor, PAGE_SIZE, new CampusGuardApi.Callback<CampusGuardApi.FeedPage>() {
             @Override
             public void onSuccess(CampusGuardApi.FeedPage page) {
-                for (BackendPost post : page.posts) {
-                    loaded.add(post);
-                    adapter.add(post.title + "\n" + post.body + "\n— " + post.authorName);
-                }
+                loaded.addAll(page.posts);
                 adapter.notifyDataSetChanged();
 
                 // The cursor is opaque and simply handed back. Paging by position
@@ -185,6 +185,46 @@ public class CampusGuardActivity extends AppCompatActivity {
 
     private void report(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * Renders a backend post in the app's own row shape.
+     *
+     * <p>Reads straight from {@link #loaded} rather than keeping a parallel list of
+     * formatted strings: the long-press handler resolves a row to a post by
+     * position, and two lists that have to stay in step are two lists that
+     * eventually will not.
+     */
+    private final class PostRowAdapter extends android.widget.BaseAdapter {
+
+        @Override
+        public int getCount() {
+            return loaded.size();
+        }
+
+        @Override
+        public BackendPost getItem(int position) {
+            return loaded.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public android.view.View getView(int position, android.view.View convertView, android.view.ViewGroup parent) {
+            android.view.View row = convertView != null
+                    ? convertView
+                    : getLayoutInflater().inflate(R.layout.item_campusguard_post, parent, false);
+
+            BackendPost post = getItem(position);
+            ((TextView) row.findViewById(R.id.textCgPostTitle)).setText(post.title);
+            ((TextView) row.findViewById(R.id.textCgPostBody)).setText(post.body);
+            ((TextView) row.findViewById(R.id.textCgPostAuthor)).setText("— " + post.authorName);
+
+            return row;
+        }
     }
 
     /**

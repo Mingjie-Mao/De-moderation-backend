@@ -8,23 +8,18 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
- * The prompt, with a version number that is recorded on every call.
+ * The baseline prompt: state the task, list the rules, name the answer shape,
+ * stop.
  *
- * <p>Versioning is what makes prompt changes measurable instead of anecdotal.
- * An unversioned prompt that someone improved last week leaves no way to say
- * whether this week's numbers moved because of the change or because of the
- * traffic, and no way to compare the two on the same data.
- *
- * <p>This first version states the task and the rules plainly and stops there.
- * It deliberately does not yet carry guidance about quoted abuse, hyperbole or
+ * <p>It deliberately carries no guidance about quoted abuse, hyperbole or
  * self-directed insults, which is what the keyword baseline showed to be the
  * hard cases. Writing those instructions before measuring which of them the
- * model actually needs would be guessing, and the comparison against a later
- * version is only meaningful if the first one was an honest attempt rather than
- * a straw man.
+ * model actually needs would be guessing, and a later version's improvement only
+ * means something if the version it beat was an honest attempt rather than a
+ * straw man built to lose.
  */
 @Component
-public class ModerationPromptV1 {
+public class ModerationPromptV1 implements ModerationPrompt {
 
     public static final String VERSION = "v1";
 
@@ -34,10 +29,12 @@ public class ModerationPromptV1 {
         this.ruleProvider = ruleProvider;
     }
 
+    @Override
     public String version() {
         return VERSION;
     }
 
+    @Override
     public String system() {
         return """
                 You review posts and comments on a university student forum and \
@@ -70,6 +67,7 @@ public class ModerationPromptV1 {
                 .formatted(renderRules(ruleProvider.activeRules()));
     }
 
+    @Override
     public String user(ModerationRequest request) {
         String title = request.title() == null || request.title().isBlank() ? "(none)" : request.title();
         return """

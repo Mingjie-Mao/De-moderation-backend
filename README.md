@@ -152,11 +152,29 @@ against the next run, and `evaluation-samples.csv` with every engine's answer to
 every sample. An engine that is unavailable is reported and skipped rather than
 ending the run.
 
-The rule baseline exists so that a model's score means something. On 192 samples
-it reaches macro-F1 0.286, and the reason is the number that matters: **recall on
-REMOVE is 0.106**. Fifty-four of sixty-six violations pass straight through, and
-it never once asks for a human. That is the floor a model has to beat, and by
-enough to justify roughly 2.3 seconds per call against 0.05 milliseconds.
+The rule baseline exists so that a model's score means something. On 192 samples:
+
+| engine | macro-F1 | REMOVE recall | ESCALATE recall | p50 | p95 |
+|---|---|---|---|---|---|
+| `keyword-v1` | 0.286 | 0.106 | 0.000 | 0.4 ms | 0.7 ms |
+| `gemini-3.5-flash-lite/v1` | 0.636 | 0.970 | 0.056 | 871 ms | 1885 ms |
+
+Fifty-nine samples the baseline got wrong the model gets right, against one it
+breaks — and the fifty-nine are the ones that matter, abuse phrased in words no
+term list contains, in both languages the forum is written in. That is what
+2 300× the latency buys.
+
+The rest of the table is the part worth reading. The model's REMOVE recall is
+0.970 and its ESCALATE recall is 0.056: of thirty-six samples where the right
+answer is *ask a person*, it answers ALLOW to thirty-three. Its whole remaining
+error is one behaviour, and reading the rationales says why — asked whether a
+post breaks a rule, it correctly answers no, when the question the label is
+asking is whether a machine should be the one to close the matter. "Someone is
+posting my photo without permission, what do I do?" breaks no rule and still
+needs a human.
+
+So macro-F1 0.636 is not "the model is 64% good". It is one class nearly solved
+and one class barely attempted, and averaging them hides which.
 
 The report states its own limits rather than leaving them to be discovered. The
 benign half of the dataset is real forum content; the violating half was written

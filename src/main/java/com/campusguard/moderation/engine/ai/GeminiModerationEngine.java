@@ -29,14 +29,14 @@ public class GeminiModerationEngine implements ModerationEngine {
     private static final Logger log = LoggerFactory.getLogger(GeminiModerationEngine.class);
 
     private final ChatCompletionPort completions;
-    private final ModerationPromptV1 prompt;
+    private final ModerationPrompt prompt;
     private final VerdictParser parser;
     private final AiInvocationRecorder recorder;
     private final AiProperties properties;
 
     public GeminiModerationEngine(
             ChatCompletionPort completions,
-            ModerationPromptV1 prompt,
+            ModerationPrompt prompt,
             VerdictParser parser,
             AiInvocationRecorder recorder,
             AiProperties properties) {
@@ -57,7 +57,7 @@ public class GeminiModerationEngine implements ModerationEngine {
      */
     @Override
     public String name() {
-        return completions.modelName() + "/" + ModerationPromptV1.VERSION;
+        return completions.modelName() + "/" + prompt.version();
     }
 
     @Override
@@ -79,7 +79,7 @@ public class GeminiModerationEngine implements ModerationEngine {
                 result = completions.complete(system, user);
             } catch (ModelCallException ex) {
                 recorder.record(
-                        request.caseId(), name(), completions.modelName(), ModerationPromptV1.VERSION,
+                        request.caseId(), name(), completions.modelName(), prompt.version(),
                         contentHash, attempt, ex.status(), null, null, elapsedMillis(startedAt),
                         null, ex.getMessage());
                 throw ex;
@@ -90,7 +90,7 @@ public class GeminiModerationEngine implements ModerationEngine {
             try {
                 ModerationVerdict verdict = parser.parse(result.text());
                 recorder.record(
-                        request.caseId(), name(), completions.modelName(), ModerationPromptV1.VERSION,
+                        request.caseId(), name(), completions.modelName(), prompt.version(),
                         contentHash, attempt, InvocationStatus.SUCCESS,
                         result.promptTokens(), result.completionTokens(), latency,
                         result.text(), null);
@@ -98,7 +98,7 @@ public class GeminiModerationEngine implements ModerationEngine {
 
             } catch (InvalidVerdictException ex) {
                 recorder.record(
-                        request.caseId(), name(), completions.modelName(), ModerationPromptV1.VERSION,
+                        request.caseId(), name(), completions.modelName(), prompt.version(),
                         contentHash, attempt, InvocationStatus.INVALID_RESPONSE,
                         result.promptTokens(), result.completionTokens(), latency,
                         result.text(), ex.getMessage());
