@@ -7,7 +7,7 @@ flowchart LR
     clients["HTTP clients<br/>any forum front end"]
     swagger["Swagger UI<br/>moderation console"]
 
-    subgraph backend["CampusGuard backend"]
+    subgraph backend["De-Moderation backend"]
         api["REST API<br/>JWT, RFC 7807"]
         workflow["Moderation workflow<br/>state machine"]
         worker["Async worker<br/>SKIP LOCKED"]
