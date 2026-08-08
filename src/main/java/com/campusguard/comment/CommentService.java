@@ -1,7 +1,10 @@
 package com.campusguard.comment;
 
 import com.campusguard.common.AuthorView;
+import com.campusguard.common.ConflictException;
+import com.campusguard.common.ContentRateLimitProperties;
 import com.campusguard.common.NotFoundException;
+import com.campusguard.common.TooManyRequestsException;
 import com.campusguard.post.Post;
 import com.campusguard.post.PostRepository;
 import com.campusguard.user.User;
@@ -10,7 +13,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.Instant;
 import java.util.UUID;
+import com.campusguard.common.PageCursor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,18 +27,23 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final ContentRateLimitProperties rateLimits;
 
     public CommentService(
             CommentRepository commentRepository,
             PostRepository postRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            ContentRateLimitProperties rateLimits) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.rateLimits = rateLimits;
     }
 
     @Transactional
     public CommentResponse create(UUID postId, UUID authorId, CreateCommentRequest request) {
+        requireWithinRateLimit(authorId);
+
         Post post = postRepository
                 .findLiveById(postId)
                 .orElseThrow(() -> new NotFoundException("No post with id " + postId));
@@ -50,6 +62,16 @@ public class CommentService {
             // Without this check a reply could be grafted onto a thread on a
             // different post, producing a comment that is unreachable from the
             // post it belongs to and orphaned under the one it points at.
+            // The check constraint is the guarantee; this is here so the answer
+            // is a sentence a person can act on rather than a constraint
+            // violation surfacing as a 500.
+            if (parent.getDepth() >= Comment.MAX_DEPTH) {
+                throw new ConflictException(
+                        "This thread is already nested %d replies deep, which is as far as it goes. "
+                                .formatted(Comment.MAX_DEPTH)
+                                + "Reply further up the thread instead.");
+            }
+
             if (!parent.getPost().getId().equals(postId)) {
                 throw new NotFoundException(
                         "Comment " + parent.getId() + " does not belong to post " + postId);
@@ -79,27 +101,49 @@ public class CommentService {
      * faster here and easier to reason about.
      */
     @Transactional(readOnly = true)
-    public List<CommentResponse> thread(UUID postId) {
+    /**
+     * One page of a thread: top-level comments in the order they were written,
+     * each carrying its replies.
+     *
+     * <p>Used to return every comment on a post in one unbounded response. That
+     * was fine until a post had a lot of comments, and the depth ceiling only
+     * fixed the other half of the problem — a thread can still be wide.
+     *
+     * <p>Roots are what gets paged, because a reply cannot be rendered without
+     * the comment it answers: handing a client half a conversation would make it
+     * reassemble something it cannot. Depth is bounded by a check constraint
+     * instead, so a root's subtree has a ceiling of its own.
+     */
+    public CommentPage thread(UUID postId, String cursor, int size) {
         if (!postRepository.existsByIdAndDeletedAtIsNull(postId)) {
             throw new NotFoundException("No post with id " + postId);
         }
 
-        List<Comment> flat = commentRepository.findLiveByPostId(postId);
+        PageCursor from = cursor == null || cursor.isBlank() ? null : PageCursor.decode(cursor);
+
+        // One past the page, so "is there more" costs a row rather than a count.
+        Pageable window = PageRequest.of(0, size + 1);
+        List<Comment> roots = from == null
+                ? commentRepository.findRootsFirstPage(postId, window)
+                : commentRepository.findRootsAfter(postId, from.createdAt(), from.id(), window);
+
+        boolean hasMore = roots.size() > size;
+        List<Comment> page = hasMore ? roots.subList(0, size) : roots;
 
         Map<UUID, List<Comment>> childrenOf = new HashMap<>();
-        List<Comment> roots = new ArrayList<>();
-        for (Comment comment : flat) {
-            Comment parent = comment.getParent();
-            if (parent == null) {
-                roots.add(comment);
-            } else {
-                // Reading the id off a lazy proxy does not initialise it, so this
-                // stays within the single query above.
-                childrenOf.computeIfAbsent(parent.getId(), key -> new ArrayList<>()).add(comment);
-            }
+        for (Comment reply : commentRepository.findRepliesForPost(postId)) {
+            childrenOf
+                    .computeIfAbsent(reply.getParent().getId(), key -> new ArrayList<>())
+                    .add(reply);
         }
 
-        return roots.stream().map(root -> toResponse(root, childrenOf)).toList();
+        List<CommentResponse> items = page.stream().map(root -> toResponse(root, childrenOf)).toList();
+
+        String next = hasMore && !page.isEmpty()
+                ? new PageCursor(page.getLast().getCreatedAt(), page.getLast().getId()).encode()
+                : null;
+
+        return new CommentPage(items, hasMore, next);
     }
 
     private CommentResponse toResponse(Comment comment, Map<UUID, List<Comment>> childrenOf) {
@@ -116,5 +160,21 @@ public class CommentService {
                 comment.getBody(),
                 comment.getCreatedAt(),
                 replies);
+    }
+
+    /**
+     * Higher than the post limit, because replying is the ordinary way to use a
+     * forum and starting threads is not. Same purpose: registration is open, so
+     * being signed in was never a brake on a script.
+     */
+    private void requireWithinRateLimit(UUID authorId) {
+        Instant since = Instant.now().minus(rateLimits.window());
+        long recent = commentRepository.countByAuthorIdAndCreatedAtAfter(authorId, since);
+
+        if (recent >= rateLimits.commentsPerUser()) {
+            throw new TooManyRequestsException(
+                    "You have commented %d times in the last %s. Try again later."
+                            .formatted(recent, rateLimits.window()));
+        }
     }
 }

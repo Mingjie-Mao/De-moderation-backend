@@ -2,10 +2,12 @@ package com.campusguard.comment;
 
 import com.campusguard.security.AuthenticatedUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,8 +44,12 @@ public class CommentController {
     }
 
     @GetMapping
-    @Operation(summary = "Fetch the full comment thread for a post")
-    public List<CommentResponse> thread(@PathVariable UUID postId) {
-        return commentService.thread(postId);
+    @Operation(summary = "Read a thread, paged by top-level comment")
+    public CommentPage thread(
+            @PathVariable UUID postId,
+            @Parameter(description = "nextCursor from the previous page; omit for the first")
+                    @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        return commentService.thread(postId, cursor, size);
     }
 }

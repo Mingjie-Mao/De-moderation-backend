@@ -41,6 +41,18 @@ public class Comment {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
+    /**
+     * How many parents sit above this one; zero for a top-level comment.
+     *
+     * <p>Stored rather than derived, because the reader that needs it most is the
+     * one assembling a whole thread, and making that reader walk upwards per
+     * comment turns one query into thousands. Kept correct at write time, where
+     * the parent is already in hand, and bounded by a check constraint so it
+     * holds for writers that never pass through this class.
+     */
+    @Column(nullable = false)
+    private int depth;
+
     @Column(nullable = false, columnDefinition = "text")
     private String body;
 
@@ -55,15 +67,23 @@ public class Comment {
         // for JPA
     }
 
+    /** The deepest a reply may be nested. Past this, no client renders the nesting anyway. */
+    public static final int MAX_DEPTH = 10;
+
     public Comment(Post post, Comment parent, User author, String body) {
         this.post = post;
         this.parent = parent;
         this.author = author;
         this.body = body;
+        this.depth = parent == null ? 0 : parent.getDepth() + 1;
     }
 
     public void softDelete(Instant at) {
         this.deletedAt = at;
+    }
+
+    public int getDepth() {
+        return depth;
     }
 
     public UUID getId() {

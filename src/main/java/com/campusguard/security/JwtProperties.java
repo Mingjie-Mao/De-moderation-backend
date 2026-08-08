@@ -8,8 +8,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *     default: a fallback secret is the kind of thing that ships to production
  *     unnoticed, and a JWT signed with a publicly known key is not authentication
  *     at all. Startup fails without it.
- * @param ttl how long an issued token stays valid. Short on purpose, because
- *     nothing revokes a token that has already been handed out.
+ * @param ttl how long an issued token stays valid. Still short, though no longer
+ *     because a handed-out token is irrevocable: {@link AccountStateFilter}
+ *     re-reads the account on every request, so a ban or a demotion bites at
+ *     once. What the ttl still bounds is a stolen token whose owner is otherwise
+ *     in good standing, which nothing server-side can detect.
  */
 @ConfigurationProperties("campusguard.security.jwt")
 public record JwtProperties(String secret, Duration ttl) {

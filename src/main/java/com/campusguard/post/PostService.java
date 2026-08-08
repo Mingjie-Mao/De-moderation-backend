@@ -1,6 +1,9 @@
 package com.campusguard.post;
 
+import com.campusguard.common.ContentRateLimitProperties;
+import com.campusguard.common.PageCursor;
 import com.campusguard.common.NotFoundException;
+import com.campusguard.common.TooManyRequestsException;
 import com.campusguard.user.User;
 import com.campusguard.user.UserRepository;
 import com.campusguard.user.UserRole;
@@ -25,14 +28,21 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final ContentRateLimitProperties rateLimits;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository) {
+    public PostService(
+            PostRepository postRepository,
+            UserRepository userRepository,
+            ContentRateLimitProperties rateLimits) {
+        this.rateLimits = rateLimits;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
     }
 
     @Transactional
     public PostResponse create(UUID authorId, CreatePostRequest request) {
+        requireWithinRateLimit(authorId);
+
         User author = userRepository
                 .findById(authorId)
                 .orElseThrow(() -> new NotFoundException("No user with id " + authorId));
@@ -55,7 +65,7 @@ public class PostService {
      */
     @Transactional(readOnly = true)
     public FeedPage feed(String forumKey, String cursor, int size) {
-        FeedCursor from = cursor == null || cursor.isBlank() ? null : FeedCursor.decode(cursor);
+        PageCursor from = cursor == null || cursor.isBlank() ? null : PageCursor.decode(cursor);
 
         // One row past the page. Reading it is how the answer to "is there more"
         // is obtained without a second query, and counting every live post in the
@@ -69,7 +79,7 @@ public class PostService {
         List<PostResponse> items = rows.stream().limit(size).map(PostResponse::of).toList();
 
         String next = hasMore && !items.isEmpty()
-                ? FeedCursor.of(items.getLast()).encode()
+                ? new PageCursor(items.getLast().createdAt(), items.getLast().id()).encode()
                 : null;
 
         return new FeedPage(items, hasMore, next);
@@ -114,5 +124,25 @@ public class PostService {
         }
 
         post.softDelete(Instant.now());
+    }
+
+    /**
+     * A ceiling on flooding, not a throttle on enthusiasm.
+     *
+     * <p>Reporting was rate limited from the start and authoring was not, which
+     * had it backwards. A report costs a moderator one glance at something a
+     * person already flagged; a post that gets reported costs an engine call, a
+     * queue slot and a reviewer's attention. Since anyone can register, being
+     * signed in was the only thing standing between a script and the queue.
+     */
+    private void requireWithinRateLimit(UUID authorId) {
+        Instant since = Instant.now().minus(rateLimits.window());
+        long recent = postRepository.countByAuthorIdAndCreatedAtAfter(authorId, since);
+
+        if (recent >= rateLimits.postsPerUser()) {
+            throw new TooManyRequestsException(
+                    "You have posted %d times in the last %s. Try again later."
+                            .formatted(recent, rateLimits.window()));
+        }
     }
 }

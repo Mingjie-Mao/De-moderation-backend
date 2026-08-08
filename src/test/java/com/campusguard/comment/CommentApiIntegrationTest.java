@@ -28,18 +28,18 @@ class CommentApiIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/api/posts/{postId}/comments", postId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].body").value("Top level"))
-                .andExpect(jsonPath("$[0].parentCommentId").value(nullValue()))
-                .andExpect(jsonPath("$[0].replies", hasSize(1)))
-                .andExpect(jsonPath("$[0].replies[0].body").value("A reply"))
-                .andExpect(jsonPath("$[0].replies[0].parentCommentId").value(topLevel.toString()))
-                .andExpect(jsonPath("$[1].body").value("Another top level"))
-                .andExpect(jsonPath("$[1].replies", hasSize(0)));
+                .andExpect(jsonPath("$.items", hasSize(2)))
+                .andExpect(jsonPath("$.items[0].body").value("Top level"))
+                .andExpect(jsonPath("$.items[0].parentCommentId").value(nullValue()))
+                .andExpect(jsonPath("$.items[0].replies", hasSize(1)))
+                .andExpect(jsonPath("$.items[0].replies[0].body").value("A reply"))
+                .andExpect(jsonPath("$.items[0].replies[0].parentCommentId").value(topLevel.toString()))
+                .andExpect(jsonPath("$.items[1].body").value("Another top level"))
+                .andExpect(jsonPath("$.items[1].replies", hasSize(0)));
     }
 
     @Test
-    void nestsRepliesToAnyDepth() throws Exception {
+    void nestsRepliesUpToTheCeiling() throws Exception {
         User author = newUser();
         UUID postId = createPost(author);
 
@@ -49,7 +49,7 @@ class CommentApiIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/api/posts/{postId}/comments", postId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].replies[0].replies[0].body").value("Depth 3"));
+                .andExpect(jsonPath("$.items[0].replies[0].replies[0].body").value("Depth 3"));
     }
 
     /**

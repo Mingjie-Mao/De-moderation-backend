@@ -80,6 +80,14 @@ campusguard:
     # limit is lower, lower it if higher.
     min-call-interval: ${EVAL_CALL_INTERVAL:5s}
 
+  content:
+    # A ceiling on flooding, not a throttle on enthusiasm: a person arguing at
+    # midnight should never meet these, a script should meet them at once.
+    # Registration is open, so being signed in was never a brake on anything.
+    posts-per-user: 30
+    comments-per-user: 120
+    window: 1h
+
   reports:
     # Every distinct target reported becomes a case, and every case is an engine
     # call. One account working through a hundred posts files a hundred
@@ -89,14 +97,21 @@ campusguard:
     per-user-window: 1h
 
   security:
+    # Whether the OpenAPI document and Swagger UI are readable without a
+    # credential. True suits development and this project's demo, where Swagger
+    # is the console; a browser fetches the spec with no Authorization header, so
+    # closing it leaves a blank page nobody can sign in from. Set false in a
+    # deployment that would rather not publish a map of every route.
+    expose-api-docs: ${EXPOSE_API_DOCS:true}
     jwt:
       # No default. A fallback signing key is the kind of thing that reaches
       # production unnoticed, and a token signed with a publicly known key is not
       # authentication at all, so startup fails when this is unset.
       secret: ${JWT_SECRET}
-      # Short, because nothing revokes a token that has already been issued: a
-      # ban or a demotion only takes full effect once the outstanding token
-      # expires.
+      # A ban or a demotion no longer waits for this: every authenticated request
+      # re-reads the account. What the ttl still bounds is a token stolen from a
+      # member in good standing, which nothing server-side can distinguish from
+      # the member using it.
       ttl: 1h
 
   moderation:

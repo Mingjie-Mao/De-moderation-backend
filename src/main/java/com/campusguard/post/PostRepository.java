@@ -81,5 +81,8 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
             """)
     Optional<Post> findLiveById(@Param("id") UUID id);
 
+    /** Backs the authoring rate limit. Deleted posts still count: the cost being limited was already paid. */
+    long countByAuthorIdAndCreatedAtAfter(UUID authorId, Instant since);
+
     boolean existsByIdAndDeletedAtIsNull(UUID id);
 }

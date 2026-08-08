@@ -7,6 +7,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
@@ -28,9 +30,27 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
 
-    private static final String[] PUBLIC_DOCS = {
+    private static final String[] API_DOCS = {
         "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
     };
+
+    /**
+     * Whether the OpenAPI document and its viewer are readable without a
+     * credential.
+     *
+     * <p>True is right for development and for this project's demo, where Swagger
+     * UI is the console and having to authenticate before the page can even load
+     * its own spec would make it useless: the browser fetches /v3/api-docs with no
+     * Authorization header, so requiring one leaves a blank page nobody can sign
+     * in from.
+     *
+     * <p>False is right for a deployment that does not want its entire API surface
+     * enumerable by anyone who asks. It is a property rather than a fixed choice
+     * because the answer genuinely differs between the two, and hard-coding either
+     * one makes the other a patch.
+     */
+    @Value("${campusguard.security.expose-api-docs:true}")
+    private boolean exposeApiDocs;
 
     @Bean
     public SecurityFilterChain apiSecurity(
@@ -50,6 +70,14 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/api/auth/**").permitAll()
+                        // Spring forwards an unhandled exception here, and the
+                        // forward is a fresh request carrying no credential. With
+                        // this closed, every error on a public endpoint came back
+                        // as 401 "authentication required" — which sent anyone
+                        // debugging it after the wrong problem entirely, and hid
+                        // the real one in the log. The body is still built by the
+                        // problem-detail handler, so nothing extra is disclosed.
+                        .requestMatchers("/error").permitAll()
                         // Reading the forum is open; writing to it is not. Listing
                         // each readable route rather than opening the whole prefix
                         // keeps a future write endpoint from inheriting public
@@ -72,7 +100,9 @@ public class SecurityConfig {
                         // administrative route is restricted by default instead
                         // of restricted only if somebody remembers to annotate it.
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers(PUBLIC_DOCS).permitAll()
+                        .requestMatchers(API_DOCS).access((authentication, context) ->
+                                new AuthorizationDecision(
+                                        exposeApiDocs || isAdministrator(authentication.get())))
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(resourceServer -> resourceServer
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
@@ -89,6 +119,13 @@ public class SecurityConfig {
                 .addFilterAfter(new AccountStateFilter(users), BearerTokenAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private boolean isAdministrator(org.springframework.security.core.Authentication authentication) {
+        return authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                        .anyMatch(granted -> "ROLE_ADMIN".equals(granted.getAuthority()));
     }
 
     /**
