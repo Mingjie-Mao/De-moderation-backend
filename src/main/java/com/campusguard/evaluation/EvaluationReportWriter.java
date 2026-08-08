@@ -61,10 +61,10 @@ public class EvaluationReportWriter {
         }
 
         out.append("## What this dataset is\n\n");
-        out.append("| expected action | from the app | written for this | total |\n|---|---|---|---|\n");
+        out.append("| expected action | seeded | written for this | total |\n|---|---|---|---|\n");
 
         for (ModerationDecision decision : ModerationDecision.values()) {
-            long real = count(all, decision, SampleProvenance.REAL_SEED);
+            long real = count(all, decision, SampleProvenance.SEEDED);
             long authored = count(all, decision, SampleProvenance.AUTHORED);
             if (real + authored == 0) {
                 continue;
@@ -74,18 +74,22 @@ public class EvaluationReportWriter {
         }
         out.append('\n');
 
-        out.append("`from the app` is text taken verbatim from the seeded content of the\n")
-                .append("De-discussion campus forum: the right register, the right two languages, and\n")
-                .append("written with no engine in mind. It is also almost entirely benign, because\n")
-                .append("nobody seeds a demo application with abuse.\n\n");
+        out.append("Neither column is real traffic. Both halves were written by somebody, and\n")
+                .append("what separates them is only whether the writer knew about this evaluation.\n\n");
+        out.append("`seeded` is text taken verbatim from the De-discussion campus forum app,\n")
+                .append("where it exists to make a demo look inhabited: the right register and the\n")
+                .append("right two languages, written before this system existed and therefore not\n")
+                .append("shaped to suit it. Nobody posted it to a forum and nobody reported it. It is\n")
+                .append("also almost entirely benign, because nobody seeds a demo with abuse.\n\n");
         out.append("`written for this` is the rest, and it is the weakest part of the dataset. It\n")
                 .append("measures an engine against one person's idea of what a violation looks like.\n")
                 .append("The violating classes are made of it because there was no honest alternative.\n")
                 .append("Most of it deliberately avoids the wording in the rule term lists, since an\n")
                 .append("engine that only has to recognise the words it was configured with is being\n")
                 .append("asked nothing.\n\n");
-        out.append("The two are scored separately below. A wide gap means the authored half is\n")
-                .append("easier than the real half and the headline number is flattering by that much.\n\n");
+        out.append("The two are scored separately below. A wide gap means the half written for\n")
+                .append("this evaluation is the easier one, and the headline number is flattering by\n")
+                .append("that much.\n\n");
     }
 
     private long count(List<SampleOutcome> outcomes, ModerationDecision decision, SampleProvenance provenance) {
@@ -215,7 +219,7 @@ public class EvaluationReportWriter {
     }
 
     private void renderBySource(StringBuilder out, EvaluationResult result) {
-        ConfusionMatrix real = result.matrixFor(SampleProvenance.REAL_SEED);
+        ConfusionMatrix real = result.matrixFor(SampleProvenance.SEEDED);
         ConfusionMatrix authored = result.matrixFor(SampleProvenance.AUTHORED);
 
         if (real.total() == 0 || authored.total() == 0) {
@@ -224,14 +228,14 @@ public class EvaluationReportWriter {
 
         out.append("Scored separately by where the samples came from:\n\n");
         out.append("| samples | n | accuracy | macro-F1 |\n|---|---|---|---|\n");
-        out.append("| from the app | ").append(real.total()).append(" | ").append(decimal(real.accuracy()))
+        out.append("| seeded | ").append(real.total()).append(" | ").append(decimal(real.accuracy()))
                 .append(" | ").append(decimal(real.macroF1())).append(" |\n");
         out.append("| written for this | ").append(authored.total()).append(" | ")
                 .append(decimal(authored.accuracy())).append(" | ").append(decimal(authored.macroF1()))
                 .append(" |\n\n");
 
         double gap = authored.accuracy() - real.accuracy();
-        boolean confounded = dominatedBySingleLabel(result, SampleProvenance.REAL_SEED)
+        boolean confounded = dominatedBySingleLabel(result, SampleProvenance.SEEDED)
                 || dominatedBySingleLabel(result, SampleProvenance.AUTHORED);
 
         if (confounded) {

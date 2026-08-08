@@ -5,7 +5,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "我知道计算机组成会很难，但 COMP2300 感觉像一份全职工作。每次 lab 开始我都以为自己理解电路，最后都会开始怀疑自己到底懂不懂二进制。QuAC CPU 确实很酷，但凌晨两点调 Digital 是另一种痛苦。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -14,7 +14,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "同感。Digital 里一个小小接线错误都像是在针对我本人。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -23,7 +23,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "The moment the PC stops updating, my soul leaves my body.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -32,7 +32,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Lowkey though, once the datapath clicks, it is actually kind of satisfying.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -41,7 +41,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "赞成，尤其是如果我们把侧边栏改成只负责切论坛，首页就会清爽很多。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -50,7 +50,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Using separators instead of cards would feel much closer to Reddit and speed up the visual rhythm.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -59,7 +59,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "三楼也可以保留得很简洁，只要头像、昵称和操作按钮还在就够了。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -68,7 +68,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Borrow the structure if it helps, but keep the tone constructive. The real story is product clarity plus moderation.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -77,7 +77,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "我打算先把 ANU 论坛的帖子和评论做完整，UNSW、USYD、UM 先显示为空状态，这样论坛切换的逻辑也能先验收。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -86,7 +86,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "可以。老师能一眼看出我们已经有多论坛结构，只是暂时没往另外三个论坛灌内容。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -95,7 +95,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "我觉得至少要有两层回复。只要楼层缩进清楚、头像和昵称层级明显，老师就能看出来评论树已经建好了。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -104,7 +104,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "What should the UNSW forum open with?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -113,7 +113,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "If the goal is to prove multi-forum switching, I think a few lightweight posts about coursework and student clubs are enough. Every forum does not need the same content density.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -122,7 +122,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "I will take the first-floor slot here and use this thread as another nesting example.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -131,7 +131,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "What are the must-know topics for COMP1511 finals?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -140,7 +140,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Finals are coming and I still can't get my head around linked lists and recursion. Has anyone compiled a cheat sheet? Where can I find past papers?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -149,7 +149,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Draw the diagram before every pointer step. If it's clear on paper you won't mess up in the exam.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -158,7 +158,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Agreed. Nail the base case first and the rest follows naturally.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -167,7 +167,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Past papers are on UNSW Teams in the COMP1511 channel.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -176,7 +176,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "The café next to the library just hiked prices to $7 a cup. Anyone know a better deal around Kensington?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -185,7 +185,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Brewtown on Anzac Parade does a flat white for $4.50 and it's actually good.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -194,7 +194,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "The vending machine on Main Walkway does $2.50 coffee for emergencies.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -203,7 +203,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "看到很多 JD 写 penultimate，想知道大二学生有没有机会？还是先做一些 casual 的项目积累一下比较好？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -212,7 +212,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "大二完全可以投。很多公司的 internship program 对年级要求没那么严，关键是 GitHub 要有东西。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -221,7 +221,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "小公司会更灵活，可以先从 startup 开始积累，再往大厂走。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -230,7 +230,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "The USYD forum could lean a bit more academic",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -239,7 +239,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "We could use it for topics like data-structure explanations, project retrospectives, or clearer UML storytelling. That gives each forum a distinct personality.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -248,7 +248,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "I also want one cleaner nested thread in this forum.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -257,7 +257,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Looking for a Data Science project partner – Python required",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -266,7 +266,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Working on a sentiment analysis project for the final and looking for 1-2 people with Python experience — ideally some NLP background. DM or reply here.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -275,7 +275,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "我也想加，之前做过一个 Twitter 情感分析的小项目，经验可以分享。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -284,7 +284,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Is Wentworth getting worse or am I just broke now",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -293,7 +293,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "I swear $12 used to feel like a feast. Now $16 gets me half the plate. Anyone know a better spot near Carslaw?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -302,7 +302,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "The sushi rolls across from Carslaw are great value — $10 and actually filling.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -311,7 +311,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "I'm surviving exclusively on Fisher Library vending machines at this point…",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -320,7 +320,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "每次到期末前两周就开始失眠，脑子根本停不下来。试过冥想但效果不稳定，有没有真的有用的方法？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -329,7 +329,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "把明天要做的事情写出来，放下手机，通常 20 分钟内就睡着了。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -338,7 +338,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "我会把复习进度做成清单，每划掉一项都有成就感，焦虑感也少很多。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -347,7 +347,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Short moderator flows matter more than flashy UI",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -356,7 +356,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "I care most about how quickly a moderator can move from seeing a reported comment to opening the thread and taking action. The visuals can keep improving, but the flow has to stay tight.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -365,7 +365,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "比如校园生活、咖啡店推荐、社团活动分享，这样四个论坛切换时不会全是同一种项目讨论。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -374,7 +374,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "I like that direction. It makes the app feel more like a community people would actually keep using.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -383,7 +383,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "What's on campus this week worth going to?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -392,7 +392,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Been stuck in my room for weeks. Anyone know what's on this week? Club events, talks, anything beats staring at the ceiling.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -401,7 +401,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Film club screening Thursday evening at Student Hub — it's free.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -410,7 +410,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "There's a language exchange Friday afternoon on the third floor of the Main Library. Very chill.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -419,7 +419,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "宿舍真的太舒适了根本坐不住，图书馆关门又早。有没有在宿舍也能高效学习的方法分享一下？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -428,7 +428,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "I charge my phone across the room. Physical distance actually works.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -437,7 +437,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Pomodoro method — 25 minutes focus, 5 minute break. Sounds dumb but my output tripled.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -446,7 +446,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Break tasks into tiny chunks and allow one episode per chunk completed. Weirdly motivating.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -455,7 +455,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "已经海投了十几家公司的实习，只有两家给面试邀请。不知道是简历问题还是现在市场真的太难了，求有经验的同学支招。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -464,7 +464,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Get someone to review your resume before the next batch. One revision doubled my callback rate.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -473,7 +473,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "LinkedIn referrals beat cold applications. Try searching for UM alumni at the companies you want.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -482,7 +482,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "现在演示层里已经能切论坛了，但如果后面要持久化或者做真实多论坛查询，帖子所属论坛最好正式进 Post 数据结构。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -491,7 +491,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "明天要和三个人一起过 presentation，不想打扰安静区。有没有相对不吵、又能说话的位置？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -500,7 +500,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "The round tables near the windows are good, usually free before 3pm.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -509,7 +509,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Yep, Marie Reay has much better sound isolation.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -518,7 +518,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "我会把 lecture transcript 丢给 AI 生成重点，但担心自己只是看总结，没有真正理解。你们怎么平衡效率和学习质量？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -527,7 +527,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "我会先自己写一版，再让 AI 找遗漏，这样不会完全被带着走。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -536,7 +536,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "AI-generated quizzes are more useful than summaries. If you can't answer them, you don't understand it yet.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -545,7 +545,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "O-Week 逛了一圈感觉每个社团都说自己很 active。有没有判断一个社团是不是真的有活动的方法？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -554,7 +554,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "看他们最近三个月 Instagram 有没有真实活动照片，比看宣传语靠谱。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -563,7 +563,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Join the Discord first. Dead societies are obvious immediately.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -572,7 +572,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "课程说明说可以用 AI 辅助 debug 和 brainstorming，但必须 disclose。有没有人知道标准写法？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -581,7 +581,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "写清楚工具、用途、你自己修改了什么，别把 AI 输出当最终答案。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -590,7 +590,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "这样写比只贴一句 ChatGPT assisted 清楚很多。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -599,7 +599,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Is the walk from Redfern to campus safe at night?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -608,7 +608,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "My classes finish late this semester. How does the Redfern walk feel at night, and is there a better route?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -617,7 +617,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "晚于十点我会坐 bus 到 closer stop，省心一点。",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -626,7 +626,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "tutorial 不说话会影响 participation 分吗？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -635,7 +635,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "我每周都有去 tutorial，也做了题，但真的不太会主动发言。老师会看出席和小组讨论，还是必须举手回答？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -644,7 +644,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Ask the tutor one question after class. That usually counts as solid participation.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -653,7 +653,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "How long is too long for an off-campus commute?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -662,7 +662,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Found a place with decent rent, but it's 45 minutes each way to campus. Is that too much long-term?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -671,7 +671,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Factor in 8am classes and rainy days. You'll want to be closer.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -680,7 +680,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "每次开头都只会说 hi everyone today we will talk about... 感觉很僵。有没有更自然的开场方式？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -689,7 +689,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Open with a question, then say your talk will answer it. Easier for the audience to follow.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -698,7 +698,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Is week 2 too late to swap courses?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -707,7 +707,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "This course workload is much heavier than I expected and I want to swap into another elective. It's already week 2 though, so I'm worried about tutorials and quizzes. Has anyone done this?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -716,7 +716,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Week 2 is still okay. Email the course convenor and ask whether tutorial records can be caught up.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -725,7 +725,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Has anyone found a student card around Kambri?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -734,7 +734,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Lost my student card after lunch at Kambri today, probably near the seating area or grass. Initial M. Please let me know if you spotted it.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -743,7 +743,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Check the Kambri information desk. Student cards often get handed in there.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -752,7 +752,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Weekend hackathon team needs one UI person",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -761,7 +761,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "I can also help with a few pitch deck slides if needed.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -770,7 +770,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "这周每次十点到都已经很满了。想问 exam season 期间大家一般几点去占座？有没有不那么卷的楼层？",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -779,7 +779,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Before 8:30 is pretty safe. After 10 it's pure luck.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -788,7 +788,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "What do you do when a group member never replies?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -797,7 +797,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "One person in our group hasn't replied on Discord for three days and the deadline is close. Is it too early to tell the tutor?",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -806,7 +806,7 @@
     "expected": "ALLOW",
     "title": null,
     "body": "Exactly. Clear evidence makes it much easier for the tutor to handle.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Verbatim seeded content from the De-discussion campus forum."
   },
   {
@@ -815,7 +815,7 @@
     "expected": "ESCALATE",
     "title": null,
     "body": "Stop overthinking it and just copy the layout.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Real seeded content that is dismissive enough to be worth a human glance."
   },
   {
@@ -824,7 +824,7 @@
     "expected": "ESCALATE",
     "title": null,
     "body": "I write my own notes first, then ask AI to find gaps. That keeps me from being carried by it.",
-    "provenance": "REAL_SEED",
+    "provenance": "SEEDED",
     "note": "Real seeded content that is dismissive enough to be worth a human glance."
   },
   {
