@@ -106,17 +106,22 @@ class PostApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     /**
-     * A correctly signed token outlives the account it was issued for. The
-     * signature verifies, so the request gets past authentication and only fails
-     * when the service goes looking for the user.
+     * A correctly signed token can outlive the account it was issued for. The
+     * signature still verifies, so this used to sail past authentication and come
+     * back 404 from whichever service first went looking for the user.
+     *
+     * <p>It is 401 now, and that is the right answer twice over. The request has
+     * an authentication problem, not a missing resource, and "not found" told an
+     * unauthenticated caller the difference between a user id that once existed
+     * and one that never did.
      */
     @Test
-    void returnsNotFoundWhenTheTokenOutlivesItsAccount() throws Exception {
+    void refusesATokenThatOutlivedItsAccount() throws Exception {
         mockMvc.perform(post("/api/posts")
                         .header("Authorization", bearerForUnknownUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(new CreatePostRequest(uniqueForumKey(), "Title", "Body"))))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isUnauthorized());
     }
 
     private void createPost(User author, String forumKey, String title) throws Exception {

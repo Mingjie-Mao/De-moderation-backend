@@ -150,7 +150,13 @@ management:
         include: health,info,metrics
   endpoint:
     health:
-      show-details: always
+      # Unauthenticated callers get the overall status and nothing else, which
+      # is all a load balancer reads. With details on, this endpoint answers an
+      # anonymous GET with the deployment's absolute filesystem path, its disk
+      # capacity and the database engine — a free map of the host for anyone who
+      # asks. Signed-in administrators still see the full component breakdown.
+      show-details: when-authorized
+      roles: ADMIN
       probes:
         enabled: true
 

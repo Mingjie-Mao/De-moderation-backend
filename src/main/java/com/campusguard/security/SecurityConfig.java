@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,7 +34,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain apiSecurity(
-            HttpSecurity http, ProblemDetailAuthErrorHandler errorHandler) throws Exception {
+            HttpSecurity http,
+            ProblemDetailAuthErrorHandler errorHandler,
+            com.campusguard.user.UserRepository users)
+            throws Exception {
 
         http
                 // Safe to disable only because this API is stateless and carries
@@ -53,7 +57,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*/comments").permitAll()
+                        // Liveness and readiness have to answer before anything
+                        // is authenticated, or an orchestrator can never decide
+                        // the instance is up. Detail is withheld separately, by
+                        // show-details, so what an anonymous caller gets here is
+                        // a single word.
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        // Everything else under actuator is operational data —
+                        // JVM internals, HTTP timings, pool sizes. An ordinary
+                        // forum member has no business reading it, and the
+                        // default of "any authenticated user" gave it to them.
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         // Guarded by prefix rather than per endpoint, so a new
                         // administrative route is restricted by default instead
                         // of restricted only if somebody remembers to annotate it.
@@ -68,7 +82,11 @@ public class SecurityConfig {
                         .authenticationEntryPoint(errorHandler)
                         .accessDeniedHandler(errorHandler))
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable);
+                .formLogin(AbstractHttpConfigurer::disable)
+                // After the token is verified and before any authorization rule
+                // reads an authority, so the rules see the account as it is now
+                // rather than as it was when the token was signed.
+                .addFilterAfter(new AccountStateFilter(users), BearerTokenAuthenticationFilter.class);
 
         return http.build();
     }

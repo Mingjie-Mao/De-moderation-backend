@@ -66,7 +66,7 @@ src/main/java/com/campusguard/        7.3k lines · 115 files
 ├── audit/         append-only log
 └── common/        problem-detail errors, shared types
 
-src/test/java/                        3.5k lines · 27 files · 130 tests
+src/test/java/                        3.5k lines · 29 files · 141 tests
 src/main/resources/db/migration/       V1–V6, Flyway-owned
 docs/                                  architecture, evaluation report, demo script
 ```
@@ -199,6 +199,20 @@ ESCALATE recall is to escalate everything. ESCALATE recall reaches 0.778 with
 ALLOW and REMOVE unmoved. It cost twice the prompt tokens per call, three
 over-escalated samples, and eleven malformed answers that had to be asked again.
 
+The forum is written in English and Chinese, and the dataset is 122 English
+samples to 70 Chinese. Scored separately, from `evaluation-samples.csv`:
+
+| | n | accuracy | ALLOW | REMOVE | ESCALATE |
+|---|---|---|---|---|---|
+| English | 122 | 0.926 | 58/59 | 38/39 | 17/24 |
+| Chinese | 70 | 0.971 | 31/31 | 26/27 | 11/12 |
+
+The model is not worse in Chinese — if anything it is better here, though 12
+Chinese ESCALATE samples is too few to lean on. The term list is equally poor in
+both (REMOVE recall 0.103 and 0.111), which is the point: a rule engine fails in
+whatever language you write the rules for, and adding a second language means
+writing and maintaining a second term list.
+
 Three limits, stated rather than left to be discovered:
 
 - **v2's score is optimistic by an unknown amount.** Its wording was written after
@@ -219,7 +233,7 @@ Three limits, stated rather than left to be discovered:
 mvn verify
 ```
 
-130 tests. Integration tests start their own PostgreSQL through Testcontainers,
+141 tests. Integration tests start their own PostgreSQL through Testcontainers,
 so the Compose stack need not be running. A real database rather than an
 in-memory substitute, because this schema's correctness lives in partial indexes,
 check constraints and unique indexes an in-memory engine does not enforce —
@@ -244,6 +258,23 @@ caught real drift more than once.
 **`open-in-view: false`.** With it on, lazy-loading problems hide; with it off, an
 unfetched association fails loudly rather than turning a feed into one query per
 row.
+
+**A ban takes effect on the next request.** A signed token says what was true
+when it was issued; for most APIs that is close enough, but banning is the
+strongest thing this console does and it is aimed at somebody actively causing
+harm. Measured before the fix: a suspended account's pre-ban token created a
+post and got 201. Every authenticated request now re-reads the account and
+rebuilds authorities from the stored role, at the cost of one primary-key
+lookup — which also means a demoted administrator loses the console at once
+rather than an hour later.
+
+**Actuator answers strangers with one word.** `/actuator/health` stays public
+because an orchestrator has no credential and still has to know the instance is
+alive, but the details are administrator-only: on the default of `always` an
+anonymous GET returns the deployment's absolute filesystem path, its disk
+capacity and the database engine. Everything else under `/actuator` is
+administrator-only too — the framework's default of "any authenticated user"
+means any member who signed up a minute ago.
 
 ## Data attribution
 
