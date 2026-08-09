@@ -85,6 +85,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*/comments").permitAll()
+                        // Safe deployment metadata for clients: lets the Android
+                        // app distinguish a live LLM engine from deterministic
+                        // fallback without inferring it from a case after the
+                        // fact. No credentials or provider details are exposed.
+                        .requestMatchers(HttpMethod.GET, "/api/moderation/status").permitAll()
                         // Liveness and readiness have to answer before anything
                         // is authenticated, or an orchestrator can never decide
                         // the instance is up. Detail is withheld separately, by

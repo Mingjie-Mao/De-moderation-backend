@@ -145,6 +145,11 @@ class GeminiModerationEngineTest {
     }
 
     private ModerationRequest request() {
+        return sampleRequest();
+    }
+
+    /** Shared with {@link ModerationPromptV3Test}, which compares two prompts on one input. */
+    static ModerationRequest sampleRequest() {
         return ModerationRequest.of(
                 TargetType.POST, UUID.randomUUID(), "A title", "You are an idiot", UUID.randomUUID());
     }

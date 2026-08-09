@@ -114,4 +114,20 @@ public interface ModerationCaseRepository extends JpaRepository<ModerationCase, 
     List<ModerationCase> findByStatus(@Param("status") CaseStatus status, Pageable pageable);
 
     long countByStatus(CaseStatus status);
+
+    /**
+     * Every other case whose standing outcome is a ban.
+     *
+     * <p>Read when a ban is being undone. An account can be banned by more than
+     * one case, and lifting one of them must not quietly lift the rest: the
+     * author would walk free on the strength of the mildest complaint against
+     * them.
+     */
+    @Query("""
+            select c from ModerationCase c
+            where c.status = com.campusguard.moderation.CaseStatus.RESOLVED
+              and c.finalAction = com.campusguard.moderation.FinalAction.BAN
+              and c.id <> :excludedCaseId
+            """)
+    List<ModerationCase> findOtherStandingBans(@Param("excludedCaseId") UUID excludedCaseId);
 }

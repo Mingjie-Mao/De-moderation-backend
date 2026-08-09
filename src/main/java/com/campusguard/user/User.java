@@ -59,6 +59,17 @@ public class User {
         this.status = UserStatus.BANNED;
     }
 
+    /**
+     * Lift a ban.
+     *
+     * <p>Reached when an administrator revises a decision that banned somebody.
+     * A ban that cannot be undone means the cost of a mistaken one is permanent,
+     * which is the wrong incentive for the person deciding.
+     */
+    public void reinstate() {
+        this.status = UserStatus.ACTIVE;
+    }
+
     public UUID getId() {
         return id;
     }

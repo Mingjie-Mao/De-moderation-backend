@@ -43,6 +43,9 @@ class ModerationCaseAggregationTest extends AbstractIntegrationTest {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private ModerationWorker worker;
+
     @Test
     void foldsSeveralReportsOnOneTargetIntoASingleCase() throws Exception {
         UUID postId = createPost(newUser());
@@ -113,6 +116,10 @@ class ModerationCaseAggregationTest extends AbstractIntegrationTest {
 
         report(newUser(), postId).andExpect(status().isCreated());
         UUID firstCaseId = caseRepository.findOpenByTarget(TargetType.POST, postId).orElseThrow().getId();
+        worker.runOnce();
+
+        assertThat(caseRepository.findById(firstCaseId).orElseThrow().getStatus())
+                .isEqualTo(CaseStatus.AWAITING_REVIEW);
 
         mockMvc.perform(post("/api/admin/moderation-cases/{id}/decision", firstCaseId)
                         .header("Authorization", bearer(admin))

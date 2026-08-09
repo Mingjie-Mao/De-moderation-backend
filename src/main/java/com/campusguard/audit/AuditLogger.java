@@ -26,8 +26,12 @@ public class AuditLogger {
     public static final String ANALYSIS_FAILED = "ANALYSIS_FAILED";
     public static final String ENGINE_DEGRADED = "ENGINE_DEGRADED";
     public static final String CASE_RESOLVED = "CASE_RESOLVED";
+    public static final String CASE_DECISION_REVISED = "CASE_DECISION_REVISED";
     public static final String CONTENT_HIDDEN = "CONTENT_HIDDEN";
+    public static final String CONTENT_RESTORED = "CONTENT_RESTORED";
     public static final String AUTHOR_BANNED = "AUTHOR_BANNED";
+    public static final String AUTHOR_REINSTATED = "AUTHOR_REINSTATED";
+    public static final String BAN_UPHELD_ELSEWHERE = "BAN_UPHELD_ELSEWHERE";
 
     private final AuditEntryRepository repository;
 

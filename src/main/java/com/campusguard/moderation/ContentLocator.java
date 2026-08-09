@@ -40,6 +40,23 @@ public class ContentLocator {
     }
 
     /**
+     * The target's content whether or not it is still visible.
+     *
+     * <p>For the review console only. {@link #find} deliberately hides removed
+     * content, which is right for an engine deciding what to judge and wrong for
+     * an administrator looking at a decision already taken: reconsidering a hide
+     * means reading the thing that was hidden, and "no longer available" is not
+     * something anyone can review.
+     */
+    @Transactional(readOnly = true)
+    public Optional<ModeratedContent> findIncludingRemoved(TargetType targetType, UUID targetId) {
+        return switch (targetType) {
+            case POST -> postRepository.findById(targetId).map(ContentLocator::from);
+            case COMMENT -> commentRepository.findById(targetId).map(ContentLocator::from);
+        };
+    }
+
+    /**
      * The author of the target whether or not it is still visible.
      *
      * <p>Separate from {@link #find} because banning an author has to work on
@@ -80,6 +97,36 @@ public class ContentLocator {
                     .findLiveById(targetId)
                     .map(comment -> {
                         comment.softDelete(now);
+                        return true;
+                    })
+                    .orElse(false);
+        };
+    }
+
+    /**
+     * Undo a hide.
+     *
+     * <p>Looks the target up by id rather than through {@code findLiveById},
+     * because the row this needs to reach is precisely the one that is not live.
+     *
+     * @return false when there was nothing hidden to restore
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public boolean restore(TargetType targetType, UUID targetId) {
+        return switch (targetType) {
+            case POST -> postRepository
+                    .findById(targetId)
+                    .filter(Post::isDeleted)
+                    .map(post -> {
+                        post.restore();
+                        return true;
+                    })
+                    .orElse(false);
+            case COMMENT -> commentRepository
+                    .findById(targetId)
+                    .filter(comment -> comment.getDeletedAt() != null)
+                    .map(comment -> {
+                        comment.restore();
                         return true;
                     })
                     .orElse(false);

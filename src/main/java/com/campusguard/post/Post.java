@@ -63,6 +63,17 @@ public class Post {
         this.deletedAt = at;
     }
 
+    /**
+     * Put a soft-deleted post back.
+     *
+     * <p>Only moderation calls this, to undo a hide an administrator has since
+     * decided was wrong. An author deleting their own post is not something to
+     * reverse on their behalf.
+     */
+    public void restore() {
+        this.deletedAt = null;
+    }
+
     public boolean isDeleted() {
         return deletedAt != null;
     }

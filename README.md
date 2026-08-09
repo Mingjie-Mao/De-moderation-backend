@@ -57,6 +57,11 @@ flowchart TD
 **Design principles**
 - **Human-in-the-loop:** an engine only produces a recommendation, a confidence
   and a rationale; the final action is always an administrator's.
+- **Reversible:** a decided case can be decided again. The previous outcome is
+  undone first — hidden content restored, a banned author reinstated — unless
+  the new outcome wants it too, and the correction is appended to the audit
+  trail rather than replacing what it corrects. The console keeps showing
+  content it has hidden, because reconsidering a removal means reading it.
 - **Fail-safe moderation:** when the model is unavailable, times out, is rate
   limited or returns output that fails validation, the system degrades to the
   rule engine so moderation never stops.
@@ -119,13 +124,20 @@ end was built.
 | Endpoint | Access |
 |---|---|
 | `POST /api/auth/register` · `/login` | public |
+| `GET /api/moderation/status` | public; active engine capability only |
 | `GET /api/posts` · `/{id}` · `/{id}/comments` | public |
 | `POST /api/posts` · `/{id}/comments` · `/api/reports` | signed-in users |
 | `DELETE /api/posts/{id}` | the author, or an administrator |
 | `GET\|POST /api/admin/moderation-cases/**` | administrators only |
 
-The administrator role is not granted through any public API; it is configured
-directly in the database.
+The administrator role is not granted through any public API. Set
+`ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env` and that account is created with
+the `ADMIN` role at startup.
+
+It is created, never modified. An account that already carries the configured
+name is left untouched, so naming somebody who has already registered does not
+promote them — and **changing `ADMIN_PASSWORD` afterwards does not rotate the
+password of an account that already exists.**
 
 ## AI-assisted moderation
 
@@ -155,6 +167,13 @@ The LLM call chain includes:
   deterministic engine
 - **Invocation records** — `ai_invocations` holds model, prompt version, token
   usage, latency, status and the raw response
+
+The De Android client reads `GET /api/moderation/status` so it can show whether
+the configured model is genuinely registered and active or the service has
+fallen back to rules. It mirrors content only when that content is reported,
+submits the report here, and reads/decides cases through the administrator API.
+The repositories remain separate applications; they do not need a shared
+filesystem or a combined build.
 
 More implementation detail in [reliability.md](docs/reliability.md).
 

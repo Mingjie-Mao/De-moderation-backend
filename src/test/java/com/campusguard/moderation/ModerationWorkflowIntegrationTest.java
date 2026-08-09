@@ -194,8 +194,15 @@ class ModerationWorkflowIntegrationTest extends AbstractIntegrationTest {
                 .allMatch(report -> report.getStatus() == ReportStatus.RESOLVED);
     }
 
+    /**
+     * Deciding the same way twice is refused; deciding differently is a
+     * correction, which {@code ModerationRevisionIntegrationTest} covers. The
+     * distinction matters because the first is a duplicate submission and the
+     * second is a reviewer changing their mind, and only one of those is a
+     * mistake.
+     */
     @Test
-    void refusesToResolveTheSameCaseTwice() throws Exception {
+    void refusesToRepeatTheOutcomeACaseAlreadyHas() throws Exception {
         User admin = newAdmin();
         UUID postId = createPost(newUser(), uniqueForumKey(), "You are an idiot");
         report(newUser(), postId, ReportReason.ABUSE).andExpect(status().isCreated());
@@ -204,7 +211,22 @@ class ModerationWorkflowIntegrationTest extends AbstractIntegrationTest {
         UUID caseId = openCaseFor(postId).getId();
 
         decide(admin, caseId, FinalAction.NONE).andExpect(status().isOk());
-        decide(admin, caseId, FinalAction.HIDE).andExpect(status().isConflict());
+        decide(admin, caseId, FinalAction.NONE).andExpect(status().isConflict());
+    }
+
+    @Test
+    void refusesToResolveACaseBeforeAutomatedAnalysisFinishes() throws Exception {
+        User admin = newAdmin();
+        UUID postId = createPost(newUser(), uniqueForumKey(), "A report awaiting analysis");
+        report(newUser(), postId, ReportReason.OTHER).andExpect(status().isCreated());
+
+        UUID queuedCaseId = openCaseFor(postId).getId();
+
+        decide(admin, queuedCaseId, FinalAction.HIDE).andExpect(status().isConflict());
+
+        ModerationCase stillQueued = openCaseFor(postId);
+        assertThat(stillQueued.getStatus()).isEqualTo(CaseStatus.QUEUED);
+        assertThat(stillQueued.getFinalAction()).isNull();
     }
 
     /** Only administrators reach the console, and a member asking is refused rather than served. */

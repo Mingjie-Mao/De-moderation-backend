@@ -37,4 +37,9 @@ public interface ModerationEngine {
     default boolean callsAnExternalService() {
         return true;
     }
+
+    /** Capability metadata for clients; false unless an engine explicitly says otherwise. */
+    default boolean isLanguageModel() {
+        return false;
+    }
 }

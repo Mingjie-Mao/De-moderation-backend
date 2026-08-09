@@ -61,6 +61,11 @@ public class GeminiModerationEngine implements ModerationEngine {
     }
 
     @Override
+    public boolean isLanguageModel() {
+        return true;
+    }
+
+    @Override
     public ModerationVerdict evaluate(ModerationRequest request) {
         String system = prompt.system();
         String contentHash = sha256(request.fullText());

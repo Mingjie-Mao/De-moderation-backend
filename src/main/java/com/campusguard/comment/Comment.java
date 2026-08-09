@@ -82,6 +82,11 @@ public class Comment {
         this.deletedAt = at;
     }
 
+    /** Put a soft-deleted comment back. See {@code Post#restore()}. */
+    public void restore() {
+        this.deletedAt = null;
+    }
+
     public int getDepth() {
         return depth;
     }

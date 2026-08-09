@@ -96,6 +96,17 @@ campusguard:
     per-user-limit: 20
     per-user-window: 1h
 
+  admin:
+    # The first administrator. Registration only ever produces a MEMBER, so
+    # without this a fresh database has a moderation console nobody can open.
+    #
+    # Read only when the account does not yet exist: an existing user with this
+    # name is never promoted and never has its password rewritten. Otherwise
+    # naming somebody who already registered would hand them the console, and
+    # editing the password here would rotate a live credential silently.
+    username: ${ADMIN_USERNAME:}
+    password: ${ADMIN_PASSWORD:}
+
   security:
     # Whether the OpenAPI document and Swagger UI are readable without a
     # credential. True suits development and this project's demo, where Swagger

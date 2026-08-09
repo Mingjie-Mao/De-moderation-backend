@@ -120,13 +120,28 @@ public class ModerationCase {
     }
 
     public void resolve(User admin, FinalAction action) {
-        if (status == CaseStatus.RESOLVED) {
-            throw new IllegalStateException("Case " + id + " is already resolved.");
-        }
+        requireStatus(CaseStatus.AWAITING_REVIEW);
         this.decidedBy = admin;
         this.decidedAt = Instant.now();
         this.finalAction = action;
         this.status = CaseStatus.RESOLVED;
+    }
+
+    /**
+     * Replace the outcome of a case that has already been decided.
+     *
+     * <p>Reviewers are wrong sometimes, and a decision nobody can revisit turns
+     * every mistake into a permanent one. The case stays {@code RESOLVED} — this
+     * is a correction, not a reopening — and the fields move to whoever made the
+     * correction, so "who decided this" always names the person answerable for
+     * the outcome that is actually in force. The history of how it got here
+     * lives in the audit trail, which only ever appends.
+     */
+    public void revise(User admin, FinalAction action) {
+        requireStatus(CaseStatus.RESOLVED);
+        this.decidedBy = admin;
+        this.decidedAt = Instant.now();
+        this.finalAction = action;
     }
 
     /**

@@ -43,6 +43,15 @@ class AuthorizationBoundaryTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void readingModerationCapabilityNeedsNoTokenAndExposesNoCredential() throws Exception {
+        mockMvc.perform(get("/api/moderation/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activeEngine").value("keyword-v1"))
+                .andExpect(jsonPath("$.llmActive").value(false))
+                .andExpect(jsonPath("$.apiKey").doesNotExist());
+    }
+
+    @Test
     void writingWithoutATokenIsRejected() throws Exception {
         mockMvc.perform(post("/api/posts")
                         .contentType(MediaType.APPLICATION_JSON)
