@@ -41,6 +41,7 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Query("""
             select p from Post p
             join fetch p.author
+            left join fetch p.media
             where p.forumKey = :forumKey and p.deletedAt is null
             order by p.createdAt desc, p.id desc
             """)
@@ -62,6 +63,7 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Query("""
             select p from Post p
             join fetch p.author
+            left join fetch p.media
             where p.forumKey = :forumKey
               and p.deletedAt is null
               and (p.createdAt < :beforeCreatedAt
@@ -77,6 +79,7 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Query("""
             select p from Post p
             join fetch p.author
+            left join fetch p.media
             where p.id = :id and p.deletedAt is null
             """)
     Optional<Post> findLiveById(@Param("id") UUID id);

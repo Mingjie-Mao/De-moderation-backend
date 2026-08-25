@@ -10,6 +10,7 @@ public record ReportResponse(
         TargetType targetType,
         UUID targetId,
         ReportReason reason,
+        String details,
         ReportStatus status,
         AuthorView reporter,
         Instant createdAt) {
@@ -20,6 +21,7 @@ public record ReportResponse(
                 report.getTargetType(),
                 report.getTargetId(),
                 report.getReason(),
+                report.getDetails(),
                 report.getStatus(),
                 AuthorView.of(report.getReporter()),
                 report.getCreatedAt());

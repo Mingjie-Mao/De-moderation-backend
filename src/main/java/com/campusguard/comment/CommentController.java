@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,5 +53,28 @@ public class CommentController {
                     @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return commentService.thread(postId, cursor, size);
+    }
+
+    @PatchMapping("/{commentId}")
+    @SecurityRequirement(name = "bearer-jwt")
+    @Operation(summary = "Edit a comment; permitted to its author")
+    public CommentResponse update(
+            @PathVariable UUID postId,
+            @PathVariable UUID commentId,
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody UpdateCommentRequest request) {
+        return commentService.update(
+                postId, commentId, AuthenticatedUser.idOf(jwt), request);
+    }
+
+    @DeleteMapping("/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @SecurityRequirement(name = "bearer-jwt")
+    @Operation(summary = "Soft-delete a comment; permitted to its author or an administrator")
+    public void delete(
+            @PathVariable UUID postId,
+            @PathVariable UUID commentId,
+            @AuthenticationPrincipal Jwt jwt) {
+        commentService.delete(postId, commentId, AuthenticatedUser.idOf(jwt));
     }
 }

@@ -1,0 +1,8 @@
+.git
+.env
+.idea
+.DS_Store
+target
+admin-web/node_modules
+admin-web/.vinext
+admin-web/dist

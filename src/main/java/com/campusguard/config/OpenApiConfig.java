@@ -8,9 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Swagger UI is not only developer documentation here: the moderation console is
- * driven through it rather than through a bespoke admin front end, so the
- * descriptions and the auth flow are part of the product surface.
+ * Swagger UI documents the development API. Production reviewers use the
+ * separate browser console and the production profile disables this surface.
  */
 @Configuration
 public class OpenApiConfig {

@@ -19,14 +19,17 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenIssuer tokenIssuer;
+    private final RefreshTokenService refreshTokens;
 
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            TokenIssuer tokenIssuer) {
+            TokenIssuer tokenIssuer,
+            RefreshTokenService refreshTokens) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenIssuer = tokenIssuer;
+        this.refreshTokens = refreshTokens;
     }
 
     /**
@@ -41,12 +44,12 @@ public class AuthService {
         }
 
         User user = userRepository.saveAndFlush(new User(
-                request.username(), passwordEncoder.encode(request.password()), UserRole.MEMBER));
+                request.username(), passwordEncoder.encode(request.password()), UserRole.MEMBER, request.email()));
 
         return issueFor(user);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public TokenResponse login(LoginRequest request) {
         User user = userRepository
                 .findByUsername(request.username())
@@ -72,7 +75,40 @@ public class AuthService {
 
     private TokenResponse issueFor(User user) {
         return TokenResponse.bearer(
-                tokenIssuer.issue(user), tokenIssuer.ttlSeconds(), user.getId(), user.getUsername());
+                tokenIssuer.issue(user),
+                refreshTokens.issue(user),
+                tokenIssuer.ttlSeconds(),
+                user.getId(),
+                user.getUsername());
+    }
+
+    @Transactional
+    public TokenResponse refresh(RefreshTokenRequest request) {
+        User user = refreshTokens.consume(request.refreshToken());
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new LockedException("This account can no longer sign in.");
+        }
+        return issueFor(user);
+    }
+
+    @Transactional
+    public void changePassword(java.util.UUID userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(AuthService::genericFailure);
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw genericFailure();
+        }
+        if (passwordEncoder.matches(request.newPassword(), user.getPasswordHash())) {
+            throw new ConflictException("The new password must differ from the current password.");
+        }
+        user.changePassword(passwordEncoder.encode(request.newPassword()));
+        refreshTokens.revokeAll(userId);
+    }
+
+    @Transactional
+    public void logoutEverywhere(java.util.UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(AuthService::genericFailure);
+        user.invalidateSessions();
+        refreshTokens.revokeAll(userId);
     }
 
     /**

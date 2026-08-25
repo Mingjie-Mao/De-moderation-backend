@@ -21,6 +21,8 @@ docker exec -e PGPASSWORD="$DB_PASSWORD" campusguard-postgres \
 ```
 
 Have open: Swagger UI, and a terminal on the application log.
+Also start `admin-web` with `npm run dev` and open `http://localhost:3000` for
+the human-review steps.
 
 ## 1 — It is an ordinary HTTP API (30s)
 
@@ -71,8 +73,8 @@ starts so row locks are not held across a model call.
 
 ## 4 — The part that matters (30s)
 
-In Swagger, `GET /api/admin/moderation-cases`. Show the case: engine name,
-recommendation, confidence, rationale, rule codes.
+In the browser reviewer console, open the queued case. Show its engine name,
+recommendation, confidence, rationale, rule codes and audit history.
 
 Then read the public feed again:
 
@@ -88,7 +90,8 @@ A person decides.
 
 ## 5 — The decision (20s)
 
-In Swagger, `POST /decision` with `HIDE`. Show the audit trail in the response:
+Claim the case in the browser console, record a note, then choose `HIDE`. Show
+the audit trail in the detail panel:
 
 ```
 SYSTEM CASE_OPENED · USER REPORT_FILED · SYSTEM CASE_CLAIMED

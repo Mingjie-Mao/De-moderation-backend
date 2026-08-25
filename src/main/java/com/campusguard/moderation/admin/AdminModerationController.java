@@ -19,13 +19,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 /**
  * The moderation console.
  *
- * <p>Served through Swagger UI rather than a separate front end. Administrators
- * are a handful of people doing a low-volume task, and a bespoke interface would
- * be a second application to build and secure for no benefit they would notice.
+ * <p>Consumed by the separate browser reviewer console. Swagger remains useful
+ * for local API exploration but is disabled by the production profile.
  *
  * <p>Access is enforced by the filter chain on the {@code /api/admin} prefix
  * rather than annotation by annotation, so a new endpoint added here is
@@ -64,5 +64,17 @@ public class AdminModerationController {
             @PathVariable UUID id,
             @Valid @RequestBody CaseDecisionRequest request) {
         return service.decide(AuthenticatedUser.idOf(jwt), id, request);
+    }
+
+    @PostMapping("/{id}/assignment")
+    @Operation(summary = "Claim an awaiting case for the current administrator")
+    public ModerationCaseDetail assign(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        return service.assign(AuthenticatedUser.idOf(jwt), id);
+    }
+
+    @DeleteMapping("/{id}/assignment")
+    @Operation(summary = "Release the current administrator's claim")
+    public ModerationCaseDetail release(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        return service.release(AuthenticatedUser.idOf(jwt), id);
     }
 }

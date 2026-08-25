@@ -10,8 +10,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 
 public interface ModerationCaseRepository extends JpaRepository<ModerationCase, UUID> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from ModerationCase c where c.id = :id")
+    Optional<ModerationCase> findByIdForUpdate(@Param("id") UUID id);
 
     /**
      * Open a case for this target unless one is already open.
@@ -108,12 +114,16 @@ public interface ModerationCaseRepository extends JpaRepository<ModerationCase, 
 
     @Query("""
             select c from ModerationCase c
+            left join fetch c.assignedTo
+            left join fetch c.decidedBy
             where c.status = :status
             order by c.createdAt asc
             """)
     List<ModerationCase> findByStatus(@Param("status") CaseStatus status, Pageable pageable);
 
     long countByStatus(CaseStatus status);
+
+    long countByStatusAndReviewDueAtBefore(CaseStatus status, Instant threshold);
 
     /**
      * Every other case whose standing outcome is a ban.

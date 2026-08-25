@@ -33,6 +33,9 @@ public record ModerationCaseView(
         UUID decidedBy,
         Instant decidedAt,
         FinalAction finalAction,
+        UUID assignedTo,
+        Instant assignedAt,
+        Instant reviewDueAt,
         Instant createdAt) {
 
     public static ModerationCaseView of(ModerationCase source) {
@@ -51,6 +54,9 @@ public record ModerationCaseView(
                 source.getDecidedBy() == null ? null : source.getDecidedBy().getId(),
                 source.getDecidedAt(),
                 source.getFinalAction(),
+                source.getAssignedTo() == null ? null : source.getAssignedTo().getId(),
+                source.getAssignedAt(),
+                source.getReviewDueAt(),
                 source.getCreatedAt());
     }
 }

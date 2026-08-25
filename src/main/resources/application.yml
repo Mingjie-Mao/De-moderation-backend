@@ -64,6 +64,11 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: false
 
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 9MB
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -109,11 +114,11 @@ campusguard:
 
   security:
     # Whether the OpenAPI document and Swagger UI are readable without a
-    # credential. True suits development and this project's demo, where Swagger
-    # is the console; a browser fetches the spec with no Authorization header, so
-    # closing it leaves a blank page nobody can sign in from. Set false in a
-    # deployment that would rather not publish a map of every route.
+    # credential. True suits local API exploration; a browser fetches the spec
+    # with no Authorization header, so protecting it leaves Swagger blank. The
+    # production profile disables it because reviewers use admin-web.
     expose-api-docs: ${EXPOSE_API_DOCS:true}
+    expose-prometheus: ${EXPOSE_PROMETHEUS:false}
     jwt:
       # No default. A fallback signing key is the kind of thing that reaches
       # production unnoticed, and a token signed with a publicly known key is not
@@ -124,6 +129,31 @@ campusguard:
       # member in good standing, which nothing server-side can distinguish from
       # the member using it.
       ttl: 1h
+    refresh-token-ttl: 30d
+    password-reset-ttl: 30m
+
+  public-url: ${PUBLIC_URL:http://localhost:3000}
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    from: ${MAIL_FROM:no-reply@campusguard.local}
+
+  cors:
+    # Comma-separated in production, for example
+    # https://admin.example.edu,https://app.example.edu. Bearer tokens are used,
+    # so browser credentials/cookies are deliberately not enabled.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
+  media:
+    storage-path: ${MEDIA_STORAGE_PATH:${java.io.tmpdir}/campusguard-media}
+    max-upload-size: 8MB
+    max-pixels: 20000000
+
+  auth-rate-limit:
+    registrations-per-ip: 10
+    logins-per-ip: 30
+    logins-per-account: 12
+    refreshes-per-ip: 60
+    window: 15m
 
   moderation:
     # Which registered engine judges live traffic. Swapping implementations is a
@@ -173,7 +203,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       # Unauthenticated callers get the overall status and nothing else, which

@@ -26,6 +26,18 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
 
+    @Column(length = 254)
+    private String email;
+
+    @Column(name = "display_name", length = 100)
+    private String displayName;
+
+    @Column(columnDefinition = "text")
+    private String bio;
+
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserRole role;
@@ -43,10 +55,17 @@ public class User {
     }
 
     public User(String username, String passwordHash, UserRole role) {
+        this(username, passwordHash, role, null);
+    }
+
+    public User(String username, String passwordHash, UserRole role, String email) {
         this.username = username;
         this.passwordHash = passwordHash;
         this.role = role;
         this.status = UserStatus.ACTIVE;
+        this.email = email == null || email.isBlank() ? null : email.strip().toLowerCase(java.util.Locale.ROOT);
+        this.displayName = username;
+        this.tokenVersion = 0;
     }
 
     /**
@@ -70,6 +89,21 @@ public class User {
         this.status = UserStatus.ACTIVE;
     }
 
+    public void changePassword(String encodedPassword) {
+        this.passwordHash = encodedPassword;
+        this.tokenVersion++;
+    }
+
+    /** Invalidates every access token issued before this call. */
+    public void invalidateSessions() {
+        this.tokenVersion++;
+    }
+
+    public void updateProfile(String displayName, String bio) {
+        this.displayName = displayName == null || displayName.isBlank() ? username : displayName.strip();
+        this.bio = bio == null || bio.isBlank() ? null : bio.strip();
+    }
+
     public UUID getId() {
         return id;
     }
@@ -80,6 +114,22 @@ public class User {
 
     public String getPasswordHash() {
         return passwordHash;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getDisplayName() {
+        return displayName == null ? username : displayName;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public int getTokenVersion() {
+        return tokenVersion;
     }
 
     public UserRole getRole() {
