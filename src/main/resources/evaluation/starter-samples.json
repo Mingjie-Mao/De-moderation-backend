@@ -1,0 +1,146 @@
+[
+  {
+    "id": "s01", "category": "NORMAL", "expected": "ALLOW",
+    "title": "Lost keys near Chifley",
+    "body": "Dropped a set of keys with a blue tag somewhere between Chifley and Kambri. Message me if you find them.",
+    "note": "Ordinary lost-and-found post."
+  },
+  {
+    "id": "s02", "category": "NORMAL", "expected": "ALLOW",
+    "title": "Free pizza at the club fair",
+    "body": "There is free pizza left over at the club fair, come and grab some before it goes cold.",
+    "note": "Contains the word free without being advertising. Checks that term matching respects word boundaries."
+  },
+  {
+    "id": "s03", "category": "NORMAL", "expected": "ALLOW",
+    "title": "Study group for COMP1100",
+    "body": "Starting a weekly study group before the midterm, Tuesdays at 6 in the Hancock reading room.",
+    "note": "Ordinary."
+  },
+  {
+    "id": "s04", "category": "NORMAL", "expected": "ALLOW",
+    "title": "有人一起去看展吗",
+    "body": "国家美术馆这周有个新展，周六下午想去，有人一起吗。",
+    "note": "Ordinary Chinese post with no rule terms."
+  },
+  {
+    "id": "s05", "category": "NORMAL", "expected": "ALLOW",
+    "title": "Selling my old textbook",
+    "body": "Second-hand copy of the MATH1013 textbook, twenty dollars, pickup on campus.",
+    "note": "A private sale between students is not advertising."
+  },
+  {
+    "id": "s06", "category": "NORMAL", "expected": "ALLOW",
+    "title": "Library hours over the break",
+    "body": "Does anyone know whether Chifley stays open late during the mid-semester break?",
+    "note": "Ordinary."
+  },
+  {
+    "id": "s07", "category": "NORMAL", "expected": "ALLOW",
+    "title": "Free shuttle timetable changed",
+    "body": "The free shuttle now runs every twenty minutes instead of fifteen. Timetable is on the transport page.",
+    "note": "Ordinary."
+  },
+  {
+    "id": "s08", "category": "NORMAL", "expected": "ALLOW",
+    "title": "Spare ticket for the revue",
+    "body": "I have one spare ticket for Friday's revue at face value. It was a limited offer through the union so I cannot refund it.",
+    "note": "Contains the advertising phrase limited offer in an entirely legitimate sentence. Expected to be a false positive for term matching."
+  },
+  {
+    "id": "s09", "category": "ABUSE", "expected": "REMOVE",
+    "title": "re: parking thread",
+    "body": "You are an idiot and everyone in this thread knows it.",
+    "note": "Direct personal attack using a configured term."
+  },
+  {
+    "id": "s10", "category": "ABUSE", "expected": "REMOVE",
+    "title": "回复",
+    "body": "楼主傻逼，说的什么东西。",
+    "note": "Direct insult using a configured Chinese term."
+  },
+  {
+    "id": "s11", "category": "ABUSE", "expected": "REMOVE",
+    "title": "no title",
+    "body": "Nobody cares what you think, just go kill yourself already.",
+    "note": "Severe. Configured term."
+  },
+  {
+    "id": "s12", "category": "ABUSE", "expected": "REMOVE",
+    "title": "re: group project",
+    "body": "You absolute moron, nobody wanted you in this group and nobody wants you here either.",
+    "note": "Clear harassment with wording that is not in the term list. Expected to be a false negative for term matching."
+  },
+  {
+    "id": "s13", "category": "ABUSE", "expected": "REMOVE",
+    "title": "回复",
+    "body": "你这种人真的很恶心，别再来这个版了。",
+    "note": "Harassment with wording outside the term list. Expected false negative."
+  },
+  {
+    "id": "s14", "category": "SPAM", "expected": "REMOVE",
+    "title": "MAKE MONEY FAST",
+    "body": "Click here for free money, limited offer, buy now before it closes.",
+    "note": "Unambiguous advertising."
+  },
+  {
+    "id": "s15", "category": "SPAM", "expected": "REMOVE",
+    "title": "兼职",
+    "body": "加微信 abc123，兼职日结，学生优先。",
+    "note": "Unambiguous advertising using configured Chinese terms."
+  },
+  {
+    "id": "s16", "category": "SPAM", "expected": "REMOVE",
+    "title": "Assignment help available",
+    "body": "Professional academic support, fast turnaround, competitive rates, message me for a quote.",
+    "note": "Commercial solicitation phrased to avoid every obvious term. Expected false negative."
+  },
+  {
+    "id": "s17", "category": "ILLEGAL", "expected": "REMOVE",
+    "title": "question",
+    "body": "Anyone know where to buy weed near campus without getting ripped off?",
+    "note": "Controlled substances. Configured term."
+  },
+  {
+    "id": "s18", "category": "ILLEGAL", "expected": "REMOVE",
+    "title": "论文",
+    "body": "代写论文，包过，价格私聊。",
+    "note": "Academic fraud service. Configured term."
+  },
+  {
+    "id": "s19", "category": "ILLEGAL", "expected": "REMOVE",
+    "title": "pub entry",
+    "body": "Need a fake id before Friday, does anyone have a contact.",
+    "note": "Configured term."
+  },
+  {
+    "id": "s20", "category": "BORDERLINE", "expected": "ESCALATE",
+    "title": "Is this reportable?",
+    "body": "Someone replied to my post with 'kill yourself'. Is that something I should report or am I overreacting?",
+    "note": "Quotes an abusive phrase in order to report it. Removing this punishes the victim. Expected false positive."
+  },
+  {
+    "id": "s21", "category": "BORDERLINE", "expected": "ESCALATE",
+    "title": "that lecture",
+    "body": "That two hour lecture was so bad I wanted to die.",
+    "note": "Hyperbole, not self-harm. A human should look before anything happens."
+  },
+  {
+    "id": "s22", "category": "BORDERLINE", "expected": "ESCALATE",
+    "title": "banter",
+    "body": "My friend called me an idiot for forgetting the meeting, which honestly is fair.",
+    "note": "A configured term used about oneself, in jest. Context decides. Expected false positive."
+  },
+  {
+    "id": "s23", "category": "BORDERLINE", "expected": "ESCALATE",
+    "title": "rules question",
+    "body": "Is it against the rules to sell my own lecture notes to another student?",
+    "note": "Genuinely ambiguous against the academic integrity rule. Needs a person."
+  },
+  {
+    "id": "s24", "category": "BORDERLINE", "expected": "ESCALATE",
+    "title": "吐槽",
+    "body": "这门课的作业量真的让人想死，每周都写不完。",
+    "note": "Hyperbolic complaint. Needs context, not a keyword."
+  }
+]
