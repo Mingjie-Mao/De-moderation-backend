@@ -1,0 +1,23 @@
+groups:
+  - name: campusguard
+    rules:
+      - alert: CampusGuardBackendDown
+        expr: up{job="campusguard-backend"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: "CampusGuard backend is unavailable" }
+      - alert: ModerationQueueGrowing
+        expr: campusguard_moderation_cases{status="QUEUED"} > 50
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "Moderation queue has more than 50 cases" }
+      - alert: ModerationSlaBreached
+        expr: campusguard_moderation_sla_overdue > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "At least one moderation case is past SLA" }
+      - alert: HighServerErrorRate
+        expr: (sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m])) > 0.02) and sum(rate(http_server_requests_seconds_count[5m])) > 0.1
+        for: 5m
+        labels: { severity: critical }
+        annotations: { summary: "Backend 5xx rate is above 2%" }

@@ -9,6 +9,7 @@ import com.campusguard.post.Post;
 import com.campusguard.post.PostRepository;
 import com.campusguard.user.User;
 import com.campusguard.user.UserRepository;
+import com.campusguard.user.UserRole;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,9 +17,12 @@ import java.util.Map;
 import java.time.Instant;
 import java.util.UUID;
 import com.campusguard.common.PageCursor;
+import com.campusguard.media.MediaObject;
+import com.campusguard.media.MediaService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -28,16 +32,19 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final ContentRateLimitProperties rateLimits;
+    private final MediaService mediaService;
 
     public CommentService(
             CommentRepository commentRepository,
             PostRepository postRepository,
             UserRepository userRepository,
-            ContentRateLimitProperties rateLimits) {
+            ContentRateLimitProperties rateLimits,
+            MediaService mediaService) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.rateLimits = rateLimits;
+        this.mediaService = mediaService;
     }
 
     @Transactional
@@ -80,16 +87,56 @@ public class CommentService {
 
         // See PostService#create: the flush is what populates createdAt before
         // the response is built.
+        MediaObject media = request.mediaId() == null ? null : mediaService.requireOwned(request.mediaId(), authorId);
         Comment saved =
-                commentRepository.saveAndFlush(new Comment(post, parent, author, request.body()));
+                commentRepository.saveAndFlush(new Comment(
+                        post, parent, author, request.body() == null ? "" : request.body(), media));
 
         return new CommentResponse(
                 saved.getId(),
                 parent == null ? null : parent.getId(),
                 AuthorView.of(author),
                 saved.getBody(),
+                saved.getMedia() == null ? null : "/api/media/" + saved.getMedia().getId(),
                 saved.getCreatedAt(),
                 List.of());
+    }
+
+    @Transactional
+    public CommentResponse update(
+            UUID postId, UUID commentId, UUID authorId, UpdateCommentRequest request) {
+        Comment comment = requireCommentOnPost(postId, commentId);
+        if (!comment.getAuthor().getId().equals(authorId)) {
+            throw new AccessDeniedException("Only the author can edit this comment.");
+        }
+
+        MediaObject media = request.mediaId() == null
+                ? null
+                : mediaService.requireOwned(request.mediaId(), authorId);
+        comment.update(request.body() == null ? "" : request.body(), media);
+        return toResponse(comment, Map.of());
+    }
+
+    @Transactional
+    public void delete(UUID postId, UUID commentId, UUID actorId) {
+        Comment comment = requireCommentOnPost(postId, commentId);
+        User actor = userRepository.findById(actorId)
+                .orElseThrow(() -> new NotFoundException("No user with id " + actorId));
+        if (!comment.getAuthor().getId().equals(actorId) && actor.getRole() != UserRole.ADMIN) {
+            throw new AccessDeniedException(
+                    "Only the author or an administrator can delete this comment.");
+        }
+        comment.softDelete(Instant.now());
+    }
+
+    private Comment requireCommentOnPost(UUID postId, UUID commentId) {
+        Comment comment = commentRepository.findLiveById(commentId)
+                .orElseThrow(() -> new NotFoundException("No comment with id " + commentId));
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new NotFoundException(
+                    "Comment " + commentId + " does not belong to post " + postId);
+        }
+        return comment;
     }
 
     /**
@@ -158,6 +205,7 @@ public class CommentService {
                 parent == null ? null : parent.getId(),
                 AuthorView.of(comment.getAuthor()),
                 comment.getBody(),
+                comment.getMedia() == null ? null : "/api/media/" + comment.getMedia().getId(),
                 comment.getCreatedAt(),
                 replies);
     }

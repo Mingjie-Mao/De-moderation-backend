@@ -1,6 +1,7 @@
 package com.campusguard.auth;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -14,5 +15,10 @@ public record RegisterRequest(
         // Length is the only rule enforced here. Composition rules push people
         // towards short, predictable passwords, and the hash is what actually
         // carries the security.
-        @NotBlank @Size(min = 8, max = 128) String password) {
+        @NotBlank @Size(min = 8, max = 128) String password,
+        @Email @Size(max = 254) String email) {
+
+    public RegisterRequest(String username, String password) {
+        this(username, password, null);
+    }
 }

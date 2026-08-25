@@ -84,6 +84,16 @@ public class ModerationCase {
     @Column(name = "final_action", length = 20)
     private FinalAction finalAction;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to")
+    private User assignedTo;
+
+    @Column(name = "assigned_at")
+    private Instant assignedAt;
+
+    @Column(name = "review_due_at", nullable = false)
+    private Instant reviewDueAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -125,6 +135,18 @@ public class ModerationCase {
         this.decidedAt = Instant.now();
         this.finalAction = action;
         this.status = CaseStatus.RESOLVED;
+    }
+
+    public void assign(User reviewer) {
+        requireStatus(CaseStatus.AWAITING_REVIEW);
+        this.assignedTo = reviewer;
+        this.assignedAt = Instant.now();
+    }
+
+    public void releaseAssignment() {
+        requireStatus(CaseStatus.AWAITING_REVIEW);
+        this.assignedTo = null;
+        this.assignedAt = null;
     }
 
     /**
@@ -224,4 +246,8 @@ public class ModerationCase {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
+
+    public User getAssignedTo() { return assignedTo; }
+    public Instant getAssignedAt() { return assignedAt; }
+    public Instant getReviewDueAt() { return reviewDueAt; }
 }

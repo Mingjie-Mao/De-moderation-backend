@@ -32,6 +32,10 @@ public class AuditLogger {
     public static final String AUTHOR_BANNED = "AUTHOR_BANNED";
     public static final String AUTHOR_REINSTATED = "AUTHOR_REINSTATED";
     public static final String BAN_UPHELD_ELSEWHERE = "BAN_UPHELD_ELSEWHERE";
+    public static final String CASE_ASSIGNED = "CASE_ASSIGNED";
+    public static final String CASE_ASSIGNMENT_RELEASED = "CASE_ASSIGNMENT_RELEASED";
+    public static final String APPEAL_FILED = "APPEAL_FILED";
+    public static final String APPEAL_DECIDED = "APPEAL_DECIDED";
 
     private final AuditEntryRepository repository;
 

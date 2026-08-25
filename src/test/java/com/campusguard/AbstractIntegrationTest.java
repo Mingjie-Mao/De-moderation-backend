@@ -50,7 +50,14 @@ import org.testcontainers.containers.PostgreSQLContainer;
             // The queue is drained by calling the worker directly. A background
             // poll would race every assertion about what state a case is in, and
             // the resulting test would fail once in every few dozen runs.
-            "campusguard.moderation.scheduler-enabled=false"
+            "campusguard.moderation.scheduler-enabled=false",
+            // Authentication throttling is covered by its own focused tests.
+            // The shared PostgreSQL container and MockMvc address would otherwise
+            // make unrelated login tests consume one another's production quota.
+            "campusguard.auth-rate-limit.registrations-per-ip=10000",
+            "campusguard.auth-rate-limit.logins-per-ip=10000",
+            "campusguard.auth-rate-limit.logins-per-account=10000",
+            "campusguard.auth-rate-limit.refreshes-per-ip=10000"
         })
 public abstract class AbstractIntegrationTest {
 

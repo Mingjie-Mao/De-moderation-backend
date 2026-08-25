@@ -136,8 +136,11 @@ public class ModerationPromptV3 implements ModerationPrompt {
 
                 Body:
                 %s
+
+                Attachment: %s
                 """
-                .formatted(title, request.body());
+                .formatted(title, request.body(), request.media().isEmpty()
+                        ? "none" : "one image is attached; inspect its visible content too");
     }
 
     private String renderRules(List<ModerationRule> rules) {

@@ -4,6 +4,8 @@ import com.campusguard.common.ContentRateLimitProperties;
 import com.campusguard.common.PageCursor;
 import com.campusguard.common.NotFoundException;
 import com.campusguard.common.TooManyRequestsException;
+import com.campusguard.media.MediaObject;
+import com.campusguard.media.MediaService;
 import com.campusguard.user.User;
 import com.campusguard.user.UserRepository;
 import com.campusguard.user.UserRole;
@@ -29,14 +31,17 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final ContentRateLimitProperties rateLimits;
+    private final MediaService mediaService;
 
     public PostService(
             PostRepository postRepository,
             UserRepository userRepository,
-            ContentRateLimitProperties rateLimits) {
+            ContentRateLimitProperties rateLimits,
+            MediaService mediaService) {
         this.rateLimits = rateLimits;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.mediaService = mediaService;
     }
 
     @Transactional
@@ -51,8 +56,9 @@ public class PostService {
         // as the insert is prepared, so without a flush the response would carry
         // a null timestamp for a row that has one. Flushing here also surfaces
         // constraint violations inside this call instead of at commit.
+        MediaObject media = request.mediaId() == null ? null : mediaService.requireOwned(request.mediaId(), authorId);
         Post post = postRepository.saveAndFlush(
-                new Post(request.forumKey(), author, request.title(), request.body()));
+                new Post(request.forumKey(), author, request.title(), request.body() == null ? "" : request.body(), media));
 
         return PostResponse.of(post);
     }
@@ -91,6 +97,22 @@ public class PostService {
                 .findLiveById(id)
                 .map(PostResponse::of)
                 .orElseThrow(() -> new NotFoundException("No post with id " + id));
+    }
+
+    @Transactional
+    public PostResponse update(UUID authorId, UUID postId, UpdatePostRequest request) {
+        Post post = postRepository
+                .findLiveById(postId)
+                .orElseThrow(() -> new NotFoundException("No post with id " + postId));
+        if (!post.getAuthor().getId().equals(authorId)) {
+            throw new AccessDeniedException("Only the author can edit this post.");
+        }
+
+        MediaObject media = request.mediaId() == null
+                ? null
+                : mediaService.requireOwned(request.mediaId(), authorId);
+        post.update(request.title(), request.body() == null ? "" : request.body(), media);
+        return PostResponse.of(post);
     }
 
     /**

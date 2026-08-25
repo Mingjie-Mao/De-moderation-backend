@@ -68,8 +68,8 @@ public class ReportService {
         // be stored already pointing at it, rather than saved and then updated.
         UUID caseId = moderationCaseService.openOrJoinCase(request.targetType(), request.targetId());
 
-        Report report =
-                new Report(request.targetType(), request.targetId(), reporter, request.reason(), caseId);
+        Report report = new Report(
+                request.targetType(), request.targetId(), reporter, request.reason(), caseId, request.details());
 
         // Flushed so that createdAt is populated for the response, and so that a
         // race lost to the unique index fails here rather than at commit.

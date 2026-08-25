@@ -11,6 +11,7 @@ Java 21 · Spring Boot 3.5 · PostgreSQL 16 · Spring AI (Gemini) · Testcontain
 
 [架构](docs/architecture.md) · [评测解读](docs/evaluation-notes.md) ·
 [可靠性](docs/reliability.md) · [安全决策](docs/security-decisions.md) ·
+[生产运维](docs/production-runbook.md) · [客户端接入](docs/api-client-guide.md) ·
 [演示脚本](docs/demo-script.md)
 
 ## 结果
@@ -55,14 +56,16 @@ flowchart TD
 
 ## 功能
 
-- **论坛 API** —— 帖子、树形评论与信息流，支持 JWT 认证和游标分页
+- **论坛 API** —— 以后端为事实源的帖子/评论增删改查、用户资料、游标分页与规范化图片附件
+- **安全会话** —— 轮换 Refresh Token、Access Token 即时失效、修改/重置密码与持久化认证限流
 - **举报聚合** —— 同一目标的重复举报合并为单个审核案件，避免重复引擎调用
 - **持久审核队列** —— 基于 `SELECT ... FOR UPDATE SKIP LOCKED` 并发领取，并支持异常 Worker 的案件回收
 - **可插拔审核引擎** —— 规则引擎与 LLM 共享统一接口，支持按 `模型/prompt版本` 独立注册和评测
 - **可靠的 LLM 调用链** —— 结构化输出校验、校正重试、超时、熔断、限流退避与规则引擎降级
 - **评测框架** —— 统一计算 Macro-F1、分类 Recall、延迟与 Token 使用，并生成逐样本分歧分析
 - **审计日志** —— 记录案件状态流转、引擎判决和管理员操作
-- **自动化测试** —— 157 个测试，包括基于 Testcontainers 的 PostgreSQL 集成测试
+- **人工工作流** —— 独立管理端、案件认领/SLA、证据与审计、通知以及可撤销申诉
+- **生产运维** —— 容器、自动 TLS、Prometheus/Grafana、告警、备份恢复、Kubernetes、k6 与 CI
 
 ## 快速开始
 
@@ -80,25 +83,26 @@ cp .env.example .env
 openssl rand -hex 32
 ```
 
-启动数据库并运行应用：
+启动数据库、后端和本地管理端：
 
 ```bash
 docker compose up -d
 set -a && . ./.env && set +a
 mvn spring-boot:run
+(cd admin-web && npm ci && npm run dev)
 ```
 
-启动后可访问 [Swagger UI](http://localhost:8080/swagger-ui.html) 调用和测试 API，包括管理员审核流程。本项目重点是后端审核基础设施，因此没有单独实现管理端前端。
+启动后可访问 [管理端](http://localhost:3000) 处理案件，也可通过
+[Swagger UI](http://localhost:8080/swagger-ui.html) 调试 API。
 
 ### API 权限
 
 | 接口 | 权限 |
 |---|---|
-| `POST /api/auth/register` · `/login` | 公开 |
+| 注册、登录、刷新令牌、请求/确认密码重置 | 公开 |
 | `GET /api/moderation/status` | 公开；只暴露实际启用的引擎能力 |
 | `GET /api/posts` · `/{id}` · `/{id}/comments` | 公开 |
-| `POST /api/posts` · `/{id}/comments` · `/api/reports` | 已登录用户 |
-| `DELETE /api/posts/{id}` | 作者或管理员 |
+| 帖子/评论增删改、媒体、举报、申诉、通知 | 已登录用户，并校验资源所有权 |
 | `GET\|POST /api/admin/moderation-cases/**` | 仅管理员 |
 
 管理员角色不通过公开 API 授予。在 `.env` 中设置 `ADMIN_USERNAME` 和
@@ -128,7 +132,7 @@ LLM 调用链包含：
 - **规则引擎降级** —— 模型最终失败时自动回退到确定性规则引擎
 - **调用记录** —— `ai_invocations` 记录模型、Prompt 版本、Token 使用、延迟、状态和原始响应
 
-De Android 客户端通过 `GET /api/moderation/status` 明确展示已配置模型是否真的注册并启用，或服务是否已经降级为规则引擎。客户端只在内容被举报时按需镜像内容、向本服务提交举报，并通过管理员 API 读取和处置案件。两个仓库仍是独立应用，不需要共享文件系统，也不需要合并构建。
+De Android 客户端在在线模式下直接通过本 API 读写论坛内容，先上传附件再发布，本地内存结构仅作为 UI 缓存；举报前仍会读取审核引擎状态。管理员密码与裁决操作已移到浏览器管理端，不再依赖移动端保存。两个仓库仍是独立应用，不共享文件系统。
 
 更多实现细节见 [reliability.md](docs/reliability.md)。
 
@@ -140,7 +144,7 @@ De Android 客户端通过 `GET /api/moderation/status` 明确展示已配置模
 mvn verify
 ```
 
-项目包含 **157 个自动化测试**，并通过 Testcontainers 使用真实 PostgreSQL 运行集成测试，覆盖并发举报聚合、数据库约束、审核队列恢复和模型降级等关键行为。
+集成测试通过 Testcontainers 使用真实 PostgreSQL，覆盖并发举报聚合、会话轮换、图片、案件认领、申诉、队列恢复和模型降级。当前准确测试数由 `mvn verify` 输出，不再把容易过期的数字写死在说明中。
 
 ## 数据集
 
@@ -159,3 +163,5 @@ mvn verify
 | [reliability.md](docs/reliability.md) | 队列持久性、降级、各种上界 |
 | [security-decisions.md](docs/security-decisions.md) | 认证、暴露面、权限 |
 | [demo-script.md](docs/demo-script.md) | 三分钟走查 |
+| [api-client-guide.md](docs/api-client-guide.md) | Android/浏览器接入、令牌与媒体流程 |
+| [production-runbook.md](docs/production-runbook.md) | 发布、TLS、监控、备份和事故处理 |

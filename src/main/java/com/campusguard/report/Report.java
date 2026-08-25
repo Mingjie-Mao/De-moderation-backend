@@ -59,6 +59,9 @@ public class Report {
     @Column(name = "case_id")
     private UUID caseId;
 
+    @Column(length = 1000)
+    private String details;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -73,12 +76,17 @@ public class Report {
      * case" unrepresentable instead of merely unlikely.
      */
     public Report(TargetType targetType, UUID targetId, User reporter, ReportReason reason, UUID caseId) {
+        this(targetType, targetId, reporter, reason, caseId, null);
+    }
+
+    public Report(TargetType targetType, UUID targetId, User reporter, ReportReason reason, UUID caseId, String details) {
         this.targetType = targetType;
         this.targetId = targetId;
         this.reporter = reporter;
         this.reason = reason;
         this.caseId = caseId;
         this.status = ReportStatus.AGGREGATED;
+        this.details = details == null || details.isBlank() ? null : details.strip();
     }
 
     /** Called when the case this report fed is decided. */
@@ -117,4 +125,6 @@ public class Report {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    public String getDetails() { return details; }
 }
