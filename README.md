@@ -16,7 +16,7 @@ Java 21 · Spring Boot 3.5 · PostgreSQL 16 · Spring AI (Gemini) · Testcontain
 [Architecture](docs/architecture.md) · [Evaluation](docs/evaluation-notes.md) ·
 [Reliability](docs/reliability.md) · [Security](docs/security-decisions.md) ·
 [Production](docs/production-runbook.md) · [Client guide](docs/api-client-guide.md) ·
-[Demo script](docs/demo-script.md)
+[Demo script](docs/demo-script.md) · [Full backend report](docs/backend-project-report.md)
 
 ## Results
 
@@ -58,14 +58,10 @@ flowchart TD
 **Design principles**
 - **Human-in-the-loop:** an engine only produces a recommendation, a confidence
   and a rationale; the final action is always an administrator's.
-- **Reversible:** a decided case can be decided again. The previous outcome is
-  undone first — hidden content restored, a banned author reinstated — unless
-  the new outcome wants it too, and the correction is appended to the audit
-  trail rather than replacing what it corrects. The console keeps showing
-  content it has hidden, because reconsidering a removal means reading it.
-- **Fail-safe moderation:** when the model is unavailable, times out, is rate
-  limited or returns output that fails validation, the system degrades to the
-  rule engine so moderation never stops.
+- **Correctable:** resolved cases support re-decision and appeal. Effects of a
+  prior decision can be undone, and every change is appended to the audit trail.
+- **Fail-safe moderation:** an external model failure never blocks the review
+  workflow.
 
 Repeated reports on one target collapse into a single moderation case, and a
 database unique constraint guarantees only one engine call. Cases left behind by
@@ -75,25 +71,20 @@ log.
 
 ## Features
 
-- **Forum API** — backend-first posts, editing, threaded comments, profiles,
-  normalized image attachments and cursor pagination
-- **Hardened sessions** — rotating refresh tokens, instant access-token
-  invalidation, password change/reset and persistent authentication throttling
-- **Report aggregation** — repeated reports on one target become a single case,
-  avoiding duplicate engine calls
-- **Durable moderation queue** — concurrent claiming via
-  `SELECT ... FOR UPDATE SKIP LOCKED`, plus recovery of cases from failed workers
-- **Pluggable moderation engines** — the rule engine and the LLM share one
-  interface, registered and evaluated independently as `model/prompt-version`
-- **Reliable LLM call chain** — structured-output validation, corrective retry,
-  timeout, circuit breaking, rate-limit backoff and rule-engine fallback
-- **Evaluation framework** — Macro-F1, per-class recall, latency and token usage
-  computed uniformly, with per-sample disagreement analysis
-- **Audit log** — case transitions, engine verdicts and administrator actions
-- **Reviewer workflow** — a dedicated web console with claim/release, SLA,
-  evidence, decisions, notifications and reversible appeals
-- **Operations** — production containers, automatic TLS, Prometheus/Grafana,
-  alerts, backup/restore, Kubernetes templates, k6 and CI
+- **Forum and user API** — posts, threaded comments, profiles, cursor pagination,
+  normalized images and notifications
+- **Secure sessions** — JWT, rotating refresh tokens, instant invalidation,
+  password change/reset and persistent authentication throttling
+- **Durable moderation workflow** — report aggregation, a persistent case queue,
+  concurrent workers and recovery of abandoned cases
+- **Pluggable moderation engines** — rule and LLM engines share one interface and
+  are evaluated independently by model and prompt version
+- **LLM reliability** — output validation, timeout, circuit breaking,
+  rate-limit backoff and deterministic fallback
+- **Human-in-the-loop review** — claim, evidence, decisions, correction, appeal,
+  notifications and an append-only audit trail
+- **Deployment and observability** — Docker, TLS, Prometheus/Grafana, backup
+  scripts and CI, plus Kubernetes and k6 configuration templates
 
 ## Quick start
 
@@ -137,10 +128,8 @@ The administrator role is not granted through any public API. Set
 `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env` and that account is created with
 the `ADMIN` role at startup.
 
-It is created, never modified. An account that already carries the configured
-name is left untouched, so naming somebody who has already registered does not
-promote them — and **changing `ADMIN_PASSWORD` afterwards does not rotate the
-password of an account that already exists.**
+The initializer only creates a missing username; it never promotes an existing
+account or overwrites an existing password.
 
 ## AI-assisted moderation
 
@@ -171,11 +160,9 @@ The LLM call chain includes:
 - **Invocation records** — `ai_invocations` holds model, prompt version, token
   usage, latency, status and the raw response
 
-The De Android client reads and writes forum content through this API when online,
-uploads attachments before publishing and keeps its in-memory structures only as
-a display cache. It also reads moderation capability before reporting. Admin
-credentials and decisions live in the browser console, not in the mobile build.
-The repositories remain separate applications and do not share a filesystem.
+The De-discussion Android client reads and writes forum content through this API;
+administrator review and credential management are handled by the separate
+browser console.
 
 More implementation detail in [reliability.md](docs/reliability.md).
 
@@ -213,3 +200,5 @@ violating and borderline samples were written specifically for this evaluation.
 | [demo-script.md](docs/demo-script.md) | a three-minute walkthrough |
 | [api-client-guide.md](docs/api-client-guide.md) | Android/browser integration and token/media flows |
 | [production-runbook.md](docs/production-runbook.md) | release, TLS, monitoring, backup and incident response |
+| [backend-project-report.md](docs/backend-project-report.md) | complete backend design, implementation, evaluation and remaining work |
+| [backend-project-report.zh-CN.md](docs/backend-project-report.zh-CN.md) | complete backend report in Chinese |

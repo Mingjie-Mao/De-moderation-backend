@@ -1,524 +1,352 @@
-# De-Moderation 后端项目完整说明
+[![English](https://img.shields.io/badge/English-grey?style=for-the-badge)](backend-project-report.md)
+[![中文](https://img.shields.io/badge/%E4%B8%AD%E6%96%87-1f6feb?style=for-the-badge)](backend-project-report.zh-CN.md)
 
-> 整理日期：2026 年 8 月 25 日
+# De-Moderation 后端项目报告
+
+> 更新时间：2026 年 8 月 25 日
 > 仓库：`De-moderation`
-> 生产化合并前的主分支基线：`eb52cfd3b98aa195acb8ccdd127fdb335132a007`
-> 说明范围：主分支全部正式提交、本次合并的生产化改动、后端源码、数据库迁移、测试、管理网页、部署和运维文件
+> 分支：`main`
+> 报告范围：后端、数据库、AI 审核、管理员网页、测试、部署和运维
 
-## 1. 先说结论
+## 1. Project Overview
 
-这个项目已经是一套完整的后端系统，不是只有几个接口的课堂示例。它能支撑一个校园论坛的账号、帖子、评论、图片、举报、自动审核、人工复核、申诉和通知流程，也有数据库迁移、自动化测试、Docker、监控、备份脚本、Kubernetes 模板和独立的管理员网页。
+De-Moderation 是校园论坛 `De-discussion` 的后端和内容审核系统。普通成员通过 Android 客户端注册、发帖、评论、上传图片、举报内容和提交申诉；管理员通过独立网页处理审核案件、修改裁决并回复申诉。
 
-不过“代码完整”“已有公开演示”和“能长期承载真实用户”是三件事。现在已经有真实的云数据库、公开 API 和管理员网页，面试演示链路可以使用；对象存储、外部备份、告警接收端、SMTP、正式负载测试和集群参数仍未完成，所以还不能把它当成无人值守的正式生产系统。
+项目的核心原则是：**AI 负责初步分类，人负责最终决定。**
 
-我对当前状态的判断是：
+这样设计不是为了让模型自动删帖，而是为了同时解决三个问题：
 
-- 本地开发、接口联调、公开演示：可以使用。
-- 免费公开演示：后端已在 Render 运行，数据库已换成 Neon，管理员网页已有可访问地址。
-- 作为长期正式环境：还需要完成本文第 17 节的生产配置，尤其是托管 PostgreSQL、持久化媒体、外部备份和真实告警。
-- Kubernetes：现在是可以继续落地的模板，不是拿来直接 `kubectl apply` 的成品。
+1. 审核任务不能因为进程退出、并发竞争或外部模型故障而丢失。
+2. Gemini 不可用时，系统仍能依靠规则引擎和人工审核继续工作。
+3. 每次建议、裁决、改判和申诉都能追踪、撤销和解释。
 
-### 1.1 目前真实可用的公开演示
+目前项目已经具备完整的演示链路：Cloudflare Pages 管理网页调用 Render 后端，后端连接 Neon PostgreSQL，并在可用时调用 Gemini。账号、帖子、评论、举报、审核、申诉、通知和管理员操作都已经落到真实数据库中，不是前端假数据。
 
-截至 2026 年 8 月 25 日，已经跑通的实际链路是：
+当前公开地址：
 
-```text
-面试官浏览器
-  -> 管理员网页（公开 HTTPS）
-  -> Render 后端 API
-  -> Neon PostgreSQL
-  -> Gemini 审核；调用失败时回退到 keyword-v1
+- 管理员网页：`https://de-moderation-review-demo.pages.dev`
+- 备用网页：`https://de-moderation-review-demo.x2337445.chatgpt.site`
+- 后端 API：`https://de-moderation-api-demo.onrender.com`
+- 健康检查：`https://de-moderation-api-demo.onrender.com/actuator/health/readiness`
+
+这套环境适合面试演示和接口联调，但还不是长期无人值守的正式生产环境。媒体对象存储、SMTP、外部备份、真实告警接收端、完整负载测试和 Kubernetes 集群参数仍需补齐。
+
+## 2. System Architecture
+
+| Component | Technology | Responsibility |
+|---|---|---|
+| Backend | Java 21、Spring Boot 3.5.16 | REST API、认证、论坛和审核流程 |
+| Database | PostgreSQL、Flyway、JPA/Hibernate | 业务数据、持久化队列、审计和 AI 调用记录 |
+| AI moderation | Gemini、Spring AI、Resilience4j | 语义审核建议、重试、断路和降级 |
+| Rule engine | `keyword-v1` | 确定性基线和无外部依赖兜底 |
+| Admin web | React 19、Next 16 API、vinext | 人工审核、改判和申诉处理 |
+| Client | Android，独立仓库 `De-discussion` | 普通成员论坛交互 |
+| Monitoring | Actuator、Micrometer、Prometheus、Grafana | 健康状态、系统指标和审核指标 |
+| Deployment | Docker、Caddy、Render、Cloudflare Pages | 打包、HTTPS 和公开演示 |
+
+```mermaid
+flowchart LR
+    Member[Android member client] --> API[Spring Boot API]
+    Admin[Admin review web] --> API
+    API --> DB[(PostgreSQL)]
+    API --> Media[(Media storage)]
+    API --> Queue[Persistent moderation cases]
+    Queue --> Worker[Moderation worker]
+    Worker --> Gemini[Gemini engine]
+    Worker --> Keyword[keyword-v1 fallback]
+    Worker --> Review[Human review]
+    Review --> Audit[(Audit and appeals)]
+    Prometheus --> API
+    Grafana --> Prometheus
 ```
 
-公开地址如下：
+后端使用同一个 PostgreSQL 保存业务数据和审核队列。worker 从数据库领取任务，不依赖单独的内存队列，因此服务重启后案件仍然存在。自动分析只产生建议，内容隐藏、删除或封禁必须由管理员确认。
 
-- 管理员网页（Cloudflare Pages）：`https://de-moderation-review-demo.pages.dev`
-- 管理员网页备用入口（Sites）：`https://de-moderation-review-demo.x2337445.chatgpt.site`
-- 后端 API：`https://de-moderation-api-demo.onrender.com`
-- 后端健康检查：`https://de-moderation-api-demo.onrender.com/actuator/health/readiness`
+## 3. Core Forum Functions
 
-Cloudflare Pages 已完成 31 个静态文件的目录上传和正式发布。刚发布后的第一次检查短暂返回 522，约二十秒后重新检查，主页和 `/reset-password` 都已返回 200；主页标题是“CampusGuard 审核工作台”，页面内的 API 地址也正确指向 Render。因此现在把 `pages.dev` 作为面试主入口，Sites 地址保留为备用入口。
+### 3.1 Authentication
 
-直接在浏览器打开 API 根地址时看到 401，不代表服务打不开。后端把没有明确公开的地址全部设为需要 bearer token，根路径 `/` 正好属于这一类；浏览器没有登录令牌，所以返回标准的 `Authentication required`。这说明请求已经到达后端并被安全层拒绝。给人使用的页面是管理员网页，检查服务存活用 readiness 地址。
+公开注册只能创建 `MEMBER`，不能通过请求字段获取管理员权限。登录成功后返回一小时有效的 JWT access token 和 30 天 refresh token。refresh token 每次使用都会轮换，数据库只保存 SHA-256 摘要，旧 token 不能重放。
 
-管理员也不是写死在网页里的假账号。后端首次连接新数据库时读取 `ADMIN_USERNAME` 和 `ADMIN_PASSWORD`，创建一条角色为 `ADMIN` 的真实用户记录，密码只以 BCrypt 哈希保存。当前 Neon 数据库已经完成这一步，真实登录和管理员接口都验证通过。用户名是 `admin`，密码取本机 `.env` 的 `ADMIN_PASSWORD`；报告不写出密码。初始化逻辑只负责“账号不存在时创建”，以后改 `.env` 不会自动改掉数据库中已有密码。
+系统支持改密码、退出全部设备和一次性密码重置。改密码或退出全部设备会增加 `tokenVersion`，让已有 access token 立即失效。密码使用 BCrypt 保存；管理员由启动配置在账号不存在时创建，不会把已有同名成员自动提升为管理员。
 
-## 2. 项目要解决什么问题
+### 3.2 Forum
 
-`De-discussion` 是成员使用的校园论坛客户端，`De-moderation` 是它后面的服务端和审核系统。用户在论坛里发帖、评论或举报内容；系统把多个针对同一内容的举报合成一个审核案件；规则引擎或 Gemini 给出建议；最后由管理员决定不处理、隐藏、删除或封禁作者。
+帖子支持创建、公开读取、游标分页、作者编辑和软删除。评论支持顶层评论、嵌套回复、编辑和软删除，最大深度为 10。普通用户看不到已删除内容，管理员复核历史案件时仍能读取原内容。
 
-这里最重要的原则不是“让 AI 自动删帖”，而是“让机器先分类，让人做最后决定”。这样做有几个原因：
+feed 使用 `(created_at, id)` keyset cursor，而不是 offset。新帖子插入顶部时不会改变后续页边界，因此能避免重复和漏项。
 
-1. 校园讨论里有引用、反讽、抱怨、求助和上下文，单看关键词或模型标签容易误伤。
-2. 自动建议可以减少管理员逐条筛选的时间，但不能代替责任明确的人工裁决。
-3. 所有建议、改判和申诉都需要留下记录，否则出错后无法解释发生了什么。
-4. 外部模型可能超时、限流、返回错误格式或停止服务，论坛审核不能因此停摆。
+### 3.3 User and Notifications
 
-整个系统因此围绕三件事设计：审核任务不能丢、模型失败时仍能工作、最终动作必须可追踪和可纠正。
+用户可以查看和修改自己的显示名和简介，也能读取其他成员的公开资料。资料更新使用真正的 PATCH 语义：未提交的字段保持原值，只有明确提交空值才清空内容。
 
-## 3. 项目由哪些部分组成
+站内通知覆盖审核结果、申诉状态和管理员待处理事项，支持列表、未读数量和标记已读。目前通知通过客户端轮询获取，没有 WebSocket 或系统推送。
 
-| 部分 | 作用 | 主要技术 |
-|---|---|---|
-| 后端 API | 账号、论坛内容、媒体、举报、审核、通知、申诉 | Java 21、Spring Boot 3.5.16 |
-| 数据库 | 业务数据、任务队列、审计和 AI 调用记录 | PostgreSQL 16 目标/测试；Neon 演示为 PostgreSQL 18.6；Flyway、JPA/Hibernate |
-| 审核引擎 | 关键词基线、Gemini 模型、降级处理 | Spring AI 1.1.8、Resilience4j 2.4.0 |
-| 管理员网页 | 登录、案件认领、裁决、改判、申诉处理 | React 19、Next 16 API、vinext |
-| Android 客户端 | 普通成员使用论坛、举报、收通知和申诉 | 独立仓库 `De-discussion` |
-| 可观测性 | 健康检查、业务指标、图表和告警规则 | Actuator、Micrometer、Prometheus、Grafana |
-| 部署 | 本地数据库、单机生产、HTTPS、集群模板 | Docker Compose、Caddy、Kubernetes |
-| 验证 | 单元、接口、数据库并发和故障测试 | JUnit 5、MockMvc、Testcontainers、k6 |
+### 3.4 Media
 
-后端目前有 174 个 Java 主代码文件，约 10,223 行；测试有 41 个 Java 文件，约 5,134 行；数据库有 8 个按版本执行的迁移文件。
+媒体接口只接受 JPEG 和 PNG，默认限制 8 MiB 和 2,000 万像素。服务会识别真实格式、读取尺寸、完整解码并重新编码，避免伪装文件、像素炸弹和原始元数据泄露。
 
-## 4. 一条举报是怎么走完的
+只有上传者能把图片挂到自己的帖子或评论上。公开下载只允许读取仍被可见内容引用的图片，未发布图片和隐藏内容的图片不能通过猜 UUID 直接访问。当前文件写入 Render 本地目录，正式环境需要迁移到 R2、S3 或 GCS。
 
-完整流程如下：
+## 4. Moderation Workflow
 
-1. 已登录用户调用 `POST /api/reports` 举报帖子或评论。
-2. 服务先确认目标存在且没有被删除，再检查同一用户是否重复举报、是否超过每小时举报上限。
-3. 针对同一目标的多个举报进入同一个未关闭案件。数据库部分唯一索引保证并发情况下也只能有一个案件。
-4. 后台 worker 用 `SELECT ... FOR UPDATE SKIP LOCKED` 抢一批 `QUEUED` 案件，改成 `ANALYSING` 后立即提交事务。
-5. worker 读取帖子或评论的正文和图片，交给当前配置的审核引擎。
-6. 引擎返回 `ALLOW`、`REMOVE` 或 `ESCALATE`，同时给出置信度、说明和规则编号。此时只形成建议，不删除任何内容。
-7. 案件进入 `AWAITING_REVIEW`。管理员网页能看到原文、图片、举报数量、引擎、建议、理由和完整审计记录。
-8. 管理员可以先认领案件，避免两个人同时处理，再选择 `NONE`、`HIDE`、`DELETE` 或 `BAN`。
-9. 案件改为 `RESOLVED`，相关举报也改为 `RESOLVED`，受影响作者和举报人收到通知。
-10. 如果管理员后来发现判断错误，可以重新裁决。旧动作会先被撤销，新动作再生效，历史不会被覆盖。
-11. 受影响作者可以申诉。管理员撤销申诉时，原案件会改判为 `NONE`，内容和账号状态按规则恢复。
+一条举报会经过下面六步：
 
-案件状态只有四个：
+1. 用户举报帖子或评论，系统检查目标、权限、重复举报和频率限制。
+2. 同一目标的多个举报聚合到一个未关闭的 moderation case。
+3. worker 从 PostgreSQL 领取 `QUEUED` 案件并改为 `ANALYSING`。
+4. Gemini 返回 `ALLOW`、`REMOVE` 或 `ESCALATE`；模型失败时使用 `keyword-v1`。
+5. 案件进入人工复核，管理员选择 `NONE`、`HIDE`、`DELETE` 或 `BAN`。
+6. 最终决定写入审计记录，之后仍可改判或由受影响作者申诉。
 
-- `QUEUED`：已经进入持久化队列，等待 worker。
-- `ANALYSING`：某个 worker 已领取，正在自动分析。
-- `AWAITING_REVIEW`：自动建议已经生成，等待管理员。
+案件状态机保持简单：
+
+```text
+QUEUED -> ANALYSING -> AWAITING_REVIEW -> RESOLVED
+```
+
+- `QUEUED`：案件已经持久化，等待 worker。
+- `ANALYSING`：worker 已领取，正在生成建议。
+- `AWAITING_REVIEW`：自动建议完成，等待管理员。
 - `RESOLVED`：管理员已经做出最终决定。
 
-管理员认领是案件上的分配信息，不额外增加状态。这样状态机只描述案件进度，认领只描述现在由谁处理。
+管理员认领是案件上的分配信息，不额外增加状态。这样案件进度和人员分工不会混在同一个状态机里。
 
-## 5. 论坛和成员功能
+## 5. Key Backend Design Decisions
 
-### 5.1 账号和会话
+### 5.1 Concurrent report aggregation
 
-公开注册只能创建 `MEMBER`，请求里不能指定 `ADMIN`。第一个管理员通过环境变量在首次启动时创建；如果同名账号已经存在，程序不会把它提升为管理员，也不会重写密码。
+多个用户可能同时举报同一内容。如果只做“先查询、再插入”，两个请求都可能看到“没有案件”，随后各建一条记录。
 
-登录成功后返回一小时有效的 JWT access token 和 30 天 refresh token。refresh token 每次使用都会轮换，旧 token 立即作废，数据库只保存 SHA-256 摘要，不保存原文。
+项目用 PostgreSQL 部分唯一索引保证同一目标只能有一个未解决案件，并通过 `ON CONFLICT DO NOTHING` 处理竞争。`report_count` 使用单条 SQL 原子加一，避免并发请求相互覆盖。数据库约束是最后保证，应用层重试负责把举报加入已经存在的案件。
 
-修改密码和“退出所有设备”都会增加用户的 `tokenVersion`，旧 access token 在下一次请求时就会被拒绝，同时删除已有 refresh token。这样不是只等 JWT 一小时后自然过期。
+### 5.2 Worker concurrency
 
-密码重置同样使用随机一次性 token，只存摘要，默认 30 分钟过期。请求重置时，无论账号不存在、没有邮箱还是邮件功能关闭，接口都返回相同结果，避免别人用这个接口枚举账号。
+多个 worker 使用 `SELECT ... FOR UPDATE SKIP LOCKED` 并行领取案件。被一个 worker 锁定的记录会被其他 worker 跳过，因此不会重复处理，也不会让所有实例串行等待。
 
-### 5.2 用户资料
+领取事务只负责选中案件并写入 `ANALYSING`，随后立即提交。模型调用在事务外完成，避免外部 API 的长延迟占用数据库锁和连接。
 
-用户可以读取和修改自己的显示名、简介，其他人只能读取公开资料。`PATCH /api/users/me` 按真正的 PATCH 语义处理：未提供的字段保持原值，明确提交空简介才清空简介。这个细节解决了“只改显示名却把简介一起擦掉”的问题。
+### 5.3 Failure recovery
 
-### 5.3 帖子和评论
+worker 可能在写入 `ANALYSING` 后崩溃。系统定时查找超过阈值仍未完成的案件，把它们重新放回队列。这样一次进程退出不会让案件永久卡住。
 
-帖子支持创建、公开读取、按论坛读取 feed、作者编辑、作者或管理员软删除。评论支持顶层评论、嵌套回复、作者编辑、作者或管理员软删除。
+模型超时、限流或返回错误不会破坏案件状态：系统先重试或降级，最终无法自动处理时将案件交给人工，而不是停留在半完成状态。
 
-使用软删除是为了让已经存在的举报、审核案件和审计记录仍能指向原来的数据库行。普通读取只返回未删除内容；管理员复核历史案件时可以读取已隐藏内容，否则就无法判断之前的裁决是否正确。
+### 5.4 Database consistency
 
-feed 不用 offset，而是使用由 `created_at + id` 组成的游标。论坛不断有新帖子插入顶部，offset 会让翻页过程中出现重复或遗漏；游标定位到上一页的最后一条，新的顶部数据不会改变后续边界。每次多取一行判断 `hasMore`，不额外做全表总数统计。
+Flyway 完全负责数据库结构，Hibernate 只执行 `validate`。部分唯一索引、外键、CHECK、JSONB 和原子更新负责保证关键约束；软删除让举报、案件和审计记录仍能引用原内容；追加式 audit log 保存每次建议和决定，不覆盖历史。
 
-评论按顶层评论分页，每个顶层评论带上自己的回复树。回复深度最多 10 层，服务层先给出可读错误，数据库还有 `CHECK (depth <= 10)` 做最后保证。
+`open-in-view` 被关闭，查询必须在服务层明确完成。案件列表和内容列表使用预取并配有 SQL 数量测试，防止 N+1 查询重新出现。
 
-### 5.4 内容频率限制
+## 6. AI Moderation Design
 
-当前默认限制是每个账号每小时最多 30 个帖子、120 条评论和 20 次举报。注册开放意味着“必须登录”本身挡不住脚本，所以写入成本必须单独限制。
+### 6.1 Two engines
 
-登录、注册、刷新 token 和密码重置入口还有持久化的 IP/账号固定窗口限制。计数存在 PostgreSQL 中，重启服务或增加后端实例不会把限制清零；存储的 key 是摘要，不直接保存 IP 和输入的用户名。
+| Engine | Strength | Role |
+|---|---|---|
+| `keyword-v1` | 确定、快速、没有外部依赖 | 基线、兜底和故障期间继续运行 |
+| Gemini | 能理解语义、多语言和上下文 | 生成更准确的审核建议 |
 
-### 5.5 图片
+两个引擎实现同一个 `ModerationEngine` 接口。worker 和评测程序只依赖这个接口，因此可以在不改业务流程的情况下切换模型、提示词版本或规则引擎。
 
-图片要先上传，再把返回的 `mediaId` 放进帖子或评论。服务只接受 JPEG 和 PNG，默认限制 8 MiB 和 2,000 万像素。
+Gemini 引擎以“模型名/提示词版本”注册，例如 `gemini-3.5-flash-lite/v2`。模型和提示词都会影响结果，记录完整名称才能把生产调用、评测和成本对应起来。
 
-上传时不是只相信文件扩展名或请求头，而是先读取图片格式和尺寸，再解码并重新编码。这样能阻止伪装文件、限制解压缩炸弹，并去掉原始元数据。只有上传者能把图片挂到自己的内容上；公开下载只允许读取仍被可见帖子或评论引用的图片，未发布图片和已隐藏内容的图片不能通过猜 UUID 直接访问。
+### 6.2 Reliability
 
-当前实现把文件写到本地目录、元数据写入 PostgreSQL，适合本地和单机部署。多副本正式环境应改成 S3、GCS、R2 或其他对象存储，数据库只保存对象 key 和元数据。
+| Protection | Behaviour |
+|---|---|
+| Timeout | 单次模型调用最多 30 秒 |
+| Circuit breaker | 最近调用失败率过高时暂时停止请求供应商 |
+| Rate-limit retry | 对 429 最多重试 4 次，指数退避并加入随机抖动 |
+| Error classification | 无效 Key 等不可恢复错误不会盲目重试 |
+| Output validation | 验证 JSON、decision、confidence、rationale 和 rule codes |
+| Correction retry | 输出错误时把具体原因反馈给模型，再纠正一次 |
+| Fallback | Gemini 最终失败后使用 `keyword-v1` |
+| Human escalation | 自动引擎都无法处理时仍进入人工审核 |
 
-## 6. 鉴权和安全边界
+每次生产模型调用都会记录模型、提示词版本、内容哈希、状态、尝试次数、token、延迟、原始回答和错误原因。这样可以分析成本和稳定性，也能在争议发生时还原当时的自动建议。
 
-系统使用 Spring Security 的资源服务器能力签发和验证 HS256 JWT。签名算法明确固定为 HS256，JWT 密钥至少 32 字节且没有默认值；没有密钥时程序直接启动失败，避免测试密钥混入正式环境。
+带图片的案件会把规范化后的图片和文字一起交给 Gemini。关键词引擎忽略图片但仍能处理文字，因此多模态模型不可用时队列也不会堵塞。
 
-每个认证请求在 JWT 验签后都会重新读取用户记录：
+## 7. Evaluation
 
-- 账号已暂停、封禁或删除：当前请求立即拒绝。
-- 管理员被降级：当前请求立即失去管理员权限。
-- 成员被提升：当前 token 可以立即获得当前角色。
-- `tokenVersion` 已变化：说明密码变更或执行过退出全部会话，旧 token 拒绝。
+评测集包含 192 条中英双语样本，其中英文 122 条、中文 70 条，标签为 `ALLOW`、`REMOVE` 和 `ESCALATE`。内容覆盖普通讨论、辱骂、垃圾广告、违法内容和需要上下文判断的边界案例。
 
-这个设计每次认证请求多一次主键查询，但换来封禁和权限调整立即生效。项目早期只信任 JWT 里的旧角色，实测被暂停账号仍能成功发帖，后来才加入这一层。
+| Engine | Macro-F1 | ALLOW Recall | REMOVE Recall | ESCALATE Recall |
+|---|---:|---:|---:|---:|
+| `keyword-v1` | 0.286 | 1.000 | 0.106 | 0.000 |
+| Gemini v1 | 0.617 | 0.978 | 0.939 | 0.056 |
+| Gemini v2 | 0.924 | 0.989 | 0.970 | 0.778 |
 
-路由边界是默认关闭、逐项开放：
+最重要的结果不是“换了更大的模型”，而是同一个模型只调整任务定义后，Macro-F1 从 **0.617 提升到 0.924**，`ESCALATE` recall 从 **0.056 提升到 0.778**。
 
-- 论坛列表、帖子详情、评论和已发布媒体可以匿名读取。
-- 注册、登录、refresh 和密码重置是公开入口。
-- 其他写入默认要求登录。
-- `/api/admin/**` 整段只允许管理员，新接口不会因为忘记注解而意外公开。
-- 健康检查匿名只返回总体状态，详细组件信息只给管理员。
-- Prometheus 端点在正式环境只放在内部观测网络。
-- Swagger/OpenAPI 本地可开，正式 profile 直接关闭。
+v1 更接近在问：
 
-接口错误统一使用 RFC 7807 `application/problem+json`，字段校验错误会带 `fieldErrors`。安全过滤器里的 401 和 403 也使用相同格式，客户端不需要解析多种错误结构。登录对“账号不存在”和“密码错误”使用同一句话，避免账号枚举。
+> 这段内容是否违反规则？
 
-CORS 只允许环境变量列出的网页来源，并且使用 Authorization bearer token，不开启跨域 cookie。当前管理员 token 保存在浏览器 `sessionStorage`，关闭会话后消失；管理员密码和接口不放进 Android 包。
+v2 改成：
 
-## 7. 自动审核为什么分成两种引擎
+> 这个案件能否在不经过人工复核的情况下安全关闭？
 
-所有引擎实现同一个 `ModerationEngine` 接口。worker 不关心背后是关键词还是 Gemini，评测程序也用同一套逻辑跑所有引擎。
+前一个问题容易把求助、引用辱骂和缺少上下文的内容直接判为安全；后一个问题把“不确定但值得人看”的内容正确升级。提升来自任务定义改变，而不是简单把提示词写得更长。
 
-`keyword-v1` 是确定性的关键词引擎，也是无外部依赖的兜底。它对 ASCII 词使用单词边界，避免短词误命中长词；中文没有空格，因此使用子串匹配。高、中严重度建议 `REMOVE`，低严重度建议 `ESCALATE`，未匹配只以 0.5 置信度 `ALLOW`，说明它只是“没有发现已配置词”，不是证明内容安全。
+2026 年 8 月 25 日使用当前 Key 和模型别名复测时，Gemini 在首轮成功返回的 184 条上 Macro-F1 为 0.919，8 条超过 30 秒预算；单独重跑这 8 条后全部成功。分类表现没有明显漂移，但供应商仍有长尾延迟，因此超时、降级和人工复核不能移除。
 
-Gemini 引擎按“模型名/提示词版本”注册，例如 `gemini-3.5-flash-lite/v2`。模型和提示词都会改变结果，因此不能只写一个含糊的 `gemini` 名称。这样评测结果、生产调用和费用都能追溯到具体组合。
+这些结果不能当成真实线上准确率：数据规模较小，不来自完整生产流量；v2 看过 v1 在同一数据上的错误；模型重复运行也会有轻微漂移。现有评测能证明 v2 明显优于规则基线和 v1，但上线后仍需要独立留出集和真实人工裁决反馈。
 
-AI 是可选功能。没有 `AI_CHAT_MODEL` 或 Gemini Key 时，不创建模型引擎，系统继续使用 `keyword-v1`。配置了一个不存在的模型引擎时，启动会明确记录错误，但不会让整个论坛停止。
+## 8. Security
 
-### 7.1 AI 调用的保护链
+| Area | Design |
+|---|---|
+| Authentication | BCrypt、HS256 JWT、refresh-token rotation、一次性 reset token、`tokenVersion` |
+| Authorization | `MEMBER`/`ADMIN`、资源归属校验、管理员路由整体保护 |
+| Account state | 每次认证重新读取当前角色、封禁状态和 token 版本 |
+| API policy | 默认拒绝，只明确开放公开读取、登录和健康概要 |
+| CORS | 只允许环境变量配置的管理网页来源，不使用跨域 cookie |
+| Media | 格式和像素验证、重新编码、上传者归属和公开可见性校验 |
+| Rate limiting | 登录、注册、刷新、重置、帖子、评论和举报均有上限 |
+| Error handling | RFC 7807 统一错误；登录失败不区分账号不存在或密码错误 |
 
-模型调用外面有完整的保护：
+JWT 密钥没有默认值且至少 32 字节，没有配置时程序直接启动失败。每次认证都会重新读取用户，因此账号被封禁、管理员被降级或执行“退出所有设备”后，旧 JWT 不需要等到自然过期才失效。
 
-1. 单次调用默认最多 30 秒。
-2. 最近 10 次调用失败率达到 50% 时打开断路器，30 秒内直接失败，不让每个案件都白等超时。
-3. 429 或 quota 限流最多重试 4 次，指数退避并加入随机抖动。
-4. 无效 API Key 和普通错误不会盲目重试，因为等待并不能修好凭据。
-5. 返回内容必须是 JSON，decision、confidence、rationale 和 ruleCodes 都逐项验证。
-6. 格式或字段错误会把具体原因发回模型，最多做一次纠正重试。
-7. 模型最终失败后切换到 `keyword-v1`；如果连兜底都失败，则把案件升级给人工，不让它留在半路。
+生产 profile 关闭 Swagger；Prometheus 只应在内部观测网络访问；健康概要可以公开，但详细组件信息需要管理员权限。管理员网页把 token 放在 `sessionStorage`，关闭浏览器会话后消失。
 
-生产案件的每次模型调用都写入 `ai_invocations`：模型、提示词版本、内容哈希、尝试次数、成功/超时/限流/断路/错误、token 数、延迟、原始回答和错误原因都会保留。评测调用不写入生产调用表，避免成本统计混入测试流量，但会单独收集 token 和延迟。
+## 9. Admin Review and Appeals
 
-### 7.2 图片审核
+管理员网页提供待审核、已处理和申诉三个视图。管理员可以查看原文、图片、举报数量、AI 建议、置信度、规则编号、SLA 和完整审计记录，并认领或释放案件。
 
-如果被举报内容带图片，worker 会把规范化后的图片和文字一起放进 `ModerationRequest`。Gemini 端通过 Spring AI 的多模态消息发送；关键词引擎忽略图片但仍能对文字工作。这保证 AI 不可用时，带图片的案件也不会堵住队列。
+最终动作包括：
 
-## 8. 评测做了什么，结果应该怎么看
-
-项目不是直接根据模型介绍选择版本，而是把所有引擎跑在同一套 192 条中英双语标注数据上。数据包含 122 条英文和 70 条中文，分为普通、辱骂、垃圾广告、违法和边界内容，再映射成 `ALLOW`、`REMOVE`、`ESCALATE` 三种实际动作。
-
-评测输出包括 Macro-F1、每类 precision/recall/F1、准确率、混淆矩阵、p50/p95 延迟、token、估算费用、失败样本，以及候选引擎相对基线“修好了什么、弄坏了什么”。使用 Macro-F1 是因为普通内容更多，单看准确率会让“全部 ALLOW”的引擎看起来不错。
-
-仓库现有记录如下：
-
-| 引擎 | Macro-F1 | ALLOW Recall | REMOVE Recall | ESCALATE Recall | p50 延迟 | token/样本 |
-|---|---:|---:|---:|---:|---:|---:|
-| `keyword-v1` | 0.286 | 1.000 | 0.106 | 0.000 | 0.05 ms | 无 |
-| `gemini-3.5-flash-lite/v1` | 0.617 | 0.978 | 0.939 | 0.056 | 906 ms | 341 |
-| `gemini-3.5-flash-lite/v2` | 0.924 | 0.989 | 0.970 | 0.778 | 868 ms | 651 |
-
-v1 和 v2 使用相同模型和 Java 代码，只改了提示词。v1 主要在回答“内容本身有没有违规”，所以把大量求助、引用辱骂和需要上下文的内容判成 `ALLOW`。v2 改成回答“这个案件是否可以不经人工直接关闭”，`ESCALATE` recall 从 0.056 提升到 0.778，同时没有牺牲 `REMOVE` recall，但每条输入 token 基本翻倍。
-
-2026 年 8 月 25 日又用当前 Key 和当前模型别名完整复测了 `keyword-v1` 与 `gemini-3.5-flash-lite/v2`。关键词结果不变；Gemini 在成功回答的 184 条上 Macro-F1 为 0.919，ALLOW、REMOVE、ESCALATE recall 分别为 0.988、0.970、0.750，分类能力与历史 0.924 基本一致。不过 192 条中有 8 条超过 30 秒调用预算，整轮状态为 `DEGRADED`，p50 为 1.18 秒、p95 为 4.33 秒。随后单独重跑这 8 条，8 条全部成功、没有再次超时，p95 为 1.13 秒。结论是模型行为没有明显漂移，但供应商存在长尾延迟；当前可以继续用 v2，同时必须保留 `keyword-v1` 降级、超时和告警，不能把模型当成永远可用的同步依赖。
-
-这些数字不能被写成“模型已经达到 92.4% 的真实线上能力”，原因有三点：
-
-- 数据里没有真实生产流量。普通内容来自旧项目的演示 seed，违规和边界内容是为了评测编写的。
-- v2 是看过 v1 在同一数据集上的错误后改的，所以 0.924 不是独立留出集结果。
-- 即使温度是 0，同一提示词重复运行也有小幅漂移。仓库记录里相同 v1 曾出现 0.617 和 0.636。
-
-因此现有结果足够证明 v2 明显好于关键词和 v1，本次复测也确认当前模型别名的分类行为没有明显变化。以后更换模型别名、固定版本或提示词时，仍应使用同一条评测链先跑再切换。v3 只增加“用内容的语言写 rationale”，分类文字保持和 v2 一致，也应该先评测再切换。
-
-## 9. 人工审核、改判、申诉和通知
-
-管理员列表默认读取 `AWAITING_REVIEW`，可查看已解决案件。列表查询预取分配人和裁决人，避免每一行额外查一次数据库；有专门测试统计 SQL 数量，防止 N+1 回归。
-
-管理员可以认领和释放案件。决定时数据库对案件加悲观写锁；如果案件已经被另一个管理员认领，第二个人不能直接裁决。每个案件有 `review_due_at`，默认创建后 24 小时，Prometheus 会统计超时数量。
-
-最终动作含义如下：
-
-- `NONE`：审核完成，不改内容。
+- `NONE`：完成审核，不改变内容。
 - `HIDE`：软删除内容。
-- `DELETE`：当前效果也为软删除，但审计语义表示删除决定。
+- `DELETE`：执行删除语义并保留审计记录。
 - `BAN`：隐藏内容并封禁作者。
 
-已解决案件允许改判。比如 `HIDE → NONE` 会恢复内容，`BAN → HIDE` 会解除该案件造成的封禁但保持内容隐藏，`HIDE → BAN` 不会先短暂恢复内容。如果同一用户仍被其他案件以 `BAN` 处理，撤销其中一个案件不能解除整个账号封禁。
+决定时数据库会锁定案件。如果案件已经被另一名管理员认领，第二个人不能直接裁决。已解决案件允许改判，系统先撤销旧动作再应用新动作，但不会删除旧审计记录。多个案件共同维持同一账号封禁时，撤销其中一个案件不会错误解除其他案件造成的封禁。
 
-作者只能申诉实际影响内容或账号的已解决案件，不能替别人申诉，也不能对 `NONE` 申诉；同一案件同一作者同时只能有一个待处理申诉。管理员选择撤销时，系统复用原案件的改判逻辑恢复状态，不另外写一套容易不一致的恢复代码。
+受影响作者可以对 `HIDE`、`DELETE` 或 `BAN` 提交申诉。管理员撤销申诉时复用原案件改判逻辑，恢复内容或账号，并向相关人员发送站内通知。
 
-通知目前是站内通知，支持列表、未读数量和标记已读。管理员收到新申诉通知；举报人和作者收到裁决通知；受影响作者的通知会标明可以申诉。
+## 10. Testing
 
-## 10. 数据库设计和 8 次迁移
+项目使用 Testcontainers 启动真实 PostgreSQL 16，而不是用 H2 代替。原因是实现依赖 PostgreSQL 的部分唯一索引、JSONB、`ON CONFLICT` 和 `SKIP LOCKED`，H2 无法可靠验证这些行为。
 
-Flyway 完全负责数据库结构，Hibernate 只做 `validate`，不会在启动时偷偷改表。`open-in-view` 关闭，懒加载和 N+1 问题会尽早暴露。
+| Test area | Main coverage |
+|---|---|
+| Authentication and security | 登录、JWT、refresh rotation、重放、封禁、权限和统一错误 |
+| Forum APIs | 帖子、评论、分页、归属、软删除、深度和频率限制 |
+| Moderation workflow | 举报聚合、worker 领取、裁决、改判和停滞回收 |
+| Concurrency | 部分唯一索引、原子计数、案件认领和多 worker 行为 |
+| AI failure handling | 超时、429、断路器、错误输出、纠正重试和降级 |
+| Appeals and notifications | 申诉权限、撤销、状态恢复和通知 |
+| Media | 格式、像素、重新编码、归属和访问控制 |
+| Database and API policy | Flyway V1–V8、Actuator、Swagger、N+1 查询数量 |
 
-| 版本 | 主要内容 | 设计目的 |
+最终验证结果：
+
+- Maven 测试：192
+- Failures：0
+- Errors：0
+- Skipped：0
+- PostgreSQL：16.14 Testcontainers
+- Flyway：V1–V8 全部验证并执行
+- 管理网页：lint 和 production build 通过
+- 后端：Docker 镜像构建通过
+- GitHub：PR 和合并后 `main` CI 全部通过
+
+## 11. Deployment and Operations
+
+当前公开演示架构是：
+
+```text
+Cloudflare Pages
+        |
+        v
+Render Spring Boot API
+        |
+        v
+Neon PostgreSQL
+        |
+        +--> Gemini, with keyword-v1 fallback
+```
+
+| Layer | Current status |
+|---|---|
+| Admin web | Cloudflare Pages HTTPS，公开可访问 |
+| Backend | Render Docker service，readiness 为 `UP` |
+| Database | Neon 托管 PostgreSQL，已完成 8 个迁移 |
+| AI | Gemini v2 正常，`keyword-v1` 兜底 |
+| Secrets | 本地 `.env` 被 Git 忽略；云端使用平台环境变量 |
+| CI | 后端 verify、Docker build、网页 lint/build |
+
+仓库还提供单机生产 Compose、Caddy HTTPS、Prometheus、Grafana datasource、告警规则、数据库与媒体备份/恢复脚本，以及 Kubernetes 模板。它们已经过配置和构建验证，但告警接收端、外部备份位置和实际集群参数尚未落地。
+
+直接打开 API 根地址会返回 401，这是默认拒绝策略的正常结果。给人使用的是管理员网页；服务存活检查使用 readiness 地址。Render 免费实例可能在空闲后休眠，演示前应提前访问健康检查。
+
+## 12. Limitations and Future Work
+
+| Category | Current limitation | Next step |
 |---|---|---|
-| V1 | users、posts、comments | 建立账号、论坛和软删除基础结构 |
-| V2 | reports | 保存帖子/评论举报，限制同一用户重复举报同一目标 |
-| V3 | rules、cases、audit_log | 建立审核状态机、规则、并发聚合和追加式审计 |
-| V4 | 举报状态简化 | 删除永远看不到的 PENDING，关闭案件时真正结束举报 |
-| V5 | ai_invocations | 保存模型成功和失败调用，支持成本、延迟和争议复查 |
-| V6 | RATE_LIMITED 状态 | 把“暂时限流”和“服务损坏”分开处理 |
-| V7 | comment.depth | 修复无限嵌套导致递归栈溢出的问题 |
-| V8 | 生产功能 | 邮箱/资料、token 版本、refresh/reset、持久限流、媒体、举报详情、分配/SLA、申诉、通知 |
+| Evaluation | 192 条数据较小，也不是完整生产流量 | 建立去标识化留出集，用人工最终裁决持续评估漂移 |
+| Media storage | 文件保存在 Render 本地目录，重建后不可靠 | 迁移到 R2、S3 或 GCS，并增加孤儿文件清理 |
+| Operations | 没有 SMTP、Alertmanager receiver 和异地备份 | 配置邮件、真实告警渠道，并完成隔离恢复演练 |
+| Load testing | k6 只覆盖基础 smoke 场景 | 在预发布环境加入登录、写入、举报、媒体和管理员混合负载 |
+| Production infrastructure | 免费实例会休眠，平台域名不自有，Kubernetes 仍是模板 | 使用不休眠实例、自有域名、Secret Manager 和真实集群参数 |
 
-几个数据库取舍需要单独说明：
+另外还有三个需要继续关注的工程问题：顶层评论已分页，但单个根节点的回复宽度仍可能很大；媒体文件和数据库元数据不是同一个原子事务，需要补偿清理；CI 使用的部分 GitHub Action 版本已经出现弃用提示，需要升级到后续主版本。
 
-- `reports.target_id` 和 `moderation_cases.target_id` 可能指帖子也可能指评论，一个列无法同时建两个外键，所以由服务层验证目标存在。代价是所有写入必须经过这层检查。
-- `audit_log.actor_id` 不设用户外键，目的是账号删除后审计记录仍然存在。
-- 一个目标只允许一个未解决案件由 PostgreSQL 部分唯一索引保证，而不是依赖“先查再插”。
-- `report_count` 使用单条 SQL 原子加一，避免两个并发举报都读到旧值后覆盖彼此。
-- AI 原始回答和审计 payload 使用 JSONB，因为不同动作的字段不同，并且通常整体读取，不适合拆成大量可空列。
+---
 
-## 11. 对外 API 范围
+## Appendix A — API Endpoints
 
-| 模块 | 主要接口 | 权限 |
+| Module | Main endpoints | Access |
 |---|---|---|
-| 认证 | register、login、refresh、change password、logout-all、reset request/confirm | 登录、注册和重置公开；修改密码需登录 |
-| 用户 | `/api/users/me`、`/api/users/{id}` | 本人资料及其他成员的公开字段均需登录 |
-| 帖子 | create、feed、detail、update、delete | 读公开；写需登录并检查归属 |
-| 评论 | create、thread、update、delete | 读公开；写需登录并检查归属 |
-| 媒体 | upload、read | 上传需登录；只有可见内容引用的媒体公开 |
-| 举报 | create、detail | 需登录；详情只给举报人或管理员 |
-| 通知 | list、unread count、mark read | 只能操作自己的通知 |
-| 申诉 | create、mine | 需登录且只能由受影响作者发起 |
-| 管理申诉 | list、decision | 仅管理员 |
-| 审核案件 | list、detail、decision、assignment | 仅管理员 |
-| 审核能力 | `/api/moderation/status` | 公开，只返回当前引擎能力，不泄露凭据 |
-| 运维 | health、metrics、prometheus | 健康概要公开，其他按管理员或内网限制 |
+| Authentication | register、login、refresh、change password、logout-all、reset request/confirm | 登录、注册和重置公开；其他需登录 |
+| Users | `/api/users/me`、`/api/users/{id}` | 登录用户；本人可修改自己的资料 |
+| Posts | create、feed、detail、update、delete | 读公开；写需登录并检查归属 |
+| Comments | create、thread、update、delete | 读公开；写需登录并检查归属 |
+| Media | upload、read | 上传需登录；只有可见内容引用的媒体公开 |
+| Reports | create、detail | 登录；详情只给举报人或管理员 |
+| Notifications | list、unread count、mark read | 只能操作自己的通知 |
+| Appeals | create、mine | 受影响作者 |
+| Admin appeals | list、decision | 仅管理员 |
+| Moderation cases | list、detail、decision、assignment | 仅管理员 |
+| Moderation status | `/api/moderation/status` | 公开，只返回能力状态 |
+| Operations | health、metrics、prometheus | 健康概要公开；详细信息按管理员或内网限制 |
 
-本地开发可以在 `/swagger-ui.html` 查看接口；正式 profile 关闭 Swagger，管理员改用独立网页。
+本地开发可使用 `/swagger-ui.html` 和 `/v3/api-docs`；正式 profile 关闭这两个入口。
 
-## 12. 管理员网页做了什么
+## Appendix B — Database Migrations
 
-`admin-web` 是单独的浏览器审核工作台，不是后端内嵌的一张静态页面。它提供：
-
-- 管理员登录，token 只放当前浏览器会话。
-- 待审核、已处理和申诉三个视图。
-- 显示案件等待时间、举报数量、建议、置信度、引擎和 SLA 是否超时。
-- 查看原文、图片证据、规则编号和审计记录。
-- 认领、释放、记录裁决说明，以及不处理、隐藏、删除、封禁。
-- 对已处理案件改判。
-- 维持或撤销申诉。
-- 找回密码和重置密码页面。
-
-生产构建使用 vinext standalone 输出。早期镜像直接带完整构建目录，体积约 1.71 GB；切换 standalone 后又发现运行包漏掉 React peer runtime。现在 Dockerfile 只补 React、React DOM 和 scheduler 三个运行依赖，最终镜像约 277 MB，并且实际启动返回 HTTP 200。
-
-## 13. 部署、监控和备份现在有什么
-
-### 13.1 本地开发
-
-`docker-compose.yml` 只启动 PostgreSQL，后端由 Maven 运行，管理员网页由 npm 运行。这种方式方便调试和在 IntelliJ 中打断点。
-
-### 13.2 单机生产模板
-
-`docker-compose.prod.yml` 包含 PostgreSQL、后端、管理员网页、Caddy、Prometheus 和 Grafana。Caddy 将主域名转给管理网页，将 `api.主域名` 转给后端，自动申请和续期 HTTPS 证书。公网只发布 80/443，数据库、Grafana、Prometheus和 9090 管理端口留在内部 Docker 网络。
-
-后端镜像使用 Java 21 JRE、非 root 用户和内存比例限制，支持优雅关闭、readiness/liveness。实际生产 profile 已在临时 PostgreSQL 上启动验证：8 次迁移成功，readiness 为 `UP`，审核状态接口能返回当前引擎。镜像约 465 MB。
-
-生产验证过程中解决过三个实际问题：
-
-- Hikari 的 `connection-timeout` 和 `validation-timeout` 绑定到毫秒 long，写成 `5s`、`3s` 会导致正式 profile 启动失败，现已改成 `5000`、`3000`。
-- Maven `dependency:go-offline` 会拉取大量与最终构建无关的 Google BOM，构建非常慢且缓存膨胀，Dockerfile 改为直接 package 并使用 BuildKit Maven 缓存。
-- 管理网页 standalone 输出漏运行依赖，镜像能构建却不能启动，现已按运行时实际需要补齐。
-
-### 13.3 监控
-
-后端公开以下主要业务指标：
-
-- 各状态审核案件数量。
-- 已超过人工复核 SLA 的案件数量。
-- 主引擎失败后降级的次数。
-- 自动分析耗时直方图。
-- Spring 自带的 HTTP、JVM、进程和连接池指标。
-
-Prometheus 已配置抓取并评估四类告警：后端不可用、队列超过 50 持续 10 分钟、出现 SLA 超时、5xx 比例超过 2%。目前没有 Alertmanager receiver，所以它只能判断告警，不能真正把消息发到邮箱、Slack、PagerDuty 等渠道。
-
-### 13.4 备份
-
-`scripts/backup.sh` 会生成 PostgreSQL custom dump、媒体压缩包和 SHA-256 校验文件，默认保留 14 天。`scripts/restore.sh` 必须明确传 `--confirm-replace-database` 才会替换数据库，并可恢复媒体。脚本解决了“有备份命令但没有恢复路径”的问题，但当前备份仍在同一主机目录，正式环境必须复制到加密的异地存储，并定期做恢复演练。
-
-### 13.5 Kubernetes 模板
-
-模板包含两个后端副本、两个管理网页副本、Service、Ingress、TLS、HPA、PDB、资源限制、健康检查、NetworkPolicy 和 RWX 媒体 PVC。模板故意没有提交假 Secret。要真正使用，必须先有镜像仓库、实际域名、托管 PostgreSQL、Secret Manager、Ingress Controller、证书签发器、监控 namespace 和可用的 RWX 存储类。
-
-## 14. 测试和当前验证结果
-
-测试没有用 H2 代替 PostgreSQL，因为本项目依赖部分索引、JSONB、`ON CONFLICT` 和 `SKIP LOCKED`，这些正是 H2 无法可靠模拟的部分。集成测试通过 Testcontainers 启动真实 PostgreSQL 16。
-
-覆盖内容包括：
-
-- 注册、登录、密码哈希、统一错误和封禁账号。
-- refresh token 轮换、防重放、改密码后旧会话立即失效。
-- 公开/登录/管理员边界、伪造签名、过期 token、伪造管理员角色。
-- 帖子和评论增删改、归属检查、游标翻页、深度和频率上限。
-- 图片规范化、归属和可见性。
-- 举报权限、重复举报、目标存在性、并发案件聚合和重新开案。
-- worker 抢占、完整审核流程、模型降级、停滞案件回收。
-- 管理员覆盖模型建议、封禁、改判、多个案件共同维持封禁。
-- 案件认领冲突、列表 N+1 查询数量。
-- 申诉撤销后恢复内容和通知。
-- 模型超时、断路、限流退避、无效输出纠正、调用记录。
-- 评测混淆矩阵、引擎比较、失败状态、调用节奏和配对逻辑。
-- Actuator、Swagger 暴露策略和管理员初始化。
-
-2026 年 8 月 25 日在完整生产化代码上执行 `mvn test`：
-
-- 测试：192
-- 失败：0
-- 错误：0
-- 跳过：0
-- Flyway：8 个迁移全部在 PostgreSQL 16.14 上验证并执行
-
-同一轮生产化工作还验证过：
-
-- 管理网页 lint、TypeScript 和 production build 通过。
-- 管理网页容器实际启动并返回 HTTP 200。
-- 后端生产容器连接临时 PostgreSQL、完成迁移并通过 readiness。
-- Android `test` 和 `assembleDebug` 通过。
-- Docker Compose 正式配置能够展开。
-- 两个仓库 `git diff --check` 通过。
-
-测试日志仍有两个不影响通过的维护提示：JDK 未来会禁止 Mockito/Byte Buddy 默认动态 attach；springdoc 生成本地 OpenAPI 时会打印 JSON Schema 类型兼容警告。它们不影响正式 profile，因为生产关闭 springdoc，但后续升级依赖时应一起处理。
-
-## 15. 提交历史说明
-
-生产化合并前，主分支是 23 个连续正式提交，不是 106 个。`git rev-list --all` 得到的更大数字还包含 stash、WIP、index、部署快照等引用，不能直接当成正式产品提交数。
-
-| 时间 | 提交 | 做了什么 |
+| Version | Main content | Purpose |
 |---|---|---|
-| 08-07 | `da33491` | 初始化 Spring Boot、PostgreSQL 和 Flyway 结构 |
-| 08-07 | `f2e8d28` | 帖子、树形评论、举报 REST 接口 |
-| 08-07 | `91dece2` | JWT 登录和内容归属校验 |
-| 08-07 | `14e11ac` | 审核案件、引擎接口和审计基础 |
-| 08-07 | `7481aa3` | 举报聚合、持久化 worker 和管理员裁决 |
-| 08-07 | `29bab20` | 第一版标注评测框架 |
-| 08-07 | `a5cc79e` | Gemini 引擎、失败后降级到规则 |
-| 08-07 | `2fdc6ef` | 举报频率、页面大小和成本边界 |
-| 08-07 | `818e37c` | 多引擎统一 benchmark 和对比 |
-| 08-07 | `0e2e24c` | 192 条数据、来源标注和分来源结果 |
-| 08-07 | `0fb547f` | 模型失败原因、调用记录和首次真实运行 |
-| 08-07 | `21c7a80` | feed 游标分页和供应商限流退避 |
-| 08-07 | `65ff42d` | 架构、演示、截图和早期 Android 示例 |
-| 08-08 | `1e71ceb` | 多模型注册和评测节奏控制 |
-| 08-08 | `d37b03d` | 提示词版本成为独立评测轴 |
-| 08-08 | `7a27cd2` | 针对 ESCALATE 召回问题重写 v2 提示词 |
-| 08-08 | `49d86f6` | 移除仓库内旧 Android 副本，补停滞案件测试 |
-| 08-08 | `eacc263` | 中文 README |
-| 08-08 | `be151d4` | 收紧匿名读取，封禁和角色变化立即生效 |
-| 08-08 | `5a0e8cd` | 评论深度、宽度和账号写入边界 |
-| 08-08 | `80940a7` | 修正数据集表述，统一测三个引擎 |
-| 08-08 | `4e9a5c2` | 重构中英文 README，把结果放在最前面 |
-| 08-10 | `eb52cfd` | 管理员改判和首次管理员初始化 |
+| V1 | users、posts、comments | 账号、论坛和软删除基础结构 |
+| V2 | reports | 帖子/评论举报和重复举报约束 |
+| V3 | rules、moderation cases、audit log | 审核状态机、并发聚合和审计 |
+| V4 | report lifecycle | 简化举报状态并在案件关闭时结束举报 |
+| V5 | ai_invocations | 保存模型成功、失败、成本和延迟 |
+| V6 | `RATE_LIMITED` | 区分供应商限流和普通故障 |
+| V7 | `comment.depth` | 限制嵌套深度，防止递归栈溢出 |
+| V8 | production capabilities | 资料、session、reset、限流、媒体、分配、SLA、申诉和通知 |
 
-2026 年 8 月 25 日又把 V8 生产能力、管理网页、Docker、监控、备份、Kubernetes、媒体、会话、资料、申诉、通知和相应测试整理成完整的生产化提交。Render 自动部署使用的 `render-demo` 是一个没有共同祖先的单提交快照（`8a195f1`）；直接强行合并会产生大量 `add/add` 冲突。最终处理方式是先提交完整代码，再把该快照作为第二父提交接入历史，保留主分支原有 README、评测资料和全部提交记录，同时让 Git 明确认出部署快照已经合并。
+`reports.target_id` 和 `moderation_cases.target_id` 可以指帖子或评论，无法同时建立两个数据库外键，因此写入时由服务层验证目标。`audit_log.actor_id` 不设用户外键，保证账号删除后审计仍然存在。AI 原始回答和审计 payload 使用 JSONB，以适应不同动作的数据结构。
 
-## 16. 开发中遇到的主要问题和解决办法
+## Appendix C — Production Configuration
 
-| 问题 | 实际影响 | 解决办法 |
-|---|---|---|
-| 只信 JWT 里的旧账号状态和角色 | 被封禁成员仍能发帖，被降级管理员仍能裁决 | 每次认证请求重新读取账号、重建角色并校验 tokenVersion |
-| 多人同时举报同一内容 | 可能重复建案、重复调用付费模型、举报数丢失 | 部分唯一索引、`ON CONFLICT DO NOTHING`、原子计数 |
-| 多个 worker 同时取队列 | 可能重复处理或全部串行等待 | `FOR UPDATE SKIP LOCKED`，领取事务先提交 |
-| worker 分析中退出 | 案件永远留在 `ANALYSING` | 定时回收超过阈值的案件，并测试“该回收”和“不该回收”两边 |
-| 模型超时或供应商故障 | 队列线程长时间停住 | 30 秒超时、断路器、规则降级 |
-| 供应商 429 被当普通错误 | 能恢复的限流直接降级，健康度统计失真 | 增加 `RATE_LIMITED`，指数退避加抖动 |
-| 模型返回合法 JSON 但字段错误 | 1.7 置信度、虚构规则进入数据库 | 严格字段验证和一次带具体原因的纠正重试 |
-| 第一版提示词几乎不升级边界内容 | `ESCALATE` recall 只有 0.056 | 把问题从“是否违规”改成“能否无需人工关闭”，再用同一数据评测 |
-| 无限深回复 | 8,000 层链可让公开接口 `StackOverflowError` | 保存 depth，服务层限制 10，数据库 CHECK 再保证 |
-| offset feed 在新帖插入时漂移 | 翻页重复或漏帖 | `(created_at,id)` keyset cursor |
-| 帖子/案件列表懒加载 | 一页 N 条产生 N 次附加查询 | 明确 join fetch，关闭 open-in-view，增加查询数量测试 |
-| 已隐藏内容无法在管理员端复核 | 无法改判或解释旧决定 | 普通读取与管理员“包含已删除”读取分开 |
-| 修改一个资料字段擦掉另一个 | PATCH 语义错误 | null 表示未提交，空字符串只用于明确清空 |
-| 图片只按扩展名接收 | 伪装文件、元数据泄露、超大像素风险 | 预读格式和像素、解码、重新编码、尺寸和归属限制 |
-| 生产 Hikari 时长写法错误 | 正式 profile 启动失败 | 改成毫秒整数 `5000/3000` |
-| Docker 依赖预拉取过度 | 构建慢、缓存和镜像层膨胀 | 直接 package，使用 BuildKit Maven cache |
-| 管理网页镜像过大且缺运行依赖 | 1.71 GB，构建成功但容器不能运行 | standalone 输出并只补三项运行依赖，实际启动验证 |
-| 只有 Prometheus 规则，没有消息接收端 | 告警发生但没人收到 | 模板保留规则，生产必须接 Alertmanager 或云告警服务 |
-| Render 默认端口和管理端口不一致 | 容器启动了，但平台健康检查访问不到 | 把应用端口和 Actuator 管理端口统一为平台提供的 10000，并用 readiness 检查 |
-| 第一次免费实例启动很慢 | 首次部署约 232 秒，容易误判为失败 | 继续读取启动日志，等迁移和 readiness 完成后再判断；演示前预留冷启动时间 |
-| API 根地址返回 401 | 浏览器看起来像“页面打不开” | 明确区分网页入口、API 入口和健康检查；保留默认关闭的鉴权策略 |
-| Neon 演示使用 PostgreSQL 18.6 | 当前 Flyway 版本日志提示官方验证上限低于 18 | 迁移已实际成功；长期环境优先选已验证的 16/17，或升级 Flyway 后再用 18 |
-| Cloudflare ZIP 选择没有被页面保留 | 点发布时没有真实文件，站点不会生成 | 改为直接选择静态导出目录 `admin-web/out`，31 个文件上传并发布成功；发布后的短暂 522 在边缘节点生效后恢复，Sites 地址继续作为备用入口 |
+### C.1 Runtime configuration
 
-## 17. 已完成的外部配置和还没完成的生产工作
+真实密钥只放本机 `.env`、Render 环境变量或后续 Secret Manager，不写入代码和 Git。主要配置包括数据库 URL/账号/密码、JWT 密钥、管理员初始化密码、Grafana 密码、CORS 来源和 Gemini Key。SMTP 尚未配置。
 
-这一节只写实际状态，不把模板当成已经上线。
+管理员账号是真实数据库记录。用户名为 `admin`，密码来自 `ADMIN_PASSWORD`，报告和仓库不保存实际密码。初始化只在账号不存在时执行，修改环境变量不会自动改掉数据库中的旧密码。
 
-### 17.1 域名和 DNS
+### C.2 Local development
 
-目前已经有三个免费的平台子域名：管理员网页的主入口使用 `de-moderation-review-demo.pages.dev`，备用入口使用 `de-moderation-review-demo.x2337445.chatgpt.site`，API 使用 `de-moderation-api-demo.onrender.com`。三个地址都有 HTTPS，足够让面试官直接访问，不需要打开本机，也不依赖 `localhost`。
-
-Cloudflare Pages 已经完成静态目录上传和公网验证，主页与密码重置页都返回 200。平台子域名由平台和账号控制，不是自己购买并持有的域名。若项目要长期对外，仍建议注册一个自有域名，例如：
-
-- `moderation.example.com`：管理员网页。
-- `api.moderation.example.com`：后端 API。
-
-自有域名可以先 CNAME 到现有平台地址，以后换服务器只改 DNS，不必改给面试官或客户端的入口。
-
-### 17.2 `.env` 和 Secret
-
-本机 `.env` 已经被 Git 忽略，数据库密码、JWT、管理员密码、Grafana 密码和 Gemini Key 都已配置，文件权限是 `600`。Render 也已经写入运行后端需要的环境变量，真实数据库登录、JWT 登录、管理员接口、CORS 和 Gemini 状态都已验证。密钥没有写进报告、代码或 Git。
-
-目前仍缺 SMTP 字段和长期自有域名字段。正式环境不建议长期只依赖控制台环境变量或服务器目录里的 `.env`，应接 Secret Manager，并制定轮换流程。管理员初始化密码只在账号不存在时使用，修改 `.env` 不会自动轮换已经创建的管理员密码。要换密码，应通过改密码接口或明确的管理员运维流程完成。
-
-### 17.3 SMTP
-
-如果需要“忘记密码”邮件，需要提供 SMTP host、port、username、password、from 地址、是否启用认证和 STARTTLS。还要让发件域名配置 SPF、DKIM，最好有 DMARC，否则邮件容易进垃圾箱。没有 SMTP 时重置请求接口仍可调用，但不会发送邮件。
-
-### 17.4 Gemini
-
-Key 已在本机和 Render 环境中配置。当前生产状态接口显示 `gemini-3.5-flash-lite/v2` 正常工作，兜底是 `keyword-v1`。192 条评测中有 184 条在全量轮次完成，macro-F1 为 0.919，8 条超时样本单独重试后全部成功，因此当前继续使用 v2。以后只要换模型或提示词，仍要先跑同一评测，不能只因为名称更新就直接切生产。
-
-### 17.5 正式数据和文件
-
-演示数据库已经从 Compose 内数据库换成 Neon 托管 PostgreSQL，TLS 连接和 8 个 Flyway 迁移都已完成。当前 Neon 项目是免费方案和 PostgreSQL 18.6；正式环境应确认自动快照、时间点恢复、区域、容量和版本支持，优先使用项目已经完整测试的 PostgreSQL 16/17，或者先升级 Flyway 再继续使用 18。
-
-媒体文件还写在 Render 容器本地目录。免费实例重建后本地文件不能当成可靠持久数据，因此对象存储仍未完成。下一步应接 S3、GCS 或 R2，数据库只保存对象 key；外部备份也仍要落到独立存储，并做恢复演练。
-
-### 17.6 真实告警
-
-需要选择接收方式，例如邮件、Slack、Microsoft Teams、PagerDuty、Opsgenie 或云平台告警。然后部署 Alertmanager，配置 receiver、路由、重复间隔和静默规则；也可以把 Prometheus 接到已有托管监控。告警至少要明确谁负责、多久响应、夜间是否升级。
-
-### 17.7 k6 预发布压测
-
-仓库已有 feed 读取 smoke 脚本，门槛是失败率低于 1%、p95 小于 500 ms、p99 小于 1 秒。它还不是完整真实压测：需要在与生产接近的预发布环境安装 k6，准备不会影响真实用户的测试数据，并补登录、写帖子/评论、举报、媒体、管理员列表和混合流量场景。AI 调用应使用受控配额或专门测试引擎，不能让压测意外烧掉生产额度。
-
-### 17.8 Kubernetes
-
-要应用模板，必须先提供实际集群、容器镜像仓库和不可变 tag/digest、Ingress Controller、cert-manager issuer、Secret Manager、托管 PostgreSQL、RWX 存储类或对象存储、监控 namespace 和 DNS。资源 requests/limits、HPA 阈值和副本数还需要用 k6 的真实结果调整。
-
-## 18. 已知限制和后续建议
-
-这些不是当前功能不能用，而是从预发布走到正式环境前值得继续处理的地方：
-
-1. 当前评论分页只分页顶层评论，但读取回复时仍会查询该帖的全部可见回复。深度已经受限，单个根下面的回复宽度仍可能很大；高流量论坛应改为只取当前页根节点的子树或对回复再做明确边界。
-2. 图片文件和数据库元数据不在同一个原子事务中。异常提交时理论上可能留下无引用文件，需要对象存储适配器、补偿删除或定期清理任务。
-3. k6 现在只覆盖公开 feed，不能代表完整业务容量。
-4. 站内通知没有 WebSocket/推送，客户端需要轮询；如果需要实时提醒，应增加推送通道。
-5. SMTP 是同步发送，邮件服务慢时会拖长重置请求；正式规模较大时应放入独立消息队列或事务 outbox。
-6. 管理端 token 放在 `sessionStorage`，已经比长期 localStorage 更短，但仍需要严格 CSP、依赖更新和 XSS 防护；更高安全要求可改为 BFF + HttpOnly cookie，并重新启用 CSRF 防护。
-7. 评测数据规模小且不是生产流量。上线后应在去标识化、获得授权的前提下建立独立留出集，并记录人工最终决定用于持续评估漂移。
-8. 生产告警阈值目前是通用初值，必须根据预发布基线调整，避免长期误报或真正故障不触发。
-9. CI 目前验证后端和管理网页，但 Android 在独立仓库，需要两个仓库的版本兼容和发布检查。
-10. OpenAPI 本地生成有 springdoc JSON Schema 警告，虽然生产关闭该页面，后续升级 Springdoc/Swagger 依赖时应清理。
-11. Render 免费实例会在空闲后休眠，第一次访问可能要等待几十秒；面试演示可以接受，正式环境应换成不会休眠的实例。
-12. 当前 Neon 演示库是刚创建的空库，管理员是真实账号，但审核队列可能为空。要展示完整流程，需要准备一组不含真实个人信息的演示帖子、举报和案件。
-
-## 19. 应该用 IntelliJ 打开吗
-
-后端可以并且很适合用 IntelliJ IDEA 打开。直接打开 `De-moderation` 根目录或导入 `pom.xml`，选择 JDK 21，然后把 `CampusGuardApplication` 作为 Spring Boot 程序运行。IntelliJ 只是开发工具，不是系统运行的必要条件；正式服务器不会一直开着 IntelliJ，而是运行容器或 JAR。
-
-建议的工具分工是：
-
-- `De-moderation` 后端：IntelliJ IDEA。
-- `De-discussion` Android：Android Studio。
-- `admin-web`：可以继续在 IntelliJ/WebStorm/VS Code 中编辑，但实际使用要在浏览器打开。
-- PostgreSQL、Prometheus、Grafana、Caddy：Docker 或实际云环境。
-
-本地调试一般先启动 PostgreSQL：
+后端适合用 IntelliJ IDEA 打开仓库根目录或导入 `pom.xml`，选择 JDK 21。管理员网页位于 `admin-web`，可在 IntelliJ、WebStorm 或 VS Code 中编辑。
 
 ```bash
 docker compose up -d
-```
-
-再加载 `.env` 并运行后端：
-
-```bash
 set -a && . ./.env && set +a
 mvn spring-boot:run
 ```
-
-管理员网页另开终端：
 
 ```bash
 cd admin-web
@@ -526,43 +354,65 @@ npm ci
 npm run dev
 ```
 
-## 20. 需不需要打开网页，网址稳不稳定
+本地地址为 `http://localhost:8080` 和 `http://localhost:3000`。`localhost` 只在当前电脑有效，不是面试官访问的公网地址。
 
-后端本身不需要一直打开网页。Android 和管理员网页通过 HTTP 调用后端；后端只要服务进程在运行即可。
+### C.3 Deployment assets
 
-给面试官看的是真实网页入口：
+- `Dockerfile`：Java 21 非 root 后端镜像。
+- `admin-web/Dockerfile`：vinext standalone 管理网页镜像。
+- `docker-compose.prod.yml`：PostgreSQL、后端、管理网页、Caddy、Prometheus 和 Grafana。
+- `deploy/Caddyfile`：主域名和 API 子域名 HTTPS 反向代理。
+- `deploy/observability`：Prometheus、Grafana datasource 和告警规则。
+- `scripts/backup.sh` / `restore.sh`：数据库、媒体、校验和与显式恢复确认。
+- `deploy/k8s`：Deployment、Service、Ingress、TLS、HPA、PDB、NetworkPolicy 和 PVC 模板。
 
-- 当前可用管理员网页：`https://de-moderation-review-demo.x2337445.chatgpt.site`
-- 后端 API：`https://de-moderation-api-demo.onrender.com`
-- 健康检查：`https://de-moderation-api-demo.onrender.com/actuator/health/readiness`
+Kubernetes 模板不能直接用于未知集群。实际应用前需要镜像仓库、不可变 tag、Ingress Controller、cert-manager、Secret Manager、托管 PostgreSQL、监控 namespace 和可用存储类。
 
-不要把后端 API 根地址当成网页。根地址返回 401 是预期的安全结果；管理员网页登录后会带 JWT 调用受保护接口。
+## Appendix D — Development Issues
 
-本地常用地址是：
+| Issue | Impact | Resolution |
+|---|---|---|
+| JWT 只保存旧角色和状态 | 封禁或降级不能立即生效 | 每次认证重新读取账号并校验 `tokenVersion` |
+| 并发举报相同内容 | 重复案件和丢失计数 | 部分唯一索引、`ON CONFLICT` 和原子加一 |
+| 多 worker 领取案件 | 重复处理或锁等待 | `FOR UPDATE SKIP LOCKED` |
+| worker 在分析中退出 | 案件永久停在 `ANALYSING` | 定时回收 stale cases |
+| Gemini 超时或故障 | 队列线程长时间等待 | 30 秒超时、断路和规则降级 |
+| 429 被当普通错误 | 可恢复限流直接失败 | `RATE_LIMITED`、指数退避和抖动 |
+| 模型 JSON 字段不合法 | 错误置信度或规则进入数据库 | 严格校验并纠正重试一次 |
+| v1 几乎不升级边界内容 | `ESCALATE` recall 只有 0.056 | 重写任务定义并统一复测 |
+| 评论可无限嵌套 | 深链导致栈溢出 | 服务层和数据库共同限制深度 10 |
+| offset feed 漂移 | 翻页重复或漏帖 | `(created_at,id)` keyset cursor |
+| 列表懒加载 | N+1 查询 | join fetch、关闭 open-in-view、查询数量测试 |
+| 隐藏内容无法复核 | 管理员不能解释旧裁决 | 普通读取与管理员读取分离 |
+| PATCH 擦除未提交字段 | 只改一个字段却清空另一个 | null 表示未提交，空值表示明确清空 |
+| 图片只看扩展名 | 伪装文件和元数据泄露 | 格式/像素检查、解码和重新编码 |
+| Hikari 时长写成 `5s` | production profile 无法启动 | 改为毫秒整数 `5000/3000` |
+| Docker 预拉全部 Maven 依赖 | 构建慢、缓存膨胀 | 直接 package 并使用 BuildKit cache |
+| 管理网页镜像过大/缺依赖 | 镜像 1.71 GB 或构建后不能运行 | standalone 输出并补最小运行依赖 |
+| Prometheus 没有 receiver | 规则触发但没人收到消息 | 保留规则，正式环境接 Alertmanager 或云告警 |
+| Render 应用与管理端口不同 | 健康检查访问不到 | 统一使用平台端口 10000 |
+| Render 免费实例冷启动慢 | 容易误判部署失败 | 等待 readiness，演示前主动唤醒 |
+| API 根地址返回 401 | 被误认为网页打不开 | 区分网页、API 和 readiness；保留默认拒绝 |
+| Neon 使用 PostgreSQL 18.6 | Flyway 验证版本提示 | 演示迁移已成功；长期优先 16/17 或升级 Flyway |
+| Cloudflare ZIP 没有真正上传 | Pages 项目没有文件 | 改为上传 `admin-web/out` 目录并验证公网 200 |
 
-- 管理员网页：`http://localhost:3000`
-- 后端 API：`http://localhost:8080`
-- Swagger：`http://localhost:8080/swagger-ui.html`
+## Appendix E — Commit and Development History
 
-`localhost` 只代表当前电脑。它不是公网网址，也不是固定服务地址；电脑关机、开发服务器停止或端口变化后就不能访问，手机也不能把自己的 `localhost` 当成电脑。
+生产化合并前，`main` 有 23 个连续正式提交。2026 年 8 月 25 日又加入完整生产化提交、Render 快照历史连接、PR 合并和报告修订；当前历史共 28 个提交。
 
-现在两个公开地址适合面试演示，但不是“永远不变”的自有域名。Render 免费实例会休眠，第一次访问可能慢几十秒；平台项目被删除、账号变化或平台规则调整时，平台子域名也会失效。
+| Phase | Representative commits | Result |
+|---|---|---|
+| Bootstrap | `da33491` | Spring Boot、PostgreSQL、Flyway |
+| Forum REST | `f2e8d28`、`91dece2` | 帖子、评论、举报、JWT 和归属 |
+| Moderation core | `14e11ac`、`7481aa3` | 案件、队列、worker、审计和管理员裁决 |
+| AI and evaluation | `29bab20`–`21c7a80` | Gemini、降级、192 条数据、评测和限流 |
+| Prompt iteration | `1e71ceb`–`7a27cd2` | 多模型、提示词版本和 v2 改进 |
+| Reliability/security | `49d86f6`–`5a0e8cd` | stale recovery、权限收紧、评论边界 |
+| Documentation | `eacc263`、`4e9a5c2` | 中英文 README 和架构说明 |
+| Admin correction | `eb52cfd` | 管理员改判和首次管理员初始化 |
+| Production completion | `ef31899` | session、媒体、申诉、通知、管理网页和部署运维 |
+| Render snapshot link | `8a195f1`、`29e79a1` | 把无共同祖先的部署快照作为第二父提交接入历史 |
+| Main merge | `0a89a9e`、PR #1 | 完整内容合并到 `main`，CI 全部通过 |
+| Report revision | `Revise the report` | 精简中英文 README，并补齐中英文完整后端报告 |
 
-正式使用最稳妥的做法仍是注册长期域名，把 DNS 指向当前平台或以后的负载均衡器，再由平台、Caddy 或 Ingress 配置 HTTPS。域名本身保持不变，后端位置可以更换，只改 DNS。
-
-因此答案是：现在不买域名也能给面试官看；如果要发布 Android 正式包、发送密码重置邮件或长期对外，就应该申请一个自己控制的付费域名。所谓“免费域名”目前实际是平台分配的免费子域名，不等于拥有一个可随时迁移的域名资产。
-
-## 21. 建议的上线顺序
-
-1. 面试前先用 Cloudflare Pages 主入口完成一次登录，准备一组无个人信息的演示帖子、举报、审核、改判和申诉数据；Sites 地址保留为备用。
-2. 把管理员密码通过私下方式交给面试官，不要放在 README、报告、截图或公开仓库里。
-3. 演示前提前访问一次 Render 健康检查，避免免费实例休眠后的冷启动影响面试；同时复查 Pages、API 和 CORS。
-4. 如果要长期运行，升级 Render 到不休眠的实例，并注册自有域名。
-5. 把媒体从容器本地目录迁到 R2、S3 或 GCS，增加失败补偿和孤儿文件清理。
-6. 配置 SMTP、SPF、DKIM、DMARC，验证真实密码重置邮件。
-7. 接入 Alertmanager 或云告警接收渠道，补外部备份，并完成一次隔离恢复演练。
-8. 扩充 k6 场景，在预发布环境测登录、内容写入、举报、媒体、管理员列表和混合流量。
-9. 根据压测结果调整连接池、实例资源、告警阈值；需要集群时再准备 Ingress、Secret Manager 和存储类并应用 Kubernetes 模板。
-10. 每次更换模型或提示词先跑留出评测，通过后再切换生产，并持续记录人工最终裁决验证漂移。
-
-目前 Cloudflare Pages 发布已完成。做到前三步，面试演示就比较完整；做到后面七步，才可以把它称为能够长期维护的正式系统。
+`render-demo` 原本是部署时生成的单提交快照，没有共同祖先。直接强行合并会产生大量 `add/add` 冲突。最终先提交完整生产化代码，再用内容不变的 merge commit 连接快照历史，因此 README、评测数据和主分支历史都得到保留。

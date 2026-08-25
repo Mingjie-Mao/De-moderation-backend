@@ -12,7 +12,7 @@ Java 21 · Spring Boot 3.5 · PostgreSQL 16 · Spring AI (Gemini) · Testcontain
 [架构](docs/architecture.md) · [评测解读](docs/evaluation-notes.md) ·
 [可靠性](docs/reliability.md) · [安全决策](docs/security-decisions.md) ·
 [生产运维](docs/production-runbook.md) · [客户端接入](docs/api-client-guide.md) ·
-[演示脚本](docs/demo-script.md)
+[演示脚本](docs/demo-script.md) · [完整后端报告](docs/backend-project-report.zh-CN.md)
 
 ## 结果
 
@@ -47,25 +47,20 @@ flowchart TD
 
 **设计原则**
 - **Human-in-the-loop：** 审核引擎只生成建议、置信度和理由，最终处置始终由管理员决定。
-- **可修改：** 已处置的案件可以重新处置。系统会先撤销上一次处置的影响——恢复被隐藏的内容、
-  解封被封禁的作者——除非新的处置同样需要它；修改会以追加方式写入审计日志，而不是覆盖原记录。
-  管理端仍然可以看到已被隐藏的内容，因为重新评估一次删除必须先读到它。
-- **Fail-safe moderation：** 模型不可用、超时、限流或输出校验失败时自动降级到规则引擎，保证审核流程不中断。
+- **可纠正：** 已处理案件支持重新裁决和申诉。旧裁决的影响可被撤销，所有修改以追加方式写入审计日志。
+- **Fail-safe moderation：** 外部模型失败不会阻塞审核流程。
 
 同一目标的重复举报会合并为单个审核案件，并由数据库唯一约束保证只触发一次引擎调用。Worker 异常退出后，未完成案件会自动重新入队；所有状态流转、审核结果和管理员操作均写入只追加的审计日志。
 
 ## 功能
 
-- **论坛 API** —— 以后端为事实源的帖子/评论增删改查、用户资料、游标分页与规范化图片附件
-- **安全会话** —— 轮换 Refresh Token、Access Token 即时失效、修改/重置密码与持久化认证限流
-- **举报聚合** —— 同一目标的重复举报合并为单个审核案件，避免重复引擎调用
-- **持久审核队列** —— 基于 `SELECT ... FOR UPDATE SKIP LOCKED` 并发领取，并支持异常 Worker 的案件回收
-- **可插拔审核引擎** —— 规则引擎与 LLM 共享统一接口，支持按 `模型/prompt版本` 独立注册和评测
-- **可靠的 LLM 调用链** —— 结构化输出校验、校正重试、超时、熔断、限流退避与规则引擎降级
-- **评测框架** —— 统一计算 Macro-F1、分类 Recall、延迟与 Token 使用，并生成逐样本分歧分析
-- **审计日志** —— 记录案件状态流转、引擎判决和管理员操作
-- **人工工作流** —— 独立管理端、案件认领/SLA、证据与审计、通知以及可撤销申诉
-- **生产运维** —— 容器、自动 TLS、Prometheus/Grafana、告警、备份恢复、Kubernetes、k6 与 CI
+- **论坛与用户 API** —— 帖子、评论、资料、游标分页、图片与通知
+- **安全会话** —— JWT、Refresh Token 轮换、即时失效、密码重置与持久化限流
+- **持久化审核工作流** —— 举报聚合、案件队列、并发 Worker 与异常案件恢复
+- **可插拔审核引擎** —— 规则与 LLM 共用接口，并按模型和 Prompt 版本独立评测
+- **LLM 可靠性** —— 输出校验、超时、熔断、限流退避与规则降级
+- **Human-in-the-loop** —— 管理员认领、裁决、改判、申诉、通知与审计
+- **部署与可观测性** —— Docker、TLS、Prometheus/Grafana、备份脚本、CI，以及 Kubernetes 和 k6 配置模板
 
 ## 快速开始
 
@@ -108,8 +103,7 @@ mvn spring-boot:run
 管理员角色不通过公开 API 授予。在 `.env` 中设置 `ADMIN_USERNAME` 和
 `ADMIN_PASSWORD`，该账号会在启动时以 `ADMIN` 角色创建。
 
-只创建，不修改。如果该用户名已存在，则完全不做改动——因此填入一个别人已注册的用户名
-并不会把管理员权限交给对方，**同时之后修改 `ADMIN_PASSWORD` 也不会改掉已存在账号的密码。**
+初始化逻辑仅在用户名不存在时创建管理员；不会提升已有账号，也不会覆盖已有密码。
 
 ## 模型辅助审核
 
@@ -132,7 +126,7 @@ LLM 调用链包含：
 - **规则引擎降级** —— 模型最终失败时自动回退到确定性规则引擎
 - **调用记录** —— `ai_invocations` 记录模型、Prompt 版本、Token 使用、延迟、状态和原始响应
 
-De Android 客户端在在线模式下直接通过本 API 读写论坛内容，先上传附件再发布，本地内存结构仅作为 UI 缓存；举报前仍会读取审核引擎状态。管理员密码与裁决操作已移到浏览器管理端，不再依赖移动端保存。两个仓库仍是独立应用，不共享文件系统。
+De-discussion Android 客户端通过本 API 读写论坛内容；管理员审核与凭据管理则由独立浏览器管理端完成。
 
 更多实现细节见 [reliability.md](docs/reliability.md)。
 
@@ -165,3 +159,5 @@ mvn verify
 | [demo-script.md](docs/demo-script.md) | 三分钟走查 |
 | [api-client-guide.md](docs/api-client-guide.md) | Android/浏览器接入、令牌与媒体流程 |
 | [production-runbook.md](docs/production-runbook.md) | 发布、TLS、监控、备份和事故处理 |
+| [backend-project-report.zh-CN.md](docs/backend-project-report.zh-CN.md) | 完整后端设计、实现、评测与后续工作 |
+| [backend-project-report.md](docs/backend-project-report.md) | 英文版完整后端报告 |
