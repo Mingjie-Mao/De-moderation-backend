@@ -1,6 +1,7 @@
 package com.campusguard.post;
 
 import com.campusguard.user.User;
+import com.campusguard.media.MediaObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -48,19 +49,34 @@ public class Post {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "media_id")
+    private MediaObject media;
+
     protected Post() {
         // for JPA
     }
 
     public Post(String forumKey, User author, String title, String body) {
+        this(forumKey, author, title, body, null);
+    }
+
+    public Post(String forumKey, User author, String title, String body, MediaObject media) {
         this.forumKey = forumKey;
         this.author = author;
         this.title = title;
         this.body = body;
+        this.media = media;
     }
 
     public void softDelete(Instant at) {
         this.deletedAt = at;
+    }
+
+    public void update(String title, String body, MediaObject media) {
+        this.title = title;
+        this.body = body;
+        this.media = media;
     }
 
     /**
@@ -105,4 +121,6 @@ public class Post {
     public Instant getDeletedAt() {
         return deletedAt;
     }
+
+    public MediaObject getMedia() { return media; }
 }

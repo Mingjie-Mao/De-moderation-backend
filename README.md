@@ -15,6 +15,7 @@ Java 21 · Spring Boot 3.5 · PostgreSQL 16 · Spring AI (Gemini) · Testcontain
 
 [Architecture](docs/architecture.md) · [Evaluation](docs/evaluation-notes.md) ·
 [Reliability](docs/reliability.md) · [Security](docs/security-decisions.md) ·
+[Production](docs/production-runbook.md) · [Client guide](docs/api-client-guide.md) ·
 [Demo script](docs/demo-script.md)
 
 ## Results
@@ -74,8 +75,10 @@ log.
 
 ## Features
 
-- **Forum API** — posts, threaded comments and a feed, with JWT authentication
-  and cursor pagination
+- **Forum API** — backend-first posts, editing, threaded comments, profiles,
+  normalized image attachments and cursor pagination
+- **Hardened sessions** — rotating refresh tokens, instant access-token
+  invalidation, password change/reset and persistent authentication throttling
 - **Report aggregation** — repeated reports on one target become a single case,
   avoiding duplicate engine calls
 - **Durable moderation queue** — concurrent claiming via
@@ -87,8 +90,10 @@ log.
 - **Evaluation framework** — Macro-F1, per-class recall, latency and token usage
   computed uniformly, with per-sample disagreement analysis
 - **Audit log** — case transitions, engine verdicts and administrator actions
-- **Automated tests** — 157 tests, including PostgreSQL integration tests on
-  Testcontainers
+- **Reviewer workflow** — a dedicated web console with claim/release, SLA,
+  evidence, decisions, notifications and reversible appeals
+- **Operations** — production containers, automatic TLS, Prometheus/Grafana,
+  alerts, backup/restore, Kubernetes templates, k6 and CI
 
 ## Quick start
 
@@ -106,28 +111,26 @@ Fill in `DB_PASSWORD` in `.env`, and generate a `JWT_SECRET`:
 openssl rand -hex 32
 ```
 
-Start the database and run the application:
+Start the database, backend and local reviewer console:
 
 ```bash
 docker compose up -d
 set -a && . ./.env && set +a
 mvn spring-boot:run
+(cd admin-web && npm ci && npm run dev)
 ```
 
-Once running, [Swagger UI](http://localhost:8080/swagger-ui.html) is where the
-API is called and tested, the administrator moderation flow included. This
-project is backend moderation infrastructure, so no separate administrator front
-end was built.
+Once running, the reviewer console is at [localhost:3000](http://localhost:3000)
+and Swagger UI is at [localhost:8080](http://localhost:8080/swagger-ui.html).
 
 ### API permissions
 
 | Endpoint | Access |
 |---|---|
-| `POST /api/auth/register` · `/login` | public |
+| `POST /api/auth/register` · `/login` · `/refresh` · password reset | public |
 | `GET /api/moderation/status` | public; active engine capability only |
 | `GET /api/posts` · `/{id}` · `/{id}/comments` | public |
-| `POST /api/posts` · `/{id}/comments` · `/api/reports` | signed-in users |
-| `DELETE /api/posts/{id}` | the author, or an administrator |
+| Posts/comments create, edit and delete; media, reports, appeals, notifications | signed-in users (ownership enforced) |
 | `GET\|POST /api/admin/moderation-cases/**` | administrators only |
 
 The administrator role is not granted through any public API. Set
@@ -168,12 +171,11 @@ The LLM call chain includes:
 - **Invocation records** — `ai_invocations` holds model, prompt version, token
   usage, latency, status and the raw response
 
-The De Android client reads `GET /api/moderation/status` so it can show whether
-the configured model is genuinely registered and active or the service has
-fallen back to rules. It mirrors content only when that content is reported,
-submits the report here, and reads/decides cases through the administrator API.
-The repositories remain separate applications; they do not need a shared
-filesystem or a combined build.
+The De Android client reads and writes forum content through this API when online,
+uploads attachments before publishing and keeps its in-memory structures only as
+a display cache. It also reads moderation capability before reporting. Admin
+credentials and decisions live in the browser console, not in the mobile build.
+The repositories remain separate applications and do not share a filesystem.
 
 More implementation detail in [reliability.md](docs/reliability.md).
 
@@ -185,9 +187,10 @@ Run the full suite:
 mvn verify
 ```
 
-The project has **157 automated tests** and runs its integration tests against a
-real PostgreSQL through Testcontainers, covering concurrent report aggregation,
-database constraints, moderation queue recovery and model degradation.
+The suite runs its integration tests against real PostgreSQL through
+Testcontainers, covering concurrent aggregation, session rotation, media,
+assignment, appeals, queue recovery and model degradation. The current test count
+is printed by `mvn verify` and is kept out of prose so it cannot silently go stale.
 
 ## Dataset
 
@@ -208,3 +211,5 @@ violating and borderline samples were written specifically for this evaluation.
 | [reliability.md](docs/reliability.md) | queue durability, degradation, bounds |
 | [security-decisions.md](docs/security-decisions.md) | authentication, exposure, privilege |
 | [demo-script.md](docs/demo-script.md) | a three-minute walkthrough |
+| [api-client-guide.md](docs/api-client-guide.md) | Android/browser integration and token/media flows |
+| [production-runbook.md](docs/production-runbook.md) | release, TLS, monitoring, backup and incident response |

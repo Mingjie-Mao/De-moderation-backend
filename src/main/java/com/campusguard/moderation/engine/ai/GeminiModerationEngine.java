@@ -68,7 +68,8 @@ public class GeminiModerationEngine implements ModerationEngine {
     @Override
     public ModerationVerdict evaluate(ModerationRequest request) {
         String system = prompt.system();
-        String contentHash = sha256(request.fullText());
+        String contentHash = sha256(request.fullText() + request.media().stream()
+                .map(ModerationRequest.MediaInput::sha256).collect(java.util.stream.Collectors.joining()));
         String correction = null;
 
         for (int attempt = 1; attempt <= properties.maxAttempts(); attempt++) {
@@ -81,7 +82,7 @@ public class GeminiModerationEngine implements ModerationEngine {
             ChatCompletionPort.CompletionResult result;
 
             try {
-                result = completions.complete(system, user);
+                result = completions.complete(system, user, request.media());
             } catch (ModelCallException ex) {
                 recorder.record(
                         request.caseId(), name(), completions.modelName(), prompt.version(),

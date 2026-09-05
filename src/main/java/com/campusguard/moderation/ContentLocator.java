@@ -135,15 +135,17 @@ public class ContentLocator {
 
     private static ModeratedContent from(Post post) {
         return new ModeratedContent(
-                TargetType.POST, post.getId(), post.getTitle(), post.getBody(), post.getAuthor().getId());
+                TargetType.POST, post.getId(), post.getTitle(), post.getBody(), post.getAuthor().getId(),
+                post.getMedia() == null ? null : post.getMedia().getId());
     }
 
     private static ModeratedContent from(Comment comment) {
         return new ModeratedContent(
-                TargetType.COMMENT, comment.getId(), null, comment.getBody(), comment.getAuthor().getId());
+                TargetType.COMMENT, comment.getId(), null, comment.getBody(), comment.getAuthor().getId(),
+                comment.getMedia() == null ? null : comment.getMedia().getId());
     }
 
     public record ModeratedContent(
-            TargetType targetType, UUID targetId, String title, String body, UUID authorId) {
+            TargetType targetType, UUID targetId, String title, String body, UUID authorId, UUID mediaId) {
     }
 }

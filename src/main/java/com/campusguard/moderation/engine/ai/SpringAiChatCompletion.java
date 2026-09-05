@@ -7,6 +7,10 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
+import com.campusguard.moderation.engine.ModerationRequest;
+import org.springframework.ai.content.Media;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.util.MimeTypeUtils;
 
 /**
  * The one place this project touches a vendor's model API.
@@ -34,13 +38,29 @@ public class SpringAiChatCompletion implements ChatCompletionPort {
 
     @Override
     public CompletionResult complete(String systemPrompt, String userPrompt) {
+        return complete(systemPrompt, userPrompt, List.of());
+    }
+
+    @Override
+    public CompletionResult complete(
+            String systemPrompt,
+            String userPrompt,
+            List<ModerationRequest.MediaInput> attachments) {
         try {
             // The model is named per call rather than taken from the bean's
             // defaults, so several models can be registered as separate engines
             // and scored against each other on one dataset. Choosing between them
             // by reading spec sheets is guessing; this makes it a measurement.
+            List<Media> media = attachments.stream()
+                    .map(value -> new Media(
+                            MimeTypeUtils.parseMimeType(value.contentType()),
+                            new ByteArrayResource(value.bytes())))
+                    .toList();
+            UserMessage userMessage = media.isEmpty()
+                    ? new UserMessage(userPrompt)
+                    : UserMessage.builder().text(userPrompt).media(media).build();
             ChatResponse response = chatModel.call(new Prompt(
-                    List.of(new SystemMessage(systemPrompt), new UserMessage(userPrompt)),
+                    List.of(new SystemMessage(systemPrompt), userMessage),
                     GoogleGenAiChatOptions.builder().model(modelName).temperature(0.0).build()));
 
             if (response == null || response.getResult() == null) {

@@ -4,7 +4,7 @@ Each of these was a framework default before it was a decision. They are written
 down because the default was wrong for this system in a way that was not visible
 from reading any controller.
 
-## A ban takes effect on the next request
+## Revocation takes effect on the next request
 
 A signed token is a statement about the past: who this was and what they could do
 at the moment it was issued. For most of an API that is close enough.
@@ -27,8 +27,17 @@ rather than from the claim, so a promotion is picked up on a token the user
 already holds. One primary-key lookup per request buys it. A revocation list or
 refresh tokens would both be more machinery than a forum this size justifies.
 
-What the token lifetime still bounds is a token stolen from a member in good
-standing, which nothing server-side can tell apart from the member using it.
+The same check now includes `tokenVersion`. Password change, logout-all and
+security administration increment it, invalidating every older access token on
+its next request. A normal logout deletes the current refresh-token family;
+refresh tokens rotate on every use and are stored only as SHA-256 digests. This
+keeps short-lived access tokens convenient without making a stolen long-lived
+refresh token reusable forever.
+
+Password-reset tokens are likewise random, short-lived and stored as digests.
+Login, refresh, registration and reset entry points use persistent IP/account
+rate-limit buckets so restarting or horizontally scaling the API does not reset
+the protection.
 
 **Worth knowing:** the filter is deliberately not a `@Component`. Spring Boot
 auto-registers any `Filter` bean straight into the servlet container's chain, so
@@ -76,14 +85,15 @@ opening the path discloses nothing extra.
 
 ## API documentation is exposed by choice, not by default
 
-Closing `/v3/api-docs` outright is not available: Swagger UI fetches the
-specification from the browser with no `Authorization` header, so a closed
-document is a blank page nobody can sign in from.
+Swagger UI fetches the specification from the browser with no `Authorization`
+header, so protecting the document leaves the local development viewer blank.
+That is useful context for development, but it is not a reason to expose the
+surface in production now that reviewers have a separate application.
 
-So it is a property. `campusguard.security.expose-api-docs` defaults to true,
-because this project's console *is* Swagger UI. A deployment that would rather
-not publish a map of every route sets it false; administrators keep access either
-way.
+So it is a property. `campusguard.security.expose-api-docs` defaults to true for
+development and API exploration. The production profile disables both OpenAPI
+and Swagger UI because the actual reviewer console is `admin-web`; administrators
+do not depend on public API documentation.
 
 ## Privilege is not granted over the API
 
@@ -103,6 +113,15 @@ database. An API that hands out privilege on request hands it to whoever asks.
   credential in a header; CSRF exists to stop a browser attaching an ambient
   cookie to a cross-site request, and nothing here is ambient. Reintroducing
   cookie sessions would mean reinstating it.
+- **CORS is explicit.** Only configured browser origins can call the API; bearer
+  tokens are not cookies and credentialed cross-origin requests are disabled.
+- **Reviewer credentials stay out of Android.** The member app has no online
+  reviewer login or admin API calls. Privileged sessions exist only in the
+  browser console's session storage and disappear when that tab session ends.
+- **Uploaded media is decoded and rewritten.** JPEG/PNG content is bounded by
+  bytes and decoded pixels, metadata is stripped, ownership is checked before an
+  attachment is referenced, and public reads are allowed only for media attached
+  to visible content.
 - **Passwords are BCrypt.** Deliberately slow and salted per password by
   construction, so a leaked table cannot be attacked with precomputed hashes.
 - **Authorization is by route prefix, not per method.** `/api/admin/**` is

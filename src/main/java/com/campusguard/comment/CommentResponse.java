@@ -14,6 +14,13 @@ public record CommentResponse(
         UUID parentCommentId,
         AuthorView author,
         String body,
+        String mediaUrl,
         Instant createdAt,
         List<CommentResponse> replies) {
+
+    public CommentResponse(
+            UUID id, UUID parentCommentId, AuthorView author, String body,
+            Instant createdAt, List<CommentResponse> replies) {
+        this(id, parentCommentId, author, body, null, createdAt, replies);
+    }
 }

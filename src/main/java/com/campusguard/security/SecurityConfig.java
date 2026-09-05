@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,11 +39,9 @@ public class SecurityConfig {
      * Whether the OpenAPI document and its viewer are readable without a
      * credential.
      *
-     * <p>True is right for development and for this project's demo, where Swagger
-     * UI is the console and having to authenticate before the page can even load
-     * its own spec would make it useless: the browser fetches /v3/api-docs with no
-     * Authorization header, so requiring one leaves a blank page nobody can sign
-     * in from.
+     * <p>True is useful for development: the browser fetches /v3/api-docs with no
+     * Authorization header, so requiring one leaves Swagger blank. Production
+     * reviewers use admin-web and the production profile disables this surface.
      *
      * <p>False is right for a deployment that does not want its entire API surface
      * enumerable by anyone who asks. It is a property rather than a fixed choice
@@ -51,6 +50,9 @@ public class SecurityConfig {
      */
     @Value("${campusguard.security.expose-api-docs:true}")
     private boolean exposeApiDocs;
+
+    @Value("${campusguard.security.expose-prometheus:false}")
+    private boolean exposePrometheus;
 
     @Bean
     public SecurityFilterChain apiSecurity(
@@ -66,10 +68,14 @@ public class SecurityConfig {
                 // request; nothing here is ambient. Reintroducing cookie sessions
                 // would mean reinstating this.
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/auth/register", "/api/auth/login", "/api/auth/refresh",
+                                "/api/auth/password-reset/request", "/api/auth/password-reset/confirm")
+                        .permitAll()
                         // Spring forwards an unhandled exception here, and the
                         // forward is a fresh request carrying no credential. With
                         // this closed, every error on a public endpoint came back
@@ -85,6 +91,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*/comments").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/media/*").permitAll()
                         // Safe deployment metadata for clients: lets the Android
                         // app distinguish a live LLM engine from deterministic
                         // fallback without inferring it from a case after the
@@ -96,6 +103,9 @@ public class SecurityConfig {
                         // show-details, so what an anonymous caller gets here is
                         // a single word.
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/prometheus").access((authentication, context) ->
+                                new AuthorizationDecision(
+                                        exposePrometheus || isAdministrator(authentication.get())))
                         // Everything else under actuator is operational data —
                         // JVM internals, HTTP timings, pool sizes. An ordinary
                         // forum member has no business reading it, and the

@@ -40,6 +40,7 @@ public class TokenIssuer {
                 .subject(user.getId().toString())
                 .claim("username", user.getUsername())
                 .claim("roles", List.of(user.getRole().name()))
+                .claim("ver", user.getTokenVersion())
                 .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();

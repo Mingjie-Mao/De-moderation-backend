@@ -1,0 +1,49 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME:campusguard}
+    username: ${DB_USER:campusguard}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+      # HikariConfig exposes these two values as millisecond longs rather than
+      # Spring Duration properties.
+      connection-timeout: 5000
+      validation-timeout: 3000
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:true}
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+server:
+  forward-headers-strategy: framework
+  shutdown: graceful
+
+springdoc:
+  api-docs.enabled: false
+  swagger-ui.enabled: false
+
+campusguard:
+  security:
+    expose-api-docs: false
+    # Port 9090 is restricted to the internal observability network in the
+    # supplied deployment. Never publish it from the reverse proxy.
+    expose-prometheus: true
+  media:
+    storage-path: ${MEDIA_STORAGE_PATH:/data/media}
+  mail:
+    enabled: ${MAIL_ENABLED:true}
+
+management:
+  server:
+    port: 9090
+  endpoints.web.exposure.include: health,info,metrics,prometheus
+
+logging:
+  level:
+    com.campusguard: info

@@ -90,6 +90,14 @@ public class ResilientChatCompletion implements ChatCompletionPort {
      */
     @Override
     public CompletionResult complete(String systemPrompt, String userPrompt) {
+        return complete(systemPrompt, userPrompt, java.util.List.of());
+    }
+
+    @Override
+    public CompletionResult complete(
+            String systemPrompt,
+            String userPrompt,
+            java.util.List<com.campusguard.moderation.engine.ModerationRequest.MediaInput> media) {
         ModelCallException throttled = null;
 
         for (int attempt = 0; attempt <= properties.rateLimitRetries(); attempt++) {
@@ -97,7 +105,7 @@ public class ResilientChatCompletion implements ChatCompletionPort {
                 backOff(attempt);
             }
             try {
-                return callOnce(systemPrompt, userPrompt);
+                return callOnce(systemPrompt, userPrompt, media);
             } catch (ModelCallException ex) {
                 if (ex.status() != InvocationStatus.RATE_LIMITED) {
                     throw ex;
@@ -129,9 +137,12 @@ public class ResilientChatCompletion implements ChatCompletionPort {
         }
     }
 
-    private CompletionResult callOnce(String systemPrompt, String userPrompt) {
+    private CompletionResult callOnce(
+            String systemPrompt,
+            String userPrompt,
+            java.util.List<com.campusguard.moderation.engine.ModerationRequest.MediaInput> media) {
         Callable<CompletionResult> timed = TimeLimiter.decorateFutureSupplier(
-                timeLimiter, () -> executor.submit(() -> delegate.complete(systemPrompt, userPrompt)));
+                timeLimiter, () -> executor.submit(() -> delegate.complete(systemPrompt, userPrompt, media)));
 
         try {
             return circuitBreaker.executeCallable(timed);

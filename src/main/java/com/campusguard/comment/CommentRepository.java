@@ -24,6 +24,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     @Query("""
             select c from Comment c
             join fetch c.author
+            left join fetch c.media
             where c.post.id = :postId and c.deletedAt is null
             order by c.createdAt asc
             """)
@@ -39,6 +40,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     @Query("""
             select c from Comment c
             join fetch c.author
+            left join fetch c.media
             where c.post.id = :postId and c.parent is null and c.deletedAt is null
             order by c.createdAt asc, c.id asc
             """)
@@ -48,6 +50,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     @Query("""
             select c from Comment c
             join fetch c.author
+            left join fetch c.media
             where c.post.id = :postId and c.parent is null and c.deletedAt is null
               and (c.createdAt > :afterCreatedAt
                    or (c.createdAt = :afterCreatedAt and c.id > :afterId))
@@ -69,6 +72,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     @Query("""
             select c from Comment c
             join fetch c.author
+            left join fetch c.media
             where c.post.id = :postId and c.parent is not null and c.deletedAt is null
             order by c.createdAt asc, c.id asc
             """)
@@ -77,6 +81,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     @Query("""
             select c from Comment c
             join fetch c.author
+            left join fetch c.media
             where c.id = :id and c.deletedAt is null
             """)
     Optional<Comment> findLiveById(@Param("id") UUID id);

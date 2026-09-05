@@ -1,5 +1,8 @@
 package com.campusguard.moderation.engine.ai;
 
+import com.campusguard.moderation.engine.ModerationRequest;
+import java.util.List;
+
 /**
  * The narrowest useful view of a language model: text in, text out.
  *
@@ -18,6 +21,13 @@ public interface ChatCompletionPort {
     String modelName();
 
     CompletionResult complete(String systemPrompt, String userPrompt);
+
+    default CompletionResult complete(
+            String systemPrompt,
+            String userPrompt,
+            List<ModerationRequest.MediaInput> media) {
+        return complete(systemPrompt, userPrompt);
+    }
 
     /**
      * @param promptTokens null when the provider does not report usage; recorded

@@ -2,6 +2,7 @@ package com.campusguard.comment;
 
 import com.campusguard.post.Post;
 import com.campusguard.user.User;
+import com.campusguard.media.MediaObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -63,6 +64,10 @@ public class Comment {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "media_id")
+    private MediaObject media;
+
     protected Comment() {
         // for JPA
     }
@@ -71,15 +76,25 @@ public class Comment {
     public static final int MAX_DEPTH = 10;
 
     public Comment(Post post, Comment parent, User author, String body) {
+        this(post, parent, author, body, null);
+    }
+
+    public Comment(Post post, Comment parent, User author, String body, MediaObject media) {
         this.post = post;
         this.parent = parent;
         this.author = author;
         this.body = body;
         this.depth = parent == null ? 0 : parent.getDepth() + 1;
+        this.media = media;
     }
 
     public void softDelete(Instant at) {
         this.deletedAt = at;
+    }
+
+    public void update(String body, MediaObject media) {
+        this.body = body;
+        this.media = media;
     }
 
     /** Put a soft-deleted comment back. See {@code Post#restore()}. */
@@ -118,4 +133,6 @@ public class Comment {
     public Instant getDeletedAt() {
         return deletedAt;
     }
+
+    public MediaObject getMedia() { return media; }
 }

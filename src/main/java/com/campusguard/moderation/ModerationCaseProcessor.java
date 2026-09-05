@@ -6,6 +6,7 @@ import com.campusguard.moderation.engine.EngineRegistry;
 import com.campusguard.moderation.engine.ModerationEngine;
 import com.campusguard.moderation.engine.ModerationRequest;
 import com.campusguard.moderation.engine.ModerationVerdict;
+import com.campusguard.media.MediaService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -17,6 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 
 /**
  * The transactional steps of moving a case through the queue.
@@ -36,16 +40,29 @@ public class ModerationCaseProcessor {
     private final ContentLocator contentLocator;
     private final EngineRegistry engines;
     private final AuditLogger auditLogger;
+    private final MediaService mediaService;
+    private final Counter degradationCounter;
+    private final Timer analysisTimer;
 
     public ModerationCaseProcessor(
             ModerationCaseRepository caseRepository,
             ContentLocator contentLocator,
             EngineRegistry engines,
-            AuditLogger auditLogger) {
+            AuditLogger auditLogger,
+            MediaService mediaService,
+            MeterRegistry meterRegistry) {
         this.caseRepository = caseRepository;
         this.contentLocator = contentLocator;
         this.engines = engines;
         this.auditLogger = auditLogger;
+        this.mediaService = mediaService;
+        this.degradationCounter = Counter.builder("campusguard.moderation.engine.degradations")
+                .description("Primary moderation engine failures handled by fallback")
+                .register(meterRegistry);
+        this.analysisTimer = Timer.builder("campusguard.moderation.analysis")
+                .description("End-to-end automated analysis latency")
+                .publishPercentileHistogram()
+                .register(meterRegistry);
     }
 
     /**
@@ -129,9 +146,11 @@ public class ModerationCaseProcessor {
             verdict = degradation.verdict();
             engineName = degradation.engineName();
             degraded = true;
+            degradationCounter.increment();
         }
 
         long millis = Duration.ofNanos(System.nanoTime() - startedAt).toMillis();
+        analysisTimer.record(Duration.ofMillis(millis));
 
         moderationCase.recordVerdict(engineName, verdict);
 
@@ -230,7 +249,11 @@ public class ModerationCaseProcessor {
     }
 
     private ModerationRequest toRequest(ContentLocator.ModeratedContent content) {
-        return ModerationRequest.of(
+        ModerationRequest request = ModerationRequest.of(
                 content.targetType(), content.targetId(), content.title(), content.body(), content.authorId());
+        if (content.mediaId() == null) return request;
+        MediaService.StoredMedia stored = mediaService.read(content.mediaId());
+        return request.withMedia(new ModerationRequest.MediaInput(
+                stored.metadata().getContentType(), stored.bytes(), stored.metadata().getSha256()));
     }
 }

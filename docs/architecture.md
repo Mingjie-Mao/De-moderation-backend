@@ -4,11 +4,12 @@
 
 ```mermaid
 flowchart LR
-    clients["HTTP clients<br/>any forum front end"]
-    swagger["Swagger UI<br/>moderation console"]
+    android["Android member app<br/>backend-first UI cache"]
+    admin["Browser reviewer console"]
 
     subgraph backend["De-Moderation backend"]
         api["REST API<br/>JWT, RFC 7807"]
+        media["Media service<br/>decode, normalize, hash"]
         workflow["Moderation workflow<br/>state machine"]
         worker["Async worker<br/>SKIP LOCKED"]
         registry["ModerationEngine<br/>registry"]
@@ -18,11 +19,14 @@ flowchart LR
     end
 
     db[("PostgreSQL 16")]
+    files[("Media volume / object store")]
     google["Gemini API"]
 
-    clients -->|"feed, post, report"| api
-    swagger -->|"review, decide"| api
+    android -->|"profile, feed, media, report, appeal"| api
+    admin -->|"claim, review, decide"| api
     api --> workflow
+    api --> media
+    media --> files
     workflow --> db
     worker -->|"claim queued cases"| db
     worker --> registry
@@ -70,8 +74,8 @@ sequenceDiagram
     end
     W->>DB: record verdict, move to AWAITING_REVIEW
 
-    Note over A: the content is still visible here
-    A->>API: POST /decision {HIDE}
+    Note over A: reviewer claims the case;<br/>the content is still visible here
+    A->>API: POST /claim, then POST /decision {HIDE}
     API->>DB: hide content, resolve case, resolve its reports
     API->>DB: audit entry for every step
 ```
@@ -84,6 +88,7 @@ stateDiagram-v2
     QUEUED --> ANALYSING: worker claims it
     ANALYSING --> QUEUED: worker died, swept back
     ANALYSING --> AWAITING_REVIEW: verdict recorded
+    AWAITING_REVIEW --> AWAITING_REVIEW: claim or release reviewer
     AWAITING_REVIEW --> RESOLVED: administrator decides
     RESOLVED --> [*]
 
@@ -99,10 +104,11 @@ stateDiagram-v2
     end note
 ```
 
-The plan for this had a fifth state between the verdict and the decision, for a
-case an administrator had claimed. It was removed because nothing claims a case:
-with no claim there is no transition into it, and a state nothing can reach
-misdescribes the workflow to whoever reads the enum next.
+Assignment is metadata rather than another case state. A claim records the
+reviewer and prevents a conflicting decision while the case remains
+`AWAITING_REVIEW`; it can be released without inventing another lifecycle state.
+The review deadline is also stored on the case so SLA alerts do not depend on a
+dashboard calculating time from memory.
 
 ## Schema
 
@@ -115,12 +121,18 @@ erDiagram
     comments ||--o{ comments : replies_to
     moderation_cases ||--o{ reports : aggregates
     moderation_cases ||--o{ ai_invocations : bills
+    moderation_cases ||--o{ appeals : challenged_by
+    users ||--o{ notifications : receives
+    users ||--o{ refresh_tokens : owns
+    users ||--o{ media_objects : uploads
     moderation_rules }o--o{ moderation_cases : cited_by
 
     posts { uuid id PK "soft deleted" }
     comments { uuid id PK "parent pointer" }
     reports { uuid target_id "no FK: post or comment" }
     moderation_cases { uuid target_id "unique while open" }
+    appeals { uuid id PK "one pending per author/case" }
+    media_objects { uuid id PK "normalized object metadata" }
     ai_invocations { jsonb raw_response "success and failure alike" }
     audit_log { jsonb payload "append only, no FK to actor" }
 ```
@@ -135,7 +147,7 @@ integrity but makes every read path branch on which column is populated.
 `audit_log.actor_id` carries no foreign key so that an entry outlives the account
 it describes. A log that loses its subject when a user is deleted is not evidence.
 
-`moderation_cases` has no total-count column and the feed has no count query. A
+`moderation_cases` has no global total-count column and the feed has no count query. A
 number that costs a full scan and is stale on arrival is not worth the scan.
 
 ## Where the seams are

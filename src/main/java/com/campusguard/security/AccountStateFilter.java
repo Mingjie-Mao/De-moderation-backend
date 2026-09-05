@@ -95,6 +95,12 @@ public class AccountStateFilter extends OncePerRequestFilter {
                 .orElseThrow(() -> new InvalidBearerTokenException(
                         "This account can no longer act. Sign in again."));
 
+        Number claimedVersion = jwt.getClaim("ver");
+        int tokenVersion = claimedVersion == null ? 0 : claimedVersion.intValue();
+        if (tokenVersion != user.getTokenVersion()) {
+            throw new InvalidBearerTokenException("This session has ended. Sign in again.");
+        }
+
         List<GrantedAuthority> current =
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
 

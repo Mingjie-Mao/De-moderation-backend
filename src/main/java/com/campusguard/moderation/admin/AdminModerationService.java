@@ -12,6 +12,7 @@ import com.campusguard.moderation.ModerationCase;
 import com.campusguard.moderation.ModerationCaseRepository;
 import com.campusguard.report.Report;
 import com.campusguard.report.ReportRepository;
+import com.campusguard.notification.NotificationService;
 import com.campusguard.user.User;
 import com.campusguard.user.UserRepository;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ public class AdminModerationService {
     private final UserRepository userRepository;
     private final ReportRepository reportRepository;
     private final AuditLogger auditLogger;
+    private final NotificationService notifications;
 
     public AdminModerationService(
             ModerationCaseRepository caseRepository,
@@ -39,13 +41,15 @@ public class AdminModerationService {
             ContentLocator contentLocator,
             UserRepository userRepository,
             ReportRepository reportRepository,
-            AuditLogger auditLogger) {
+            AuditLogger auditLogger,
+            NotificationService notifications) {
         this.caseRepository = caseRepository;
         this.auditEntryRepository = auditEntryRepository;
         this.contentLocator = contentLocator;
         this.userRepository = userRepository;
         this.reportRepository = reportRepository;
         this.auditLogger = auditLogger;
+        this.notifications = notifications;
     }
 
     @Transactional(readOnly = true)
@@ -91,7 +95,7 @@ public class AdminModerationService {
                 .findById(adminId)
                 .orElseThrow(() -> new NotFoundException("No user with id " + adminId));
 
-        ModerationCase moderationCase = requireCase(caseId);
+        ModerationCase moderationCase = requireCaseForUpdate(caseId);
 
         // A decided case is corrected rather than refused. A reviewer who hid the
         // wrong thing needs a way back, and refusing here would leave the only
@@ -105,6 +109,14 @@ public class AdminModerationService {
                     "This case cannot be resolved while it is "
                             + moderationCase.getStatus()
                             + ". Wait for automated analysis to finish.");
+        }
+
+        if (moderationCase.getAssignedTo() != null
+                && !moderationCase.getAssignedTo().getId().equals(adminId)) {
+            throw new ConflictException("This case is assigned to another reviewer.");
+        }
+        if (moderationCase.getAssignedTo() == null) {
+            moderationCase.assign(admin);
         }
 
         applyAction(admin, moderationCase, request.action());
@@ -135,6 +147,8 @@ public class AdminModerationService {
                 moderationCase.getTargetType(),
                 moderationCase.getTargetId(),
                 payload);
+
+        notifyDecision(moderationCase, request.action());
 
         return get(caseId);
     }
@@ -180,6 +194,8 @@ public class AdminModerationService {
                 moderationCase.getTargetType(),
                 moderationCase.getTargetId(),
                 payload);
+
+        notifyDecision(moderationCase, next);
 
         return get(moderationCase.getId());
     }
@@ -320,5 +336,66 @@ public class AdminModerationService {
         return caseRepository
                 .findById(caseId)
                 .orElseThrow(() -> new NotFoundException("No moderation case with id " + caseId));
+    }
+
+    private ModerationCase requireCaseForUpdate(UUID caseId) {
+        return caseRepository.findByIdForUpdate(caseId)
+                .orElseThrow(() -> new NotFoundException("No moderation case with id " + caseId));
+    }
+
+    @Transactional
+    public ModerationCaseDetail assign(UUID adminId, UUID caseId) {
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new NotFoundException("No user with id " + adminId));
+        ModerationCase moderationCase = requireCaseForUpdate(caseId);
+        if (moderationCase.getStatus() != CaseStatus.AWAITING_REVIEW) {
+            throw new ConflictException("Only cases awaiting review can be assigned.");
+        }
+        if (moderationCase.getAssignedTo() != null) {
+            if (moderationCase.getAssignedTo().getId().equals(adminId)) return get(caseId);
+            throw new ConflictException("This case is already assigned to another reviewer.");
+        }
+        moderationCase.assign(admin);
+        auditLogger.record(AuditActorType.ADMIN, adminId, AuditLogger.CASE_ASSIGNED,
+                moderationCase.getTargetType(), moderationCase.getTargetId(),
+                Map.of("caseId", caseId.toString(), "reviewerId", adminId.toString()));
+        return get(caseId);
+    }
+
+    @Transactional
+    public ModerationCaseDetail release(UUID adminId, UUID caseId) {
+        ModerationCase moderationCase = requireCaseForUpdate(caseId);
+        if (moderationCase.getStatus() != CaseStatus.AWAITING_REVIEW) {
+            throw new ConflictException("Only cases awaiting review have an active assignment.");
+        }
+        if (moderationCase.getAssignedTo() == null) return get(caseId);
+        if (!moderationCase.getAssignedTo().getId().equals(adminId)) {
+            throw new ConflictException("Only the assigned reviewer can release this case.");
+        }
+        moderationCase.releaseAssignment();
+        auditLogger.record(AuditActorType.ADMIN, adminId, AuditLogger.CASE_ASSIGNMENT_RELEASED,
+                moderationCase.getTargetType(), moderationCase.getTargetId(),
+                Map.of("caseId", caseId.toString()));
+        return get(caseId);
+    }
+
+    private void notifyDecision(ModerationCase moderationCase, FinalAction action) {
+        Map<UUID, User> recipients = new java.util.LinkedHashMap<>();
+        reportRepository.findByCaseId(moderationCase.getId()).forEach(report ->
+                recipients.put(report.getReporter().getId(), report.getReporter()));
+        Optional<UUID> affectedAuthorId = contentLocator.authorOf(
+                moderationCase.getTargetType(), moderationCase.getTargetId());
+        affectedAuthorId.flatMap(userRepository::findById)
+                .ifPresent(user -> recipients.put(user.getId(), user));
+
+        recipients.values().forEach(user -> notifications.create(
+                user,
+                affectedAuthorId.filter(user.getId()::equals).isPresent() && action != FinalAction.NONE
+                        ? "MODERATION_DECISION_APPEALABLE"
+                        : "MODERATION_DECISION",
+                "A moderation case was decided",
+                "The current action is " + action + ". Open the case for details.",
+                "MODERATION_CASE",
+                moderationCase.getId()));
     }
 }
