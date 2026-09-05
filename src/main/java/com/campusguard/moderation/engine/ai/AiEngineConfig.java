@@ -31,10 +31,26 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(name = "spring.ai.model.chat", havingValue = "google-genai")
 public class AiEngineConfig {
 
+    /**
+     * Each model gets its own resilience policy, so one being throttled or
+     * unavailable does not open the circuit on another. Sharing one would make a
+     * comparison run meaningless the moment either model wobbled.
+     *
+     * <p>A bean rather than a local, because the investigation assistant calls the
+     * same endpoint under the same quota and has to land behind the same breaker.
+     * A second circuit over one account would report a throttled provider as one
+     * healthy path and one broken one.
+     */
+    @Bean
+    public ModelPolicies modelPolicies(AiProperties properties) {
+        return new ModelPolicies(properties);
+    }
+
     @Bean
     public ModerationEngineBundle geminiEngines(
             ChatModel chatModel,
             AiProperties properties,
+            ModelPolicies policies,
             List<ModerationPrompt> prompts,
             VerdictParser parser,
             AiInvocationRecorder recorder) {
@@ -47,15 +63,11 @@ public class AiEngineConfig {
                 continue;
             }
 
-            // Each model gets its own resilience policy, so one being throttled or
-            // unavailable does not open the circuit on another. Sharing one would
-            // make a comparison run meaningless the moment either model wobbled.
-            //
-            // The prompts share it, though: they are the same endpoint under the
-            // same quota, and pretending otherwise would let a throttled account
-            // look like one healthy prompt and one broken one.
-            ChatCompletionPort port =
-                    new ResilientChatCompletion(new SpringAiChatCompletion(chatModel, model), properties);
+            // The prompt versions share one port: they are the same endpoint under
+            // the same quota, and pretending otherwise would let a throttled
+            // account look like one healthy prompt and one broken one.
+            ChatCompletionPort port = new ResilientChatCompletion(
+                    new SpringAiChatCompletion(chatModel, model), policies.forModel(model));
 
             prompts.forEach(prompt ->
                     engines.add(new GeminiModerationEngine(port, prompt, parser, recorder, properties)));

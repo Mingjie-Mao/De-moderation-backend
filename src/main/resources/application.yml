@@ -199,6 +199,21 @@ campusguard:
       # The first is what live traffic uses.
       models: ${GEMINI_MODELS:gemini-flash-latest}
 
+    investigator:
+      # Off by default, like the model engine. One investigation is several model
+      # calls where a verdict is one, so it is turned on deliberately and it is
+      # reached by a reviewer clicking rather than by the queue.
+      enabled: ${INVESTIGATOR_ENABLED:false}
+      # A budget, not a target. A model still gathering evidence on the sixth
+      # lookup is not converging, and the seventh will not change that.
+      max-steps: 5
+      # One corrective retry, counted separately from the lookups: a rejected
+      # brief is the model getting the answer's shape wrong, not evidence it
+      # still needs. The same split AiProperties makes between max-attempts and
+      # rate-limit-retries.
+      max-corrections: 1
+      prompt-version: inv-v1
+
 management:
   endpoints:
     web:

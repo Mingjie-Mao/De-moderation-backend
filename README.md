@@ -41,18 +41,18 @@ English/Chinese split and the remaining limits are in the
 ## Architecture
 
 ```mermaid
-flowchart TD
-    R["Report"] --> C["Moderation case (QUEUED)"]
-    C --> W["Worker claims a case<br/>SELECT ... FOR UPDATE SKIP LOCKED"]
+flowchart LR
+    R["Report"] --> C["QUEUED"]
+    C --> W["Worker claims<br/>FOR UPDATE SKIP LOCKED"]
     W --> A["ANALYSING"]
-    A --> E["Moderation engine<br/>Rule / LLM"]
-    E --> Q{"Call succeeded?"}
+    A --> E["Engine<br/>rule / model"]
+    E --> Q{"call<br/>succeeded?"}
     Q -->|"yes"| AR["AWAITING_REVIEW"]
-    Q -->|"no"| F["Rule fallback<br/>(degraded, recorded as such)"]
+    Q -->|"no"| F["rule fallback<br/>recorded as degraded"]
     F --> AR
-    AR --> ADM["Administrator decides"]
+    AR --> ADM["Administrator<br/>decides"]
     ADM --> RES["RESOLVED<br/>NONE / HIDE / DELETE / BAN"]
-    A -.->|"worker times out / disappears"| C
+    A -.->|"worker times out<br/>or disappears"| C
 ```
 
 **Design principles**
@@ -68,6 +68,48 @@ database unique constraint guarantees only one engine call. Cases left behind by
 a worker that exited abnormally are automatically requeued; every state
 transition, verdict and administrator action is written to an append-only audit
 log.
+
+### Case investigation (in progress)
+
+The pipeline above decides one piece of content at a time. What it cannot tell a
+reviewer is whether this is the author's first offence or their fourth, or how
+the same rule has been enforced before — cases are keyed by the content they
+concern, so there was no path from a person to their history.
+
+A reviewer can ask an assistant to go and find out. It is a second, optional
+path hanging off `AWAITING_REVIEW`; it moves no case and writes nothing.
+
+```mermaid
+flowchart LR
+    AR["AWAITING_REVIEW"] -->|"reviewer asks"| M["Model turn<br/>same circuit breaker<br/>as the engine"]
+    M --> D{"tool call<br/>or brief?"}
+    D -->|"tool call"| T["ToolRegistry<br/>whitelist · read-only tx"]
+    T -->|"result + case ids disclosed"| M
+    D -->|"brief"| P{"is every citation<br/>one it actually read?"}
+    P -->|"no · 1 retry"| M
+    P -->|"yes"| BR["Brief<br/>recommendation · confidence<br/>counter-evidence"]
+    M -.->|"timeout · circuit open"| PA["Partial"]
+    D -.->|"5 lookups spent"| IN["Inconclusive"]
+    P -.->|"still fabricating"| IN
+    BR --> ADM["Administrator decides<br/>still the only writer"]
+    PA --> ADM
+    IN --> ADM
+```
+
+The four tools are `caseDetail`, `authorHistory`, `similarResolvedCases` and
+`ruleText`. Each takes the case under investigation from the caller rather than
+from the model's arguments, so there is no way to point one at a different case.
+
+**What is deliberately absent.** No memory: the durable state is PostgreSQL,
+with transactions and an audit trail, and a model's private second copy would be
+a second answer to questions that must have exactly one. No retrieval: the rule
+set is a few dozen entries and fits in a prompt, so a vector store would buy a
+new failure mode and nothing else. No autonomy on the main path: the pipeline
+above is unchanged, and the evaluation numbers keep meaning what they meant.
+
+**Status.** The data layer, the tool registry, the loop and the shared
+resilience policy are implemented and tested against a scripted model. It is not
+yet wired to a real one, has no HTTP endpoint, and is off by default.
 
 ## Features
 

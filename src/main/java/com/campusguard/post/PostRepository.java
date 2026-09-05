@@ -88,4 +88,18 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     long countByAuthorIdAndCreatedAtAfter(UUID authorId, Instant since);
 
     boolean existsByIdAndDeletedAtIsNull(UUID id);
+
+    /**
+     * Every post this author has written, including ones already removed.
+     *
+     * <p>Ids only. The caller is on its way to this author's moderation history,
+     * not to their content, and pulling whole rows with their authors and media
+     * to read one column from each is the feed's N+1 wearing a different hat.
+     *
+     * <p>Removed posts are included on purpose: a post that was hidden by a
+     * moderator is precisely the kind of history the caller is looking for, and
+     * filtering it out would make a repeat offender look clean.
+     */
+    @Query("select p.id from Post p where p.author.id = :authorId")
+    List<UUID> findAllIdsByAuthor(@Param("authorId") UUID authorId);
 }

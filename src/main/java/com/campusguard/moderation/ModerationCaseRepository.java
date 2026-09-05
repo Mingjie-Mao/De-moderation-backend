@@ -2,6 +2,7 @@ package com.campusguard.moderation;
 
 import com.campusguard.common.TargetType;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -140,4 +141,57 @@ public interface ModerationCaseRepository extends JpaRepository<ModerationCase, 
               and c.id <> :excludedCaseId
             """)
     List<ModerationCase> findOtherStandingBans(@Param("excludedCaseId") UUID excludedCaseId);
+
+    /**
+     * Resolved cases about any of these targets, most recent first.
+     *
+     * <p>Paired with {@code ContentLocator.targetsOf}, this is one author's
+     * moderation history. Split in two rather than expressed as a join because
+     * a case points at a bare id: joining would mean a union across posts and
+     * comments inside every query that wants a history, and the branch on target
+     * type already has one home.
+     *
+     * <p>Callers must not pass an empty collection. Hibernate renders
+     * {@code in ()} for one, which is a syntax error in PostgreSQL, and the
+     * caller knows the list is empty before it asks.
+     */
+    @Query("""
+            select c from ModerationCase c
+            where c.status = com.campusguard.moderation.CaseStatus.RESOLVED
+              and c.targetId in :targetIds
+              and c.decidedAt >= :since
+            order by c.decidedAt desc
+            """)
+    List<ModerationCase> findResolvedForTargets(
+            @Param("targetIds") Collection<UUID> targetIds, @Param("since") Instant since);
+
+    /**
+     * How this rule has actually been enforced, most recent first.
+     *
+     * <p>Precedent rather than policy. What a rule says is in {@code
+     * moderation_rules}; what reviewers have done about it is only recoverable
+     * from the decisions themselves, and the two do diverge.
+     *
+     * <p>Native because {@code rule_codes} is JSONB and JPQL has no containment
+     * operator. Matching against a bare string relies on PostgreSQL's documented
+     * exception for arrays, so no array literal has to be built to test one code.
+     *
+     * <p>{@code final_action <> 'NONE'} keeps dismissed reports out. Those say a
+     * reviewer looked and decided nothing was wrong, which is evidence about the
+     * report and not a precedent for what an outcome should be. The predicate
+     * matches {@code idx_moderation_cases_rule_codes} exactly.
+     */
+    @Query(
+            value =
+                    """
+                    select * from moderation_cases
+                    where status = 'RESOLVED'
+                      and final_action is not null
+                      and final_action <> 'NONE'
+                      and rule_codes @> to_jsonb(cast(:code as text))
+                    order by decided_at desc
+                    limit :limit
+                    """,
+            nativeQuery = true)
+    List<ModerationCase> findResolvedByRuleCode(@Param("code") String code, @Param("limit") int limit);
 }

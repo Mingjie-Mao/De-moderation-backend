@@ -6,6 +6,8 @@ import com.campusguard.common.TargetType;
 import com.campusguard.post.Post;
 import com.campusguard.post.PostRepository;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -69,6 +71,33 @@ public class ContentLocator {
             case POST -> postRepository.findById(targetId).map(post -> post.getAuthor().getId());
             case COMMENT -> commentRepository.findById(targetId).map(comment -> comment.getAuthor().getId());
         };
+    }
+
+    /**
+     * Every piece of content this author has written, as targets a case can point at.
+     *
+     * <p>The inverse of {@link #authorOf}, and the only way to get from a person
+     * to their moderation history: cases are keyed by the content they concern,
+     * so without this step there is no join between an author and the decisions
+     * taken about them.
+     *
+     * <p>Deleted content is included, for the same reason
+     * {@link #findIncludingRemoved} exists. A history assembled only from content
+     * still on the site would omit exactly the items that were removed for
+     * breaking a rule, which is to say all of the interesting ones.
+     */
+    @Transactional(readOnly = true)
+    public List<TargetRef> targetsOf(UUID authorId) {
+        List<TargetRef> refs = new ArrayList<>();
+        postRepository.findAllIdsByAuthor(authorId)
+                .forEach(id -> refs.add(new TargetRef(TargetType.POST, id)));
+        commentRepository.findAllIdsByAuthor(authorId)
+                .forEach(id -> refs.add(new TargetRef(TargetType.COMMENT, id)));
+        return List.copyOf(refs);
+    }
+
+    /** A case's target, before it has been resolved to the content behind it. */
+    public record TargetRef(TargetType type, UUID id) {
     }
 
     /**

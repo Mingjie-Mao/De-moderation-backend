@@ -90,4 +90,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     long countByAuthorIdAndCreatedAtAfter(UUID authorId, Instant since);
 
     boolean existsByIdAndDeletedAtIsNull(UUID id);
+
+    /** The comment half of {@code PostRepository.findAllIdsByAuthor}, on the same terms. */
+    @Query("select c.id from Comment c where c.author.id = :authorId")
+    List<UUID> findAllIdsByAuthor(@Param("authorId") UUID authorId);
 }
