@@ -53,7 +53,15 @@ import org.springframework.transaction.support.TransactionTemplate;
         properties = {
             "spring.ai.model.chat=google-genai",
             "campusguard.moderation.investigator.enabled=true",
-            "campusguard.moderation.engine=keyword-v1"
+            "campusguard.moderation.engine=keyword-v1",
+            // Overridable so the same three cases can be run against two
+            // wordings and compared:
+            //   mvn -Dtest=RealModelInvestigationSmokeTest -Dinvestigation.prompt=inv-v1 test
+            //
+            // Under a name of its own, because a placeholder whose default names
+            // the property it is filling in is a circular reference and Spring
+            // refuses to start on it.
+            "campusguard.moderation.investigator.prompt-version=${investigation.prompt:inv-v2}"
         })
 @EnabledIfEnvironmentVariable(named = "GEMINI_API_KEY", matches = ".+")
 class RealModelInvestigationSmokeTest extends AbstractIntegrationTest {
@@ -86,7 +94,7 @@ class RealModelInvestigationSmokeTest extends AbstractIntegrationTest {
 
         outcomes.add(run("repeat offender", repeatOffender()));
         outcomes.add(run("first offence", firstOffence()));
-        outcomes.add(run("precedent, no history", precedentOnly()));
+        outcomes.add(run("likely dismissal", likelyDismissal()));
 
         report(outcomes);
 
@@ -184,11 +192,36 @@ class RealModelInvestigationSmokeTest extends AbstractIntegrationTest {
 
     // --- the three cases -----------------------------------------------------
 
-    /** Two prior hides under the same rule, then a third, milder comment. */
+    /**
+     * Precedent that points somewhere, seeded immediately before it is read.
+     *
+     * <p>The first version of this test seeded every prior case as HIDE, so
+     * "past cases under this rule were all hidden" was literally true and a model
+     * following precedent gave the same answer three times. That looked like an
+     * assistant ignoring its evidence and was actually an experiment that could
+     * not tell the two apart.
+     *
+     * <p>Seeded here rather than in a fixture because precedent is global and
+     * unfiltered by author or forum — it is the one query in this feature with no
+     * natural isolation. Ordering is by decision time, so cases written now are
+     * the ones the tool will return.
+     */
+    private void seedPrecedent(String ruleCode, FinalAction outcome, int count) {
+        for (int i = 0; i < count; i++) {
+            resolvedCase(newUser(), "Seeded precedent " + i + " for " + ruleCode, ruleCode, outcome);
+        }
+    }
+
+    /**
+     * Two prior hides of their own, against precedent where this rule ends in a
+     * ban. Both signals point the same way, so a brief that does not reach BAN
+     * has read neither.
+     */
     private UUID repeatOffender() {
         User author = newUser();
         resolvedCase(author, "You are an idiot and your code is garbage.", "ABUSE", FinalAction.HIDE);
         resolvedCase(author, "Get out of this forum, you are worthless here.", "ABUSE", FinalAction.HIDE);
+        seedPrecedent("ABUSE", FinalAction.BAN, 5);
 
         return awaitingReviewCase(
                 author,
@@ -196,17 +229,33 @@ class RealModelInvestigationSmokeTest extends AbstractIntegrationTest {
                 "ABUSE");
     }
 
+    /**
+     * The discriminating case. Identical rule and identical precedent to the one
+     * above — the only difference is that this author has no record. An assistant
+     * that returns the same recommendation for both is following precedent alone
+     * and the author history was wasted.
+     */
     private UUID firstOffence() {
+        seedPrecedent("ABUSE", FinalAction.BAN, 5);
+
         return awaitingReviewCase(
                 newUser(), "Keep crying about the marks, it is the only thing you are good at.", "ABUSE");
     }
 
-    /** Nothing on this author, but other reviewers have handled this rule before. */
-    private UUID precedentOnly() {
-        resolvedCase(newUser(), "加微信 代刷 兼职日结，有意私聊。", "SPAM", FinalAction.HIDE);
-        resolvedCase(newUser(), "Free money, click here, limited offer.", "SPAM", FinalAction.HIDE);
+    /**
+     * A report that looks wrong: ordinary campus content, a low-severity rule, a
+     * clean author, one report.
+     *
+     * <p>NONE is the hard answer here, and structurally so: dismissed reports are
+     * kept out of precedent on purpose, so {@code similarResolvedCases} can never
+     * show that a rule often gets dismissed. Nothing in the evidence argues for
+     * NONE — it has to come from reading the content.
+     */
+    private UUID likelyDismissal() {
+        seedPrecedent("SPAM", FinalAction.HIDE, 5);
 
-        return awaitingReviewCase(newUser(), "Selling last year's lecture notes, DM me, cheap.", "SPAM");
+        return awaitingReviewCase(
+                newUser(), "Selling last year's lecture notes, DM me, cheap.", "SPAM");
     }
 
     private UUID awaitingReviewCase(User author, String body, String ruleCode) {

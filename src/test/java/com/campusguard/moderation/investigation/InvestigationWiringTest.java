@@ -56,6 +56,29 @@ class InvestigationWiringTest {
                 .run(context -> assertThat(context).hasNotFailed().doesNotHaveBean(CaseInvestigator.class));
     }
 
+    /**
+     * An unknown prompt version stops startup rather than quietly running another
+     * one. A brief attributed to wording that did not write it is worse than no
+     * brief, because the attribution is what makes a later comparison mean
+     * anything.
+     */
+    @Test
+    void refusesToStartOnAPromptVersionThatDoesNotExist() {
+        runner.withPropertyValues(
+                        "spring.ai.model.chat=google-genai",
+                        "campusguard.moderation.investigator.enabled=true")
+                .withAllowBeanDefinitionOverriding(true)
+                .withBean(
+                        "investigatorProperties",
+                        InvestigatorProperties.class,
+                        () -> new InvestigatorProperties(true, 5, 1, "inv-v9"))
+                .run(context -> assertThat(context)
+                        .hasFailed()
+                        .getFailure()
+                        .hasStackTraceContaining("inv-v9")
+                        .hasStackTraceContaining("inv-v1"));
+    }
+
     @Test
     void isBuiltWhenBothAreSwitchedOn() {
         runner.withPropertyValues(
@@ -88,8 +111,13 @@ class InvestigationWiringTest {
         }
 
         @Bean
-        InvestigationPrompt investigationPrompt() {
+        InvestigationPromptV1 promptV1() {
             return new InvestigationPromptV1();
+        }
+
+        @Bean
+        InvestigationPrompt promptV2(InvestigationPromptV1 v1) {
+            return new InvestigationPromptV2(v1);
         }
 
         @Bean
@@ -119,7 +147,7 @@ class InvestigationWiringTest {
 
         @Bean
         InvestigatorProperties investigatorProperties() {
-            return new InvestigatorProperties(true, 5, 1, InvestigationPromptV1.VERSION);
+            return new InvestigatorProperties(true, 5, 1, InvestigationPromptV2.VERSION);
         }
     }
 }
