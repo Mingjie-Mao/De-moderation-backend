@@ -107,9 +107,22 @@ set is a few dozen entries and fits in a prompt, so a vector store would buy a
 new failure mode and nothing else. No autonomy on the main path: the pipeline
 above is unchanged, and the evaluation numbers keep meaning what they meant.
 
-**Status.** The data layer, the tool registry, the loop and the shared
-resilience policy are implemented and tested against a scripted model. It is not
-yet wired to a real one, has no HTTP endpoint, and is off by default.
+A reviewer asks for a brief from the console; nothing starts one on its own, and
+opening a case shows one somebody already paid for rather than running a new
+one. The brief is written to the audit trail against the administrator who asked
+for it.
+
+**Status.** Working end to end and off by default. Measured against
+`gemini-3.5-flash-lite` on three cases with deliberately different evidence:
+briefs converged in two to four lookups of a budget of five, at roughly four
+times the tokens of a verdict, with no fabricated citations.
+
+**Known.** The recommendation is not stable across runs. Two runs over identical
+cases gave a repeat offender BAN once and HIDE once, and the difference tracks
+whether the model chose to call the precedent lookup — temperature is 0, but tool
+choice diverges and the context diverges with it. Fetching the two lookups that
+always matter before the first turn, rather than leaving them to the model, is
+the obvious next step and would also save a turn.
 
 ## Features
 

@@ -75,6 +75,22 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
+    /**
+     * A switched-off feature is not a fault.
+     *
+     * <p>503 with a plain sentence, so the console can grey out the button and
+     * say why. Any 4xx would read as the reviewer having done something wrong,
+     * and a 500 would send an operator hunting for a break that is not there.
+     */
+    @ExceptionHandler(com.campusguard.moderation.investigation.InvestigationNotEnabledException.class)
+    public ProblemDetail handleFeatureDisabled(
+            com.campusguard.moderation.investigation.InvestigationNotEnabledException ex) {
+        ProblemDetail problem =
+                ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+        problem.setTitle("Not enabled");
+        return problem;
+    }
+
     @ExceptionHandler(ConflictException.class)
     public ProblemDetail handleConflict(ConflictException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());

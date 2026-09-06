@@ -12,6 +12,14 @@ type CaseDetail = { moderationCase:ModerationCase; content?:{ title?:string; bod
 type Appeal = { id:string; caseId:string; appellantId:string; reason:string; status:string; response?:string; createdAt:string };
 type Session = { accessToken:string; userId:string; username:string };
 type EngineStatus = { activeEngine:string; fallbackEngine:string; llmActive:boolean };
+type EvidenceStrength = 'SETTLED' | 'LEANING' | 'OPEN';
+type Brief = { outcome:'COMPLETE'|'PARTIAL'|'INCONCLUSIVE'; summary:string; recommendation?:FinalAction; evidenceStrength?:EvidenceStrength; counterEvidence?:string; citedCaseIds:string[]; promptVersion:string; producedAt:string };
+
+const ACTION_LABEL:Record<FinalAction,string> = { NONE:'不处理', HIDE:'隐藏', DELETE:'删除', BAN:'封禁作者' };
+// Deliberately not percentages. The band replaced a confidence number precisely
+// because nothing calibrates it, and rendering it as "85%" would put the false
+// precision straight back.
+const EVIDENCE_LABEL:Record<EvidenceStrength,string> = { SETTLED:'证据明确', LEANING:'有倾向', OPEN:'两可' };
 
 function elapsed(value:string) {
   const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
@@ -35,13 +43,16 @@ export default function Home() {
   const [detail, setDetail] = useState<CaseDetail|null>(null);
   const [engine, setEngine] = useState<EngineStatus|null>(null);
   const [note, setNote] = useState('');
+  const [brief, setBrief] = useState<Brief|null>(null);
+  const [briefBusy, setBriefBusy] = useState(false);
+  const [briefOff, setBriefOff] = useState('');
   const [appealResponses, setAppealResponses] = useState<Record<string,string>>({});
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
   const logout = useCallback(() => {
     sessionStorage.removeItem('campusguard.admin.session');
-    setSession(null); setDetail(null); setCases([]); setAppeals([]);
+    setSession(null); setDetail(null); setBrief(null); setCases([]); setAppeals([]);
   }, []);
 
   const request = useCallback(async <T,>(path:string, init?:RequestInit):Promise<T> => {
@@ -98,10 +109,30 @@ export default function Home() {
   };
 
   const openCase = async (id:string) => {
-    setBusy(true); setMessage('');
-    try { setDetail(await request<CaseDetail>(`/api/admin/moderation-cases/${id}`)); setNote(''); }
+    setBusy(true); setMessage(''); setBrief(null);
+    try {
+      setDetail(await request<CaseDetail>(`/api/admin/moderation-cases/${id}`)); setNote('');
+      // Fetched, not run. Opening a case shows a brief somebody already paid for
+      // and never starts one on its own.
+      setBrief(await request<Brief|undefined>(`/api/admin/moderation-cases/${id}/investigation`) ?? null);
+    }
     catch (error) { setMessage(errorText(error)); }
     finally { setBusy(false); }
+  };
+
+  const investigate = async (force:boolean) => {
+    if (!detail) return;
+    setBriefBusy(true); setMessage('');
+    try {
+      setBrief(await request<Brief>(`/api/admin/moderation-cases/${detail.moderationCase.id}/investigate?force=${force}`, {method:'POST'}));
+    } catch (error) {
+      // A switched-off assistant is a configuration, not a fault. It greys the
+      // button out with a reason rather than showing an error the reviewer
+      // would reasonably try to act on.
+      const text = errorText(error);
+      if (text.includes('not enabled')) setBriefOff(text); else setMessage(text);
+    }
+    finally { setBriefBusy(false); }
   };
 
   const mutateCase = async (path:string, init:RequestInit) => {
@@ -170,6 +201,20 @@ export default function Home() {
           <h2>{detail.content?.title||(detail.moderationCase.targetType==='POST'?'举报帖子':'举报评论')}</h2><p className="content-body">{detail.content?.body||'原内容已不可用。'}</p>
           {detail.content?.mediaUrl&&<img className="evidence" src={`${API}${detail.content.mediaUrl}`} alt="举报内容附件" /> /* eslint-disable-line @next/next/no-img-element */}
           <dl><div><dt>建议</dt><dd>{detail.moderationCase.recommendedDecision||'—'}</dd></div><div><dt>置信度</dt><dd>{detail.moderationCase.confidence==null?'—':`${Math.round(detail.moderationCase.confidence*100)}%`}</dd></div><div><dt>规则</dt><dd>{detail.moderationCase.ruleCodes?.join(', ')||'—'}</dd></div></dl>
+          <section className="brief">
+            <div className="brief-head"><p className="eyebrow">调查助手</p>
+              <button className="secondary" disabled={briefBusy||!!briefOff} onClick={()=>investigate(!!brief)}>{briefBusy?'调查中…':brief?'重新调查':'调查'}</button></div>
+            {briefOff?<p className="brief-empty">{briefOff}</p>
+              :brief?<>
+                {brief.outcome==='COMPLETE'&&brief.recommendation
+                  ?<p className="brief-verdict">建议 <b>{ACTION_LABEL[brief.recommendation]}</b>{brief.evidenceStrength&&<span className={`band ${brief.evidenceStrength.toLowerCase()}`}>{EVIDENCE_LABEL[brief.evidenceStrength]}</span>}</p>
+                  :<p className="brief-verdict incomplete">{brief.outcome==='PARTIAL'?'调查未完成':'助手没有得出结论'}</p>}
+                <p className="brief-summary">{brief.summary}</p>
+                {brief.counterEvidence&&<p className="brief-against"><b>反过来说</b>{brief.counterEvidence}</p>}
+                <p className="brief-meta">{brief.promptVersion} · 引用 {brief.citedCaseIds.length} 个案件 · {new Date(brief.producedAt).toLocaleString('zh-CN')}</p>
+              </>
+              :<p className="brief-empty">尚未调查。助手会查作者过往处理记录与同规则先例，只读，不改变案件，最终处置仍由你决定。</p>}
+          </section>
           {detail.moderationCase.status==='AWAITING_REVIEW'&&<div className="assignment-row"><span>{detail.moderationCase.assignedTo?`已由 ${detail.moderationCase.assignedTo.slice(0,8)} 认领`:'尚未认领'}</span>
             {detail.moderationCase.assignedTo?<button className="secondary" onClick={()=>mutateCase(`/api/admin/moderation-cases/${detail.moderationCase.id}/assignment`,{method:'DELETE'})}>释放</button>:<button className="secondary" onClick={()=>mutateCase(`/api/admin/moderation-cases/${detail.moderationCase.id}/assignment`,{method:'POST'})}>认领</button>}</div>}
           {detail.moderationCase.status==='RESOLVED'&&<p className="resolved-banner">最终处理：{detail.moderationCase.finalAction}</p>}

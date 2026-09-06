@@ -1,0 +1,236 @@
+package com.campusguard.moderation.investigation;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.campusguard.AbstractIntegrationTest;
+import com.campusguard.audit.AuditActorType;
+import com.campusguard.audit.AuditEntry;
+import com.campusguard.audit.AuditEntryRepository;
+import com.campusguard.common.TargetType;
+import com.campusguard.moderation.FinalAction;
+import com.campusguard.moderation.ModerationCase;
+import com.campusguard.moderation.ModerationCaseRepository;
+import com.campusguard.moderation.ModerationDecision;
+import com.campusguard.moderation.engine.ModerationVerdict;
+import com.campusguard.post.Post;
+import com.campusguard.post.PostRepository;
+import com.campusguard.user.User;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+/**
+ * The endpoints, with the assistant switched off — which is how it ships.
+ *
+ * <p>That is not a gap in coverage. Off is the default and therefore the
+ * configuration almost every deployment runs, so the behaviour worth pinning
+ * first is what a reviewer meets there: a clear answer rather than a 500 or a
+ * missing route. The loop itself is covered against a scripted model, and
+ * against a real one behind an environment variable.
+ *
+ * <p>Reading a brief back is exercised by writing one through the service, which
+ * is also the only way to get one without a model. It happens to test the part
+ * most likely to rot: the round trip through a JSONB column.
+ */
+class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
+
+    @Autowired
+    private InvestigationService service;
+
+    @Autowired
+    private ModerationCaseRepository cases;
+
+    @Autowired
+    private PostRepository posts;
+
+    @Autowired
+    private AuditEntryRepository auditEntries;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Test
+    void saysTheAssistantIsNotEnabledRatherThanFailing() throws Exception {
+        User admin = newAdmin();
+        UUID caseId = awaitingReviewCase(newUser());
+
+        mockMvc.perform(post("/api/admin/moderation-cases/{id}/investigate", caseId)
+                        .header("Authorization", bearer(admin)))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.title").value("Not enabled"))
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("not enabled")));
+    }
+
+    /**
+     * A case nobody has investigated is an ordinary case, not a missing one. 404
+     * here would have the console show an error on every case it opens.
+     */
+    @Test
+    void returnsNoContentWhenNothingHasBeenInvestigated() throws Exception {
+        User admin = newAdmin();
+        UUID caseId = awaitingReviewCase(newUser());
+
+        mockMvc.perform(get("/api/admin/moderation-cases/{id}/investigation", caseId)
+                        .header("Authorization", bearer(admin)))
+                .andExpect(status().isNoContent());
+    }
+
+    /** The prefix carries the protection; this asserts that a new controller under it inherited that. */
+    @Test
+    void refusesAnyoneWhoIsNotAnAdministrator() throws Exception {
+        UUID caseId = awaitingReviewCase(newUser());
+
+        mockMvc.perform(get("/api/admin/moderation-cases/{id}/investigation", caseId)
+                        .header("Authorization", bearer(newUser())))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/admin/moderation-cases/{id}/investigate", caseId))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * The round trip through JSONB, which is the part with a way of being quietly
+     * wrong: a field that stops deserialising comes back null rather than
+     * failing, and a null recommendation renders as a brief that recommends
+     * nothing.
+     */
+    @Test
+    void readsBackEveryFieldOfAStoredBrief() throws Exception {
+        User admin = newAdmin();
+        UUID caseId = awaitingReviewCase(newUser());
+        UUID cited = UUID.randomUUID();
+
+        service.record(admin.getId(), caseId, new InvestigationBriefView(
+                InvestigationBriefView.COMPLETE,
+                "Two prior hides under the same rule.",
+                FinalAction.BAN,
+                EvidenceStrength.SETTLED,
+                "The content is milder than the earlier posts.",
+                List.of(cited),
+                "inv-v3",
+                Instant.now()));
+
+        mockMvc.perform(get("/api/admin/moderation-cases/{id}/investigation", caseId)
+                        .header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.outcome").value("COMPLETE"))
+                .andExpect(jsonPath("$.recommendation").value("BAN"))
+                .andExpect(jsonPath("$.evidenceStrength").value("SETTLED"))
+                .andExpect(jsonPath("$.counterEvidence").value("The content is milder than the earlier posts."))
+                .andExpect(jsonPath("$.citedCaseIds[0]").value(cited.toString()))
+                .andExpect(jsonPath("$.promptVersion").value("inv-v3"));
+    }
+
+    /**
+     * The newer brief wins.
+     *
+     * <p>A reviewer who asked again did so because something changed, and being
+     * shown the answer from before it changed is worse than being shown nothing.
+     */
+    @Test
+    void returnsTheMostRecentBriefWhenACaseHasBeenInvestigatedTwice() throws Exception {
+        User admin = newAdmin();
+        UUID caseId = awaitingReviewCase(newUser());
+
+        service.record(admin.getId(), caseId, view("An early look.", FinalAction.HIDE, Instant.now().minusSeconds(600)));
+        service.record(admin.getId(), caseId, view("A later look.", FinalAction.BAN, Instant.now()));
+
+        mockMvc.perform(get("/api/admin/moderation-cases/{id}/investigation", caseId)
+                        .header("Authorization", bearer(admin)))
+                .andExpect(jsonPath("$.summary").value("A later look."))
+                .andExpect(jsonPath("$.recommendation").value("BAN"));
+    }
+
+    /**
+     * A brief cost money and may end up quoted in the reasoning for a ban, so the
+     * trail says who asked for it and records it as a person's action rather than
+     * the system's.
+     */
+    @Test
+    void writesTheBriefIntoTheAuditTrailAgainstTheAdministratorWhoAskedForIt() {
+        User admin = newAdmin();
+        UUID caseId = awaitingReviewCase(newUser());
+        ModerationCase subject = cases.findById(caseId).orElseThrow();
+
+        service.record(admin.getId(), caseId, view("A summary.", FinalAction.HIDE, Instant.now()));
+
+        List<AuditEntry> trail = auditEntries.findByTargetTypeAndTargetIdOrderByCreatedAtAsc(
+                subject.getTargetType(), subject.getTargetId());
+
+        assertThat(trail)
+                .filteredOn(entry -> InvestigationService.INVESTIGATION_RECORDED.equals(entry.getAction()))
+                .singleElement()
+                .satisfies(entry -> {
+                    assertThat(entry.getActorType()).isEqualTo(AuditActorType.ADMIN);
+                    assertThat(entry.getActorId()).isEqualTo(admin.getId());
+                    assertThat(entry.getPayload()).containsEntry("caseId", caseId.toString());
+                });
+    }
+
+    /**
+     * Briefs are found by the case in their payload, not merely by the content
+     * they concern. The audit trail is keyed by target, and one piece of content
+     * can be reported, resolved and reported again.
+     */
+    @Test
+    void doesNotReturnABriefWrittenForADifferentCaseOnTheSameContent() throws Exception {
+        User admin = newAdmin();
+        User author = newUser();
+        UUID first = awaitingReviewCase(author);
+        ModerationCase subject = cases.findById(first).orElseThrow();
+
+        service.record(admin.getId(), first, view("About the first case.", FinalAction.HIDE, Instant.now()));
+
+        // A second case on the same content, as happens when content is reported
+        // again after an earlier report was dismissed.
+        UUID second = new TransactionTemplate(transactionManager).execute(status -> {
+            ModerationCase reopened = cases.findById(first).orElseThrow();
+            reopened.resolve(admin, FinalAction.NONE);
+            cases.saveAndFlush(reopened);
+
+            cases.openCaseIfAbsent(TargetType.POST.name(), subject.getTargetId());
+            return cases.findOpenCaseId(TargetType.POST, subject.getTargetId()).orElseThrow();
+        });
+
+        mockMvc.perform(get("/api/admin/moderation-cases/{id}/investigation", second)
+                        .header("Authorization", bearer(admin)))
+                .andExpect(status().isNoContent());
+    }
+
+    private InvestigationBriefView view(String summary, FinalAction recommendation, Instant at) {
+        return new InvestigationBriefView(
+                InvestigationBriefView.COMPLETE,
+                summary,
+                recommendation,
+                EvidenceStrength.LEANING,
+                "Something that argues the other way.",
+                List.of(),
+                "inv-v3",
+                at);
+    }
+
+    private UUID awaitingReviewCase(User author) {
+        return new TransactionTemplate(transactionManager).execute(status -> {
+            Post post = posts.saveAndFlush(new Post(uniqueForumKey(), author, "A title", "A body"));
+
+            cases.openCaseIfAbsent(TargetType.POST.name(), post.getId());
+            UUID caseId = cases.findOpenCaseId(TargetType.POST, post.getId()).orElseThrow();
+
+            ModerationCase moderationCase = cases.findById(caseId).orElseThrow();
+            moderationCase.markAnalysing();
+            moderationCase.recordVerdict(
+                    "keyword-v1",
+                    new ModerationVerdict(ModerationDecision.REMOVE, 0.8, "A test verdict.", List.of("ABUSE")));
+
+            return cases.saveAndFlush(moderationCase).getId();
+        });
+    }
+}
