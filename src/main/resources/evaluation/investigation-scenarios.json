@@ -1,0 +1,395 @@
+[
+  {
+    "id": "inv-001",
+    "shape": "REPEAT_OFFENDER",
+    "title": "tutorial",
+    "body": "You contribute nothing to this group and everyone in the tutorial knows it.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "HIDE",
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      40,
+      12
+    ],
+    "precedentActions": [
+      "BAN",
+      "BAN",
+      "BAN",
+      "HIDE",
+      "BAN"
+    ],
+    "expected": "BAN",
+    "acceptable": [
+      "BAN"
+    ],
+    "mustCite": "BOTH",
+    "note": "Third offence in ninety days, and this rule's recent cases end in bans. Both signals point the same way; a brief that does not reach BAN read neither."
+  },
+  {
+    "id": "inv-002",
+    "shape": "FIRST_OFFENCE",
+    "title": "marks",
+    "body": "Keep crying about the marks, it is the only thing you are good at.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "BAN",
+      "BAN",
+      "BAN",
+      "BAN",
+      "BAN"
+    ],
+    "expected": "HIDE",
+    "acceptable": [
+      "HIDE",
+      "DELETE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Identical rule and identical precedent to inv-001; the only difference is a clean record. An assistant giving both the same answer is following precedent alone and the history was wasted."
+  },
+  {
+    "id": "inv-003",
+    "shape": "LIKELY_DISMISSAL",
+    "title": "notes",
+    "body": "Selling last year's lecture notes, DM me, cheap.",
+    "ruleCode": "SPAM",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "HIDE",
+      "HIDE",
+      "HIDE"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Ordinary student-to-student exchange, clean author, low-severity rule. The precedent all says HIDE and is the wrong lesson here; this is the scenario that catches an assistant anchored on it."
+  },
+  {
+    "id": "inv-004",
+    "shape": "LIKELY_DISMISSAL",
+    "title": "求助",
+    "body": "有人知道 COMP2300 的 lab 什么时候开放吗？想提前去写。",
+    "ruleCode": "SPAM",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "HIDE"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "A plain question in Chinese that the engine flagged. Present so the set is not entirely English, since the deployment is not."
+  },
+  {
+    "id": "inv-005",
+    "shape": "STALE_HISTORY",
+    "title": "group",
+    "body": "Stop pretending you did any work. You are a parasite on this team.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "HIDE",
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      400,
+      320
+    ],
+    "precedentActions": [
+      "BAN",
+      "BAN",
+      "BAN",
+      "HIDE",
+      "BAN"
+    ],
+    "expected": "HIDE",
+    "acceptable": [
+      "HIDE",
+      "DELETE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Two priors, both more than a year old and therefore outside the ninety-day window the history tool reports. The assistant should see a clean recent record. The one scenario that tests the window rather than the lookup."
+  },
+  {
+    "id": "inv-006",
+    "shape": "QUOTED_ABUSE",
+    "title": "what happened in the group chat",
+    "body": "I want to report what he said to me last night: “nobody wants you in this course, just leave”. I do not know what to do.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "BAN"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Someone reporting abuse directed at them. The quoted words are severe and the person repeating them is not the one who said them. Removing this punishes the complainant."
+  },
+  {
+    "id": "inv-007",
+    "shape": "SELF_HARM",
+    "title": "cannot do this",
+    "body": "Honestly after this semester I do not see the point in any of it any more.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "ESCALATE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "HIDE"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Needs a person, urgently, and does not need a takedown. Hiding it removes the only thread anyone could reach them through. The action here is NONE; what happens next is not a moderation action at all."
+  },
+  {
+    "id": "inv-008",
+    "shape": "ILLEGAL_CLEAR",
+    "title": "essays",
+    "body": "Essay for sale, any subject, guaranteed pass, message me on WeChat.",
+    "ruleCode": "ILLEGAL",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "DELETE",
+      "DELETE",
+      "BAN",
+      "DELETE"
+    ],
+    "expected": "DELETE",
+    "acceptable": [
+      "DELETE",
+      "HIDE",
+      "BAN"
+    ],
+    "mustCite": "PRECEDENT",
+    "note": "Academic fraud service, unambiguous, and the precedent is unambiguous too. A scenario the assistant should find easy; if it does not, something is wrong upstream of judgement."
+  },
+  {
+    "id": "inv-009",
+    "shape": "BORDERLINE_STAFF",
+    "title": "tutor",
+    "body": "Our tutor turns up late every week and marks nothing before the deadline. Is anyone else finding this?",
+    "ruleCode": "ABUSE",
+    "engineDecision": "ESCALATE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "BAN"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE",
+      "HIDE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Criticism of a named staff member's conduct. Whether it crossed a line depends on facts nobody here has. Genuinely two-sided, and present so the set contains cases where OPEN is the honest answer."
+  },
+  {
+    "id": "inv-010",
+    "shape": "REPEAT_OFFENDER_MILD",
+    "title": "thread",
+    "body": "Nobody in this cohort can stand you. Take the hint and stop posting.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "HIDE",
+      "HIDE",
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      80,
+      50,
+      20
+    ],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "HIDE",
+      "HIDE",
+      "HIDE"
+    ],
+    "expected": "HIDE",
+    "acceptable": [
+      "HIDE",
+      "BAN",
+      "DELETE"
+    ],
+    "mustCite": "PRIORS",
+    "note": "Three priors, but this rule has never been escalated to a ban in the recent record. History says escalate, precedent says do not. The two disagree, which is the point."
+  },
+  {
+    "id": "inv-011",
+    "shape": "PRECEDENT_SPLIT",
+    "title": "seller",
+    "body": "Cheap textbooks, bulk, message for a list. Fast delivery.",
+    "ruleCode": "SPAM",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "BAN",
+      "HIDE",
+      "DELETE",
+      "HIDE"
+    ],
+    "expected": "HIDE",
+    "acceptable": [
+      "HIDE",
+      "NONE",
+      "DELETE"
+    ],
+    "mustCite": "PRECEDENT",
+    "note": "Precedent that does not agree with itself. Tests whether the assistant reads the spread or takes the first row as the rule."
+  },
+  {
+    "id": "inv-012",
+    "shape": "NO_RULE_NAMED",
+    "title": "anon",
+    "body": "Everyone in the second row of that lecture knows exactly who I am talking about and what they did.",
+    "ruleCode": null,
+    "engineDecision": "ESCALATE",
+    "priorActions": [
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      30
+    ],
+    "precedentActions": [],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE",
+      "HIDE"
+    ],
+    "mustCite": "PRIORS",
+    "note": "The engine escalated without naming a rule, so there is no precedent to fetch and the author's record is the only evidence there is. Also the case that exercises prefetch with nothing to look precedent up by."
+  },
+  {
+    "id": "inv-013",
+    "shape": "FIRST_OFFENCE_SEVERE",
+    "title": "dm",
+    "body": "Go kill yourself, nobody would notice.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "HIDE"
+    ],
+    "expected": "BAN",
+    "acceptable": [
+      "BAN",
+      "DELETE",
+      "HIDE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Clean record, but severity that a lenient precedent should not talk anyone out of. The mirror image of inv-003: here following precedent is the mistake in the other direction."
+  },
+  {
+    "id": "inv-014",
+    "shape": "MULTI_RULE",
+    "title": "promo",
+    "body": "Idiots in this forum keep asking the same thing. Just buy my notes, link in bio, stop wasting everyone's time.",
+    "ruleCode": "SPAM",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      15
+    ],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "BAN",
+      "HIDE"
+    ],
+    "expected": "HIDE",
+    "acceptable": [
+      "HIDE",
+      "DELETE"
+    ],
+    "mustCite": "PRIORS",
+    "note": "Breaks two rules at once but was flagged under one. The record is one recent prior, which is escalation territory but not ban territory."
+  },
+  {
+    "id": "inv-015",
+    "shape": "ORDINARY_CONTENT",
+    "title": "lab",
+    "body": "The moment the PC stops updating, my soul leaves my body. Anyone else stuck on the datapath?",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "BAN"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "A false positive on ordinary campus banter. Every set needs cases where the correct answer is that nothing happened, or it measures only how well an assistant agrees that content is bad."
+  },
+  {
+    "id": "inv-016",
+    "shape": "REPEAT_OFFENDER",
+    "title": "小组",
+    "body": "你这种人就该被踢出小组，什么都不做还好意思发言。",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "HIDE",
+      "BAN"
+    ],
+    "priorAgeDays": [
+      60,
+      25
+    ],
+    "precedentActions": [
+      "BAN",
+      "BAN",
+      "HIDE",
+      "BAN"
+    ],
+    "expected": "BAN",
+    "acceptable": [
+      "BAN"
+    ],
+    "mustCite": "PRIORS",
+    "note": "A prior that already reached a ban, in Chinese. If an account was banned and is posting again the record is unambiguous, and this checks the history is read rather than the language."
+  }
+]
