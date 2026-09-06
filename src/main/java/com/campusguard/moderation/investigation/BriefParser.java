@@ -59,7 +59,7 @@ public class BriefParser {
         String summary = readText(root, "summary");
         String counterEvidence = readText(root, "counterEvidence");
         FinalAction recommendation = readRecommendation(root);
-        double confidence = readConfidence(root);
+        EvidenceStrength strength = readEvidenceStrength(root);
         List<UUID> cited = readCitations(root);
 
         // The prose is checked too. A reviewer reads the summary; whether an id in
@@ -79,7 +79,7 @@ public class BriefParser {
         }
 
         return new InvestigationBrief.Complete(
-                summary, recommendation, confidence, counterEvidence, List.copyOf(named));
+                summary, recommendation, strength, counterEvidence, List.copyOf(named));
     }
 
     private String readText(JsonNode root, String field) {
@@ -111,20 +111,41 @@ public class BriefParser {
         }
     }
 
-    private double readConfidence(JsonNode root) {
+    /**
+     * Accepts a band or, from the earlier prompt versions, a number.
+     *
+     * <p>Both shapes rather than one, because the versions that ask for a number
+     * stay registered so that going back to them is a configuration change. A
+     * parser that only understood the current contract would make that switch a
+     * lie: the old wording would run and every brief would be rejected.
+     */
+    private EvidenceStrength readEvidenceStrength(JsonNode root) {
         JsonNode node = root.get("confidence");
 
-        if (node == null || !node.isNumber()) {
-            throw new InvalidBriefException("Field 'confidence' is missing or not a number.");
+        if (node == null || node.isNull()) {
+            throw new InvalidBriefException("Field 'confidence' is missing.");
         }
 
-        double value = node.asDouble();
-        if (value < 0 || value > 1) {
+        if (node.isNumber()) {
+            double value = node.asDouble();
+            if (value < 0 || value > 1) {
+                throw new InvalidBriefException(
+                        "Field 'confidence' was %s. It must be between 0 and 1.".formatted(node.asText()));
+            }
+            return EvidenceStrength.ofNumber(value);
+        }
+
+        if (!node.isTextual()) {
+            throw new InvalidBriefException("Field 'confidence' must be one of SETTLED, LEANING or OPEN.");
+        }
+
+        try {
+            return EvidenceStrength.valueOf(node.asText().trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
             throw new InvalidBriefException(
-                    "Field 'confidence' was %s. It must be between 0 and 1.".formatted(node.asText()));
+                    "Field 'confidence' was '%s'. It must be exactly SETTLED, LEANING or OPEN."
+                            .formatted(node.asText()));
         }
-
-        return value;
     }
 
     private List<UUID> readCitations(JsonNode root) {

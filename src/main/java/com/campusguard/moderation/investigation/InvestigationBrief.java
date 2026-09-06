@@ -28,6 +28,8 @@ public sealed interface InvestigationBrief {
      * @param recommendation a suggestion and nothing more. Acting on it is still
      *     {@code AdminModerationService.decide}, which remains the only place
      *     content is removed or an account banned.
+     * @param evidenceStrength how far what was found settles the question. A band
+     *     rather than a number, for the reasons in {@link EvidenceStrength}.
      * @param counterEvidence the case against the recommendation, required rather
      *     than optional. A brief that only argues one way reads as authority, and
      *     the reviewer's job is to disagree with it when it is wrong — which they
@@ -36,7 +38,7 @@ public sealed interface InvestigationBrief {
     record Complete(
             String summary,
             FinalAction recommendation,
-            double confidence,
+            EvidenceStrength evidenceStrength,
             String counterEvidence,
             List<UUID> citedCaseIds)
             implements InvestigationBrief {

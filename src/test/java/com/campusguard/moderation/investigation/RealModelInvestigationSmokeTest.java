@@ -61,7 +61,7 @@ import org.springframework.transaction.support.TransactionTemplate;
             // Under a name of its own, because a placeholder whose default names
             // the property it is filling in is a circular reference and Spring
             // refuses to start on it.
-            "campusguard.moderation.investigator.prompt-version=${investigation.prompt:inv-v2}"
+            "campusguard.moderation.investigator.prompt-version=${investigation.prompt:inv-v3}"
         })
 @EnabledIfEnvironmentVariable(named = "GEMINI_API_KEY", matches = ".+")
 class RealModelInvestigationSmokeTest extends AbstractIntegrationTest {
@@ -145,16 +145,24 @@ class RealModelInvestigationSmokeTest extends AbstractIntegrationTest {
                     outcome.steps(),
                     outcome.promptTokens()));
 
-            outcome.rows().forEach(row -> out.append("      call %d  %-16s %s%n".formatted(
+            // Which tools were called, not just how many turns there were. Without
+            // this, a brief that reached a different conclusion is unattributable:
+            // a model that skipped the precedent lookup and one that read it and
+            // disagreed produce the same step count and very different answers.
+            outcome.rows().forEach(row -> out.append("      call %d  %-12s %s%n".formatted(
                     row.getAttempt(),
                     row.getStatus(),
-                    row.getStatus() == InvocationStatus.SUCCESS ? "" : String.valueOf(row.getError()))));
+                    row.getStatus() == InvocationStatus.SUCCESS
+                            ? String.valueOf(row.getRawResponse() == null
+                                    ? "(no response recorded)"
+                                    : row.getRawResponse().getOrDefault("toolCalls", "wrote the brief"))
+                            : String.valueOf(row.getError()))));
 
             out.append("      summary: ").append(outcome.brief().summary()).append('\n');
 
             if (outcome.brief() instanceof InvestigationBrief.Complete complete) {
-                out.append("      recommends %s at %.2f, citing %d case(s)%n".formatted(
-                        complete.recommendation(), complete.confidence(), complete.citedCaseIds().size()));
+                out.append("      recommends %s, evidence %s, citing %d case(s)%n".formatted(
+                        complete.recommendation(), complete.evidenceStrength(), complete.citedCaseIds().size()));
                 out.append("      against:  ").append(complete.counterEvidence()).append('\n');
             }
         }
@@ -178,6 +186,15 @@ class RealModelInvestigationSmokeTest extends AbstractIntegrationTest {
 
         out.append("recommendations: %s (%d distinct)%n".formatted(
                 String.join(", ", recommendations), Set.copyOf(recommendations).size()));
+
+        List<String> strengths = outcomes.stream()
+                .map(outcome -> outcome.brief() instanceof InvestigationBrief.Complete complete
+                        ? complete.evidenceStrength().name()
+                        : "-")
+                .toList();
+
+        out.append("evidence:        %s (%d distinct)%n".formatted(
+                String.join(", ", strengths), Set.copyOf(strengths).size()));
 
         System.out.println(out);
     }

@@ -82,14 +82,14 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
         ScriptedModel model = new ScriptedModel()
                 .thenCalls("authorHistory")
                 .thenCalls("similarResolvedCases", "{\"ruleCode\":\"ABUSE\"}")
-                .thenAnswers(brief("BAN", 0.7, List.of(priorCase)));
+                .thenAnswers(brief("BAN", 0.7, List.of(priorCase)));  // numeric, as v1 and v2 emit
 
         InvestigationBrief result = investigator(model).investigate(caseId);
 
         assertThat(result).isInstanceOf(InvestigationBrief.Complete.class);
         InvestigationBrief.Complete complete = (InvestigationBrief.Complete) result;
         assertThat(complete.recommendation()).isEqualTo(FinalAction.BAN);
-        assertThat(complete.confidence()).isEqualTo(0.7);
+        assertThat(complete.evidenceStrength()).isEqualTo(EvidenceStrength.LEANING);
         assertThat(complete.counterEvidence()).isNotBlank();
         assertThat(complete.citedCaseIds()).containsExactly(priorCase);
 
@@ -133,8 +133,8 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
         UUID neverRead = UUID.randomUUID();
 
         ScriptedModel fabricates = new ScriptedModel()
-                .thenAnswers(brief("BAN", 0.9, List.of(neverRead)))
-                .thenAnswers(brief("BAN", 0.9, List.of(neverRead)));
+                .thenAnswers(brief("BAN", "SETTLED", List.of(neverRead)))
+                .thenAnswers(brief("BAN", "SETTLED", List.of(neverRead)));
 
         InvestigationBrief result = investigator(fabricates).investigate(caseId);
 
@@ -155,7 +155,7 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
         UUID neverRead = UUID.randomUUID();
 
         String smuggled = json(
-                "The author was already banned in case " + neverRead + ".", "BAN", 0.9, "None.", List.of());
+                "The author was already banned in case " + neverRead + ".", "BAN", "SETTLED", "None.", List.of());
 
         ScriptedModel model = new ScriptedModel().thenAnswers(smuggled).thenAnswers(smuggled);
 
@@ -172,8 +172,8 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
 
         ScriptedModel model = new ScriptedModel()
                 .thenCalls("authorHistory")
-                .thenAnswers(brief("BAN", 0.9, List.of(UUID.randomUUID())))
-                .thenAnswers(brief("HIDE", 0.6, List.of(priorCase)));
+                .thenAnswers(brief("BAN", "SETTLED", List.of(UUID.randomUUID())))
+                .thenAnswers(brief("HIDE", "LEANING", List.of(priorCase)));
 
         InvestigationBrief result = investigator(model).investigate(caseId);
 
@@ -246,7 +246,7 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
         ScriptedModel model = new ScriptedModel()
                 .thenCalls("banUser", "{\"userId\":\"anyone\"}")
                 .thenCalls("authorHistory")
-                .thenAnswers(brief("HIDE", 0.5, List.of(priorCase)));
+                .thenAnswers(brief("HIDE", "OPEN", List.of(priorCase)));
 
         assertThat(investigator(model).investigate(caseId)).isInstanceOf(InvestigationBrief.Complete.class);
         assertThat(model.calls()).isEqualTo(3);
@@ -278,14 +278,57 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
         UUID priorCase = resolvedCase(author, "ABUSE");
         UUID caseId = awaitingReviewCase(author, "ABUSE");
 
-        investigator(new ScriptedModel().thenAnswers(brief("HIDE", 0.5, List.of()))).investigate(caseId);
+        investigator(new ScriptedModel().thenAnswers(brief("HIDE", "OPEN", List.of()))).investigate(caseId);
 
         InvestigationBrief second = investigator(new ScriptedModel()
                         .thenCalls("authorHistory")
-                        .thenAnswers(brief("BAN", 0.8, List.of(priorCase))))
+                        .thenAnswers(brief("BAN", "SETTLED", List.of(priorCase))))
                 .investigate(caseId);
 
         assertThat(second).isInstanceOf(InvestigationBrief.Complete.class);
+    }
+
+    /**
+     * Both shapes of the confidence field, because both are in use.
+     *
+     * <p>inv-v3 asks for a band; inv-v1 and inv-v2 ask for a number and stay
+     * registered so that going back to them is a configuration change. A parser
+     * that understood only the current contract would make that switch a lie —
+     * the old wording would run and every brief it produced would be rejected.
+     */
+    @Test
+    void readsBothTheBandAndTheNumberTheOlderWordingsProduce() {
+        UUID settled = awaitingReviewCase(newUser(), "ABUSE");
+        UUID leaning = awaitingReviewCase(newUser(), "ABUSE");
+        UUID open = awaitingReviewCase(newUser(), "ABUSE");
+
+        assertThat(complete(settled, brief("HIDE", "SETTLED", List.of())).evidenceStrength())
+                .isEqualTo(EvidenceStrength.SETTLED);
+
+        // 0.85, which is what v1 and v2 produced seven times out of nine.
+        assertThat(complete(leaning, brief("HIDE", 0.85, List.of())).evidenceStrength())
+                .isEqualTo(EvidenceStrength.SETTLED);
+
+        assertThat(complete(open, brief("HIDE", 0.4, List.of())).evidenceStrength())
+                .isEqualTo(EvidenceStrength.OPEN);
+    }
+
+    @Test
+    void refusesAConfidenceThatIsNeitherABandNorANumberInRange() {
+        UUID caseId = awaitingReviewCase(newUser(), "ABUSE");
+
+        ScriptedModel model = new ScriptedModel()
+                .thenAnswers(brief("HIDE", "VERY_SURE", List.of()))
+                .thenAnswers(brief("HIDE", 1.4, List.of()));
+
+        assertThat(investigator(model).investigate(caseId))
+                .isInstanceOf(InvestigationBrief.Inconclusive.class);
+    }
+
+    private InvestigationBrief.Complete complete(UUID caseId, String answer) {
+        InvestigationBrief brief = investigator(new ScriptedModel().thenAnswers(answer)).investigate(caseId);
+        assertThat(brief).isInstanceOf(InvestigationBrief.Complete.class);
+        return (InvestigationBrief.Complete) brief;
     }
 
     // --- harness -------------------------------------------------------------
@@ -304,7 +347,7 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
                 new InvestigatorProperties(true, MAX_STEPS, 1, "test-v1"));
     }
 
-    private String brief(String recommendation, double confidence, List<UUID> cited) {
+    private String brief(String recommendation, Object confidence, List<UUID> cited) {
         return json(
                 "A summary a reviewer could read.",
                 recommendation,
@@ -313,8 +356,9 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
                 cited);
     }
 
+    /** @param confidence a band, or a number, since the parser still accepts both from the older wordings */
     private String json(
-            String summary, String recommendation, double confidence, String counter, List<UUID> cited) {
+            String summary, String recommendation, Object confidence, String counter, List<UUID> cited) {
         try {
             return mapper.writeValueAsString(new java.util.LinkedHashMap<>(java.util.Map.of(
                     "summary", summary,
