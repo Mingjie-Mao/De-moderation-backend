@@ -117,12 +117,21 @@ for it.
 briefs converged in two to four lookups of a budget of five, at roughly four
 times the tokens of a verdict, with no fabricated citations.
 
-**Known.** The recommendation is not stable across runs. Two runs over identical
-cases gave a repeat offender BAN once and HIDE once, and the difference tracks
-whether the model chose to call the precedent lookup — temperature is 0, but tool
-choice diverges and the context diverges with it. Fetching the two lookups that
-always matter before the first turn, rather than leaving them to the model, is
-the obvious next step and would also save a turn.
+The author's record and the precedent for the flagged rules are fetched before
+the model is asked anything, rather than left to it to request. That was a fix
+for briefs disagreeing between runs — the difference tracked whether the model
+had happened to look up precedent that turn — and it halved the tokens as a side
+effect, since the brief is now usually written in a single call.
+
+**Known.** Two of the three cases became identical across runs; one still flips
+between a ban and a takedown. That remainder is the model's own output varying
+at temperature 0, which no change to the loop can remove. What makes it
+survivable is that a case is investigated once and the brief is stored, so two
+reviewers comparing notes are reading the same one.
+
+Supplying precedent every time also anchors on it: a case that sometimes got
+NONE when the model had judged the content alone now follows the precedent it is
+always shown. That is a real trade, not a free win.
 
 ## Features
 

@@ -5,6 +5,7 @@ import com.campusguard.moderation.CaseStatus;
 import com.campusguard.moderation.ModerationCase;
 import com.campusguard.moderation.ModerationCaseRepository;
 import com.campusguard.moderation.admin.AdminModerationService;
+import com.campusguard.moderation.admin.ModerationCaseDetail;
 import com.campusguard.moderation.engine.ai.AiInvocationRecorder;
 import com.campusguard.moderation.engine.ai.InvocationStatus;
 import com.campusguard.moderation.engine.ai.ModelCallException;
@@ -90,12 +91,33 @@ public class CaseInvestigator {
         // run is a distinct event that should be recorded as one.
         UUID investigationId = UUID.randomUUID();
 
+        ModerationCaseDetail detail = cases.get(caseId);
+
         List<ToolCallingPort.Message> history =
-                new ArrayList<>(List.of(new ToolCallingPort.Message.Prompt(prompt.opening(cases.get(caseId)))));
+                new ArrayList<>(List.of(new ToolCallingPort.Message.Prompt(prompt.opening(detail))));
 
         // Everything the tools have actually shown. The brief may cite from here
         // and nowhere else.
         Set<UUID> disclosed = new LinkedHashSet<>();
+
+        // Evidence the wording says is already in hand, gathered before the model
+        // is asked anything.
+        //
+        // Two runs of the same case used to disagree — a repeat offender came back
+        // BAN once and HIDE once — and the difference was whether the model had
+        // chosen to look up precedent that turn. Temperature is zero, but tool
+        // choice is a fork and the context forks with it. Making the lookups that
+        // always matter someone else's decision removes the fork, and costs a
+        // turn less rather than more.
+        //
+        // Through the registry, not around it: the whitelist, the read-only
+        // transaction and the record of what was disclosed are all it, and a
+        // second path into the tools would have none of them.
+        List<ToolCall> prefetch = prompt.prefetch(detail);
+        if (!prefetch.isEmpty()) {
+            history.add(new ToolCallingPort.Message.ToolRequest(prefetch));
+            history.add(new ToolCallingPort.Message.ToolOutcome(runTools(caseId, prefetch, disclosed)));
+        }
 
         int callNumber = 0;
         int corrections = 0;
@@ -147,15 +169,8 @@ public class CaseInvestigator {
                 continue;
             }
 
-            List<ToolResult> results = new ArrayList<>();
-            for (ToolCall call : calls) {
-                ToolResult result = tools.execute(caseId, call);
-                disclosed.addAll(result.disclosedCaseIds());
-                results.add(result);
-            }
-
             history.add(new ToolCallingPort.Message.ToolRequest(calls));
-            history.add(new ToolCallingPort.Message.ToolOutcome(results));
+            history.add(new ToolCallingPort.Message.ToolOutcome(runTools(caseId, calls, disclosed)));
         }
 
         log.info("Investigation of case {} used its whole budget of {} steps without concluding.",
@@ -165,6 +180,19 @@ public class CaseInvestigator {
                 "The assistant was still gathering evidence after %d lookups and did not reach a conclusion. "
                         .formatted(properties.maxSteps())
                         + "Review this case without it.");
+    }
+
+    /** Runs a batch of lookups and remembers what they revealed, whoever asked for them. */
+    private List<ToolResult> runTools(UUID caseId, List<ToolCall> calls, Set<UUID> disclosed) {
+        List<ToolResult> results = new ArrayList<>();
+
+        for (ToolCall call : calls) {
+            ToolResult result = tools.execute(caseId, call);
+            disclosed.addAll(result.disclosedCaseIds());
+            results.add(result);
+        }
+
+        return results;
     }
 
     /**

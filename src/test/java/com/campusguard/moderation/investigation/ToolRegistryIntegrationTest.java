@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -49,6 +50,9 @@ class ToolRegistryIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private PlatformTransactionManager transactionManager;
+
+    /** Cases this test left awaiting review, resolved afterwards so the shared queue does not grow. */
+    private final List<UUID> leftInQueue = new java.util.ArrayList<>();
 
     @Autowired
     private ObjectMapper mapper;
@@ -214,6 +218,35 @@ class ToolRegistryIntegrationTest extends AbstractIntegrationTest {
         return template;
     }
 
+    /**
+     * Leaves the shared review queue as it was found.
+     *
+     * <p>These classes create a case per assertion and the database is shared by
+     * the whole suite, so without this they pile up: a workflow test that fetches
+     * the queue and looks for its own case starts failing once the default page
+     * no longer reaches it. That test's assumption is fragile, but the pollution
+     * is this test's doing, and it is the half that should not exist.
+     *
+     * <p>Resolved with NONE, which is also the outcome kept out of precedent, so
+     * cleaning up cannot quietly become evidence for a later test.
+     */
+    @AfterEach
+    void leaveTheQueueAsItWasFound() {
+        if (leftInQueue.isEmpty()) {
+            return;
+        }
+
+        User admin = newAdmin();
+        new TransactionTemplate(transactionManager).executeWithoutResult(status ->
+                leftInQueue.forEach(id -> cases.findById(id)
+                        .filter(moderationCase -> moderationCase.getStatus() == CaseStatus.AWAITING_REVIEW)
+                        .ifPresent(moderationCase -> {
+                            moderationCase.resolve(admin, FinalAction.NONE);
+                            cases.saveAndFlush(moderationCase);
+                        })));
+        leftInQueue.clear();
+    }
+
     private ToolCall call(String name, String argumentsJson) {
         try {
             return new ToolCall(
@@ -231,7 +264,7 @@ class ToolRegistryIntegrationTest extends AbstractIntegrationTest {
     }
 
     private UUID awaitingReviewCase(User author, String ruleCode) {
-        return caseFor(author, ruleCode, null);
+        return track(caseFor(author, ruleCode, null));
     }
 
     private UUID resolvedCase(User author, String ruleCode, FinalAction action) {
@@ -264,5 +297,10 @@ class ToolRegistryIntegrationTest extends AbstractIntegrationTest {
                     .isEqualTo(action == null ? CaseStatus.AWAITING_REVIEW : CaseStatus.RESOLVED);
             return saved.getId();
         });
+    }
+
+    private UUID track(UUID caseId) {
+        leftInQueue.add(caseId);
+        return caseId;
     }
 }

@@ -61,7 +61,7 @@ import org.springframework.transaction.support.TransactionTemplate;
             // Under a name of its own, because a placeholder whose default names
             // the property it is filling in is a circular reference and Spring
             // refuses to start on it.
-            "campusguard.moderation.investigator.prompt-version=${investigation.prompt:inv-v3}"
+            "campusguard.moderation.investigator.prompt-version=${investigation.prompt:inv-v4}"
         })
 @EnabledIfEnvironmentVariable(named = "GEMINI_API_KEY", matches = ".+")
 class RealModelInvestigationSmokeTest extends AbstractIntegrationTest {

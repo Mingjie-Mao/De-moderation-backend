@@ -7,6 +7,7 @@ import com.campusguard.AbstractIntegrationTest;
 import com.campusguard.common.ConflictException;
 import com.campusguard.common.TargetType;
 import com.campusguard.moderation.FinalAction;
+import com.campusguard.moderation.CaseStatus;
 import com.campusguard.moderation.ModerationCase;
 import com.campusguard.moderation.ModerationCaseRepository;
 import com.campusguard.moderation.ModerationDecision;
@@ -26,6 +27,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -72,6 +74,9 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private PlatformTransactionManager transactionManager;
+
+    /** Cases this test left awaiting review, resolved afterwards so the shared queue does not grow. */
+    private final List<UUID> leftInQueue = new java.util.ArrayList<>();
 
     @Test
     void looksThingsUpAndThenWritesABrief() {
@@ -331,20 +336,136 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
         return (InvestigationBrief.Complete) brief;
     }
 
+    /**
+     * The evidence is in hand before the model says anything.
+     *
+     * <p>This is what removes the variance: two runs of the same case used to
+     * disagree because one had looked up precedent and the other had not. A model
+     * that is handed both cannot fork on whether to fetch them.
+     */
+    @Test
+    void gathersTheLookupsThatAlwaysMatterBeforeTheFirstTurn() {
+        User author = newUser();
+        UUID priorCase = resolvedCase(author, "ABUSE");
+        UUID caseId = awaitingReviewCase(author, "ABUSE");
+
+        RecordingModel model = new RecordingModel(brief("BAN", "SETTLED", List.of(priorCase)));
+
+        InvestigationBrief result = investigator(model, new InvestigationPromptV4(new InvestigationPromptV1()))
+                .investigate(caseId);
+
+        assertThat(result).isInstanceOf(InvestigationBrief.Complete.class);
+
+        // One model call, not two: the first turn already has what it needs.
+        assertThat(model.calls()).isEqualTo(1);
+
+        List<ToolCallingPort.Message> seen = model.lastHistory();
+        assertThat(seen).hasSize(3);
+        assertThat(seen.get(0)).isInstanceOf(ToolCallingPort.Message.Prompt.class);
+        assertThat(((ToolCallingPort.Message.ToolRequest) seen.get(1)).calls())
+                .extracting(ToolCall::name)
+                .containsExactly("authorHistory", "similarResolvedCases");
+        assertThat(((ToolCallingPort.Message.ToolOutcome) seen.get(2)).results())
+                .allSatisfy(toolResult -> assertThat(toolResult.error()).isFalse());
+    }
+
+    /**
+     * Prefetched lookups go through the registry like any other, so what they
+     * revealed is citable. Fetching them around it would leave the parser
+     * rejecting a brief for citing evidence the loop had itself supplied.
+     */
+    @Test
+    void letsTheBriefCiteWhatWasGatheredForIt() {
+        User author = newUser();
+        UUID priorCase = resolvedCase(author, "ABUSE");
+        UUID caseId = awaitingReviewCase(author, "ABUSE");
+
+        InvestigationBrief result = investigator(
+                        new RecordingModel(brief("BAN", "SETTLED", List.of(priorCase))),
+                        new InvestigationPromptV4(new InvestigationPromptV1()))
+                .investigate(caseId);
+
+        assertThat(((InvestigationBrief.Complete) result).citedCaseIds()).contains(priorCase);
+    }
+
+    /**
+     * A case the engine escalated without naming a rule still gets the author's
+     * record, which is then the only evidence there is.
+     */
+    @Test
+    void fetchesTheHistoryAloneWhenNoRuleWasNamed() {
+        UUID caseId = caseWithoutRuleCodes(newUser());
+
+        RecordingModel model = new RecordingModel(brief("NONE", "OPEN", List.of()));
+        investigator(model, new InvestigationPromptV4(new InvestigationPromptV1())).investigate(caseId);
+
+        assertThat(((ToolCallingPort.Message.ToolRequest) model.lastHistory().get(1)).calls())
+                .extracting(ToolCall::name)
+                .containsExactly("authorHistory");
+    }
+
+    /**
+     * The earlier wordings tell the model to choose its own lookups, so handing
+     * them results would leave their instructions describing a conversation that
+     * did not happen.
+     */
+    @Test
+    void doesNotPrefetchForTheWordingsThatAskTheModelToChoose() {
+        UUID caseId = awaitingReviewCase(newUser(), "ABUSE");
+
+        RecordingModel model = new RecordingModel(brief("HIDE", "OPEN", List.of()));
+        investigator(model, new TestPrompt()).investigate(caseId);
+
+        assertThat(model.lastHistory()).hasSize(1);
+    }
+
+    /**
+     * Leaves the shared review queue as it was found.
+     *
+     * <p>These classes create a case per assertion and the database is shared by
+     * the whole suite, so without this they pile up: a workflow test that fetches
+     * the queue and looks for its own case starts failing once the default page
+     * no longer reaches it. That test's assumption is fragile, but the pollution
+     * is this test's doing, and it is the half that should not exist.
+     *
+     * <p>Resolved with NONE, which is also the outcome kept out of precedent, so
+     * cleaning up cannot quietly become evidence for a later test.
+     */
+    @AfterEach
+    void leaveTheQueueAsItWasFound() {
+        if (leftInQueue.isEmpty()) {
+            return;
+        }
+
+        User admin = newAdmin();
+        new TransactionTemplate(transactionManager).executeWithoutResult(status ->
+                leftInQueue.forEach(id -> cases.findById(id)
+                        .filter(moderationCase -> moderationCase.getStatus() == CaseStatus.AWAITING_REVIEW)
+                        .ifPresent(moderationCase -> {
+                            moderationCase.resolve(admin, FinalAction.NONE);
+                            cases.saveAndFlush(moderationCase);
+                        })));
+        leftInQueue.clear();
+    }
+
     // --- harness -------------------------------------------------------------
 
     private static final int MAX_STEPS = 5;
 
     private CaseInvestigator investigator(ToolCallingPort port) {
+        return investigator(port, new TestPrompt());
+    }
+
+    private CaseInvestigator investigator(ToolCallingPort port, InvestigationPrompt prompt) {
         return new CaseInvestigator(
                 port,
                 tools,
-                new TestPrompt(),
+                prompt,
                 parser,
                 recorder,
                 adminCases,
                 cases,
-                new InvestigatorProperties(true, MAX_STEPS, 1, "test-v1"));
+                new InvestigatorProperties(true, MAX_STEPS, 1, prompt.version()));
     }
 
     private String brief(String recommendation, Object confidence, List<UUID> cited) {
@@ -368,6 +489,38 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
                     "citedCaseIds", cited.stream().map(UUID::toString).toList())));
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
+        }
+    }
+
+    /** Answers immediately, and keeps the conversation it was handed so a test can look at it. */
+    private final class RecordingModel implements ToolCallingPort {
+
+        private final String answer;
+        private final AtomicInteger calls = new AtomicInteger();
+        private List<Message> lastHistory = List.of();
+
+        RecordingModel(String answer) {
+            this.answer = answer;
+        }
+
+        int calls() {
+            return calls.get();
+        }
+
+        List<Message> lastHistory() {
+            return lastHistory;
+        }
+
+        @Override
+        public String modelName() {
+            return "recording-model";
+        }
+
+        @Override
+        public Response next(String system, List<Message> history, List<ToolSpec> specs) {
+            calls.incrementAndGet();
+            lastHistory = history;
+            return new Response(new Turn.Finished(answer), 100, 20);
         }
     }
 
@@ -459,7 +612,23 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
     }
 
     private UUID awaitingReviewCase(User author, String ruleCode) {
-        return caseFor(author, ruleCode, null);
+        return track(caseFor(author, ruleCode, null));
+    }
+
+    /** What an ESCALATE verdict leaves behind: a case a person must read, with no rule named. */
+    private UUID caseWithoutRuleCodes(User author) {
+        return new TransactionTemplate(transactionManager).execute(status -> {
+            Post post = posts.saveAndFlush(new Post(uniqueForumKey(), author, "A title", "A body"));
+
+            cases.openCaseIfAbsent(TargetType.POST.name(), post.getId());
+            UUID caseId = cases.findOpenCaseId(TargetType.POST, post.getId()).orElseThrow();
+
+            ModerationCase moderationCase = cases.findById(caseId).orElseThrow();
+            moderationCase.markAnalysing();
+            moderationCase.recordVerdict("test-engine", ModerationVerdict.escalate("A person should read this."));
+
+            return track(cases.saveAndFlush(moderationCase).getId());
+        });
     }
 
     private UUID resolvedCase(User author, String ruleCode) {
@@ -490,4 +659,8 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
         });
     }
 
+    private UUID track(UUID caseId) {
+        leftInQueue.add(caseId);
+        return caseId;
+    }
 }

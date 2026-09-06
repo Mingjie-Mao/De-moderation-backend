@@ -212,12 +212,14 @@ campusguard:
       # still needs. The same split AiProperties makes between max-attempts and
       # rate-limit-retries.
       max-corrections: 1
-      # inv-v3. v2 taught the model what the four outcomes do, which is what let
+      # inv-v4. v2 taught the model what the four outcomes do, which is what let
       # it reach NONE; v3 replaced the confidence number with a band, because
-      # seven briefs out of nine across v1 and v2 came back at exactly 0.85 and
-      # an anchored range always has a value to default into. Earlier versions
-      # stay registered, so going back is this line.
-      prompt-version: inv-v3
+      # seven briefs out of nine across v1 and v2 came back at exactly 0.85; v4
+      # fetches the author's record and the precedent before the first turn
+      # instead of leaving them to the model, which halved the tokens and took
+      # the average from 2.7 lookups to 1. Earlier versions stay registered, so
+      # going back is this line.
+      prompt-version: inv-v4
 
 management:
   endpoints:

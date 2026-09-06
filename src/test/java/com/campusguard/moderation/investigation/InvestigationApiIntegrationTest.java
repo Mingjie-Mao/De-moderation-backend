@@ -12,6 +12,7 @@ import com.campusguard.audit.AuditEntry;
 import com.campusguard.audit.AuditEntryRepository;
 import com.campusguard.common.TargetType;
 import com.campusguard.moderation.FinalAction;
+import com.campusguard.moderation.CaseStatus;
 import com.campusguard.moderation.ModerationCase;
 import com.campusguard.moderation.ModerationCaseRepository;
 import com.campusguard.moderation.ModerationDecision;
@@ -22,6 +23,7 @@ import com.campusguard.user.User;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -56,6 +58,9 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private PlatformTransactionManager transactionManager;
+
+    /** Cases this test left awaiting review, resolved afterwards so the shared queue does not grow. */
+    private final List<UUID> leftInQueue = new java.util.ArrayList<>();
 
     @Test
     void saysTheAssistantIsNotEnabledRatherThanFailing() throws Exception {
@@ -205,6 +210,35 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isNoContent());
     }
 
+    /**
+     * Leaves the shared review queue as it was found.
+     *
+     * <p>These classes create a case per assertion and the database is shared by
+     * the whole suite, so without this they pile up: a workflow test that fetches
+     * the queue and looks for its own case starts failing once the default page
+     * no longer reaches it. That test's assumption is fragile, but the pollution
+     * is this test's doing, and it is the half that should not exist.
+     *
+     * <p>Resolved with NONE, which is also the outcome kept out of precedent, so
+     * cleaning up cannot quietly become evidence for a later test.
+     */
+    @AfterEach
+    void leaveTheQueueAsItWasFound() {
+        if (leftInQueue.isEmpty()) {
+            return;
+        }
+
+        User admin = newAdmin();
+        new TransactionTemplate(transactionManager).executeWithoutResult(status ->
+                leftInQueue.forEach(id -> cases.findById(id)
+                        .filter(moderationCase -> moderationCase.getStatus() == CaseStatus.AWAITING_REVIEW)
+                        .ifPresent(moderationCase -> {
+                            moderationCase.resolve(admin, FinalAction.NONE);
+                            cases.saveAndFlush(moderationCase);
+                        })));
+        leftInQueue.clear();
+    }
+
     private InvestigationBriefView view(String summary, FinalAction recommendation, Instant at) {
         return new InvestigationBriefView(
                 InvestigationBriefView.COMPLETE,
@@ -218,7 +252,7 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private UUID awaitingReviewCase(User author) {
-        return new TransactionTemplate(transactionManager).execute(status -> {
+        return track(new TransactionTemplate(transactionManager).execute(status -> {
             Post post = posts.saveAndFlush(new Post(uniqueForumKey(), author, "A title", "A body"));
 
             cases.openCaseIfAbsent(TargetType.POST.name(), post.getId());
@@ -231,6 +265,11 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
                     new ModerationVerdict(ModerationDecision.REMOVE, 0.8, "A test verdict.", List.of("ABUSE")));
 
             return cases.saveAndFlush(moderationCase).getId();
-        });
+        }));
+    }
+
+    private UUID track(UUID caseId) {
+        leftInQueue.add(caseId);
+        return caseId;
     }
 }
