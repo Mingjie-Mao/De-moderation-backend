@@ -25,12 +25,16 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import com.campusguard.moderation.admin.AdminModerationService;
+import com.campusguard.moderation.engine.ai.AiInvocationRecorder;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * The endpoints, with the assistant switched off — which is how it ships.
+ * The endpoints with the assistant switched on — which is how it ships.
  *
  * <p>That is not a gap in coverage. Off is the default and therefore the
  * configuration almost every deployment runs, so the behaviour worth pinning
@@ -44,8 +48,73 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
 
+    /**
+     * A CaseInvestigator wired to a model that always answers.
+     *
+     * <p>Supplied here rather than left absent so that the enabled path can be
+     * tested at all. The disabled path -- which is how this ships -- is covered by
+     * its own assertion below using a service built without one.
+     */
+    @TestConfiguration
+    static class StubInvestigator {
+
+        static final CountingModel MODEL = new CountingModel();
+
+        @Bean
+        CaseInvestigator caseInvestigator(
+                ToolRegistry tools,
+                BriefParser parser,
+                AiInvocationRecorder recorder,
+                AdminModerationService cases,
+                ModerationCaseRepository caseRepository) {
+
+            return new CaseInvestigator(
+                    MODEL, tools, new InvestigationPromptV1(), parser, recorder, cases, caseRepository,
+                    new InvestigatorProperties(true, 5, 1, InvestigationPromptV1.VERSION));
+        }
+    }
+
+    /** Answers immediately with a brief that cites nothing, and counts how often it was asked. */
+    static final class CountingModel implements ToolCallingPort {
+
+        private final java.util.concurrent.atomic.AtomicInteger calls =
+                new java.util.concurrent.atomic.AtomicInteger();
+
+        int calls() {
+            return calls.get();
+        }
+
+        void reset() {
+            calls.set(0);
+        }
+
+        @Override
+        public String modelName() {
+            return "counting-model";
+        }
+
+        @Override
+        public Response next(String system, List<Message> history, List<ToolSpec> specs) {
+            calls.incrementAndGet();
+            return new Response(new Turn.Finished("""
+                    {"summary":"Nothing in the record.","recommendation":"NONE","confidence":"OPEN",
+                     "counterEvidence":"The report may yet be right.","citedCaseIds":[]}
+                    """), 10, 5);
+        }
+    }
+
+    private final CountingModel stubModel = StubInvestigator.MODEL;
+
+    @org.junit.jupiter.api.BeforeEach
+    void resetTheStub() {
+        stubModel.reset();
+    }
+
     @Autowired
     private InvestigationService service;
+
+    @Autowired
+    private InvestigationRecorder recorder;
 
     @Autowired
     private ModerationCaseRepository cases;
@@ -61,18 +130,6 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
 
     /** Cases this test left awaiting review, resolved afterwards so the shared queue does not grow. */
     private final List<UUID> leftInQueue = new java.util.ArrayList<>();
-
-    @Test
-    void saysTheAssistantIsNotEnabledRatherThanFailing() throws Exception {
-        User admin = newAdmin();
-        UUID caseId = awaitingReviewCase(newUser());
-
-        mockMvc.perform(post("/api/admin/moderation-cases/{id}/investigate", caseId)
-                        .header("Authorization", bearer(admin)))
-                .andExpect(status().isServiceUnavailable())
-                .andExpect(jsonPath("$.title").value("Not enabled"))
-                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("not enabled")));
-    }
 
     /**
      * A case nobody has investigated is an ordinary case, not a missing one. 404
@@ -113,7 +170,7 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
         UUID caseId = awaitingReviewCase(newUser());
         UUID cited = UUID.randomUUID();
 
-        service.record(admin.getId(), caseId, new InvestigationBriefView(
+        recorder.record(admin.getId(), caseId, new InvestigationBriefView(
                 InvestigationBriefView.COMPLETE,
                 "Two prior hides under the same rule.",
                 FinalAction.BAN,
@@ -145,8 +202,8 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
         User admin = newAdmin();
         UUID caseId = awaitingReviewCase(newUser());
 
-        service.record(admin.getId(), caseId, view("An early look.", FinalAction.HIDE, Instant.now().minusSeconds(600)));
-        service.record(admin.getId(), caseId, view("A later look.", FinalAction.BAN, Instant.now()));
+        recorder.record(admin.getId(), caseId, view("An early look.", FinalAction.HIDE, Instant.now().minusSeconds(600)));
+        recorder.record(admin.getId(), caseId, view("A later look.", FinalAction.BAN, Instant.now()));
 
         mockMvc.perform(get("/api/admin/moderation-cases/{id}/investigation", caseId)
                         .header("Authorization", bearer(admin)))
@@ -165,13 +222,13 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
         UUID caseId = awaitingReviewCase(newUser());
         ModerationCase subject = cases.findById(caseId).orElseThrow();
 
-        service.record(admin.getId(), caseId, view("A summary.", FinalAction.HIDE, Instant.now()));
+        recorder.record(admin.getId(), caseId, view("A summary.", FinalAction.HIDE, Instant.now()));
 
         List<AuditEntry> trail = auditEntries.findByTargetTypeAndTargetIdOrderByCreatedAtAsc(
                 subject.getTargetType(), subject.getTargetId());
 
         assertThat(trail)
-                .filteredOn(entry -> InvestigationService.INVESTIGATION_RECORDED.equals(entry.getAction()))
+                .filteredOn(entry -> InvestigationRecorder.INVESTIGATION_RECORDED.equals(entry.getAction()))
                 .singleElement()
                 .satisfies(entry -> {
                     assertThat(entry.getActorType()).isEqualTo(AuditActorType.ADMIN);
@@ -192,7 +249,7 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
         UUID first = awaitingReviewCase(author);
         ModerationCase subject = cases.findById(first).orElseThrow();
 
-        service.record(admin.getId(), first, view("About the first case.", FinalAction.HIDE, Instant.now()));
+        recorder.record(admin.getId(), first, view("About the first case.", FinalAction.HIDE, Instant.now()));
 
         // A second case on the same content, as happens when content is reported
         // again after an earlier report was dismissed.
@@ -237,6 +294,50 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
                             cases.saveAndFlush(moderationCase);
                         })));
         leftInQueue.clear();
+    }
+
+    /**
+     * The whole path, through the service the controller actually calls.
+     *
+     * <p>This is the test that was missing. Every other one here reaches the
+     * storing method directly, which passes through a Spring proxy and is
+     * therefore transactional; the service reached it by self-invocation, which
+     * does not, so AuditLogger's MANDATORY propagation refused the write and the
+     * first real request returned a 500. Calling the outer method is the only way
+     * to see that.
+     */
+    @Test
+    void storesTheBriefWhenTheServiceItselfRunsAnInvestigation() {
+        User admin = newAdmin();
+        UUID caseId = awaitingReviewCase(newUser());
+
+        InvestigationBriefView produced = service.investigate(admin.getId(), caseId, false);
+
+        assertThat(produced.outcome()).isEqualTo(InvestigationBriefView.COMPLETE);
+        assertThat(service.existingBrief(caseId)).contains(produced);
+    }
+
+    /** The second reviewer to open a case is shown the first one's brief, not billed for a new one. */
+    @Test
+    void doesNotRunTwiceForACaseThatHasAlreadyBeenInvestigated() {
+        User admin = newAdmin();
+        UUID caseId = awaitingReviewCase(newUser());
+
+        service.investigate(admin.getId(), caseId, false);
+        service.investigate(admin.getId(), caseId, false);
+
+        assertThat(stubModel.calls()).isEqualTo(1);
+    }
+
+    @Test
+    void runsAgainWhenTheReviewerAsksForAFreshLook() {
+        User admin = newAdmin();
+        UUID caseId = awaitingReviewCase(newUser());
+
+        service.investigate(admin.getId(), caseId, false);
+        service.investigate(admin.getId(), caseId, true);
+
+        assertThat(stubModel.calls()).isEqualTo(2);
     }
 
     private InvestigationBriefView view(String summary, FinalAction recommendation, Instant at) {
