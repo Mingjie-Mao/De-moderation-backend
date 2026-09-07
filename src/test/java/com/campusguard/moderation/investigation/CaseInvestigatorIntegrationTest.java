@@ -465,7 +465,7 @@ class CaseInvestigatorIntegrationTest extends AbstractIntegrationTest {
                 recorder,
                 adminCases,
                 cases,
-                new InvestigatorProperties(true, MAX_STEPS, 1, prompt.version()));
+                new InvestigatorProperties(true, MAX_STEPS, 1, prompt.version(), 1));
     }
 
     private String brief(String recommendation, Object confidence, List<UUID> cited) {

@@ -68,9 +68,12 @@ public class DecisionCorpusCommand implements ApplicationRunner {
 
         report(samples, file);
 
-        // Exits so the command can be run against a production database without
-        // leaving an application listening behind it.
-        SpringApplication.exit(context, () -> 0);
+        // Ends the process, not just the context. Closing the context alone lets
+        // startup carry on into whatever runs next, which then meets a closed
+        // EntityManagerFactory and reports a failure after the file was written
+        // perfectly well — an operator would read that as the export having
+        // failed. EvaluationCommand ends the same way for the same reason.
+        System.exit(SpringApplication.exit(context, () -> 0));
     }
 
     /**

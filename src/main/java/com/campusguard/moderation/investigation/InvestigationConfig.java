@@ -64,7 +64,7 @@ public class InvestigationConfig {
 
     @Bean
     @ConditionalOnProperty(name = "campusguard.moderation.investigator.enabled", havingValue = "true")
-    public CaseInvestigator caseInvestigator(
+    public Investigator caseInvestigator(
             ChatModel chatModel,
             ModelPolicies policies,
             ToolRegistry tools,
@@ -78,12 +78,18 @@ public class InvestigationConfig {
 
         InvestigationPrompt prompt = select(prompts, properties.promptVersion());
         String model = policies.primaryModel();
-        log.info("Case investigation is enabled, using {} and prompt {}.", model, prompt.version());
+        log.info("Case investigation is enabled, using {}, prompt {} and {} run(s) per case.",
+                model, prompt.version(), properties.runs());
 
         ToolCallingPort port = new ResilientToolCalling(
                 new SpringAiToolCompletion(chatModel, model, objectMapper), policies.forModel(model));
 
-        return new CaseInvestigator(
+        CaseInvestigator single = new CaseInvestigator(
                 port, tools, prompt, parser, recorder, cases, caseRepository, properties);
+
+        // One run is the plain loop, not a consensus of one. A wrapper that voted
+        // among a single answer would report every case as SETTLED, which is the
+        // self-graded certainty this was meant to replace.
+        return properties.runs() == 1 ? single : new ConsensusInvestigator(single, properties.runs());
     }
 }

@@ -4,6 +4,7 @@ import com.campusguard.moderation.ModerationCase;
 import com.campusguard.moderation.ModerationCaseRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -28,6 +29,9 @@ public class SimilarResolvedCasesTool implements InvestigationTool {
 
     private static final int LIMIT = 5;
 
+    /** The same window the author's history uses, so two pieces of evidence in one brief cover one period. */
+    private static final int WINDOW_DAYS = 90;
+
     private final ModerationCaseRepository cases;
 
     public SimilarResolvedCasesTool(ModerationCaseRepository cases) {
@@ -38,9 +42,10 @@ public class SimilarResolvedCasesTool implements InvestigationTool {
     public ToolSpec spec() {
         return new ToolSpec(
                 "similarResolvedCases",
-                "Up to " + LIMIT + " past cases closed under a given rule with an outcome, most recent "
-                        + "first, showing what reviewers actually did. Reports that were dismissed are not "
-                        + "included. Call this when you want to know how this kind of case is normally handled.",
+                "How this rule is normally handled: up to " + LIMIT + " past cases closed with an outcome, "
+                        + "most recent first, together with how often reports under this rule were dismissed "
+                        + "outright. The listed cases are only ones where something was done — the dismissal "
+                        + "rate is the other half of the picture and is given as a number.",
                 ToolSpec.oneRequiredString("ruleCode", "The rule code to look up precedent for, for example ABUSE."));
     }
 
@@ -72,10 +77,51 @@ public class SimilarResolvedCasesTool implements InvestigationTool {
                     other.getDecidedAt()));
         }
 
-        return Output.of(new Precedents(ruleCode, precedents.size(), precedents), disclosed);
+        return Output.of(
+                new Precedents(ruleCode, baseRate(ruleCode), precedents.size(), precedents), disclosed);
     }
 
-    record Precedents(String ruleCode, int count, List<Precedent> cases) {
+    /**
+     * How often this rule ends in nothing happening.
+     *
+     * <p>Without it the precedent list reads as unanimity — every row an action,
+     * because rows that were not an action are excluded by design. A rule whose
+     * reports are wrong half the time and one whose reports are always right
+     * produced identical-looking evidence, and the benchmark showed what that
+     * costs: ordinary student content, a clean author, and a takedown recommended
+     * three times out of three.
+     *
+     * <p>A rate, not rows. A dismissal is evidence about a report rather than a
+     * precedent for an outcome, and listing them beside the precedents would
+     * blur a distinction the rest of this feature is careful about.
+     */
+    private DismissalRate baseRate(String ruleCode) {
+        long dismissed = 0;
+        long total = 0;
+
+        for (Object[] row : cases.countOutcomesByRuleCode(
+                ruleCode, Instant.now().minus(WINDOW_DAYS, ChronoUnit.DAYS))) {
+
+            long count = ((Number) row[1]).longValue();
+            total += count;
+            if (Boolean.TRUE.equals(row[0])) {
+                dismissed = count;
+            }
+        }
+
+        return new DismissalRate(dismissed, total, WINDOW_DAYS);
+    }
+
+    /**
+     * @param dismissed reports under this rule that a reviewer closed with no
+     *     action, meaning they judged the report itself mistaken
+     * @param resolved every case under this rule that reached an outcome, the
+     *     dismissed ones included
+     */
+    record DismissalRate(long dismissed, long resolved, int windowDays) {
+    }
+
+    record Precedents(String ruleCode, DismissalRate dismissalRate, int count, List<Precedent> cases) {
     }
 
     record Precedent(

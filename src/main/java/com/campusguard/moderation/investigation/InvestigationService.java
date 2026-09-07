@@ -36,13 +36,13 @@ public class InvestigationService {
      * endpoint then answers "this is not enabled" instead of not existing, which
      * is far easier to diagnose from the console.
      */
-    private final ObjectProvider<CaseInvestigator> investigator;
+    private final ObjectProvider<Investigator> investigator;
 
     private final InvestigationRecorder recorder;
     private final InvestigatorProperties properties;
 
     public InvestigationService(
-            ObjectProvider<CaseInvestigator> investigator,
+            ObjectProvider<Investigator> investigator,
             InvestigationRecorder recorder,
             InvestigatorProperties properties) {
         this.investigator = investigator;
@@ -67,7 +67,7 @@ public class InvestigationService {
             }
         }
 
-        CaseInvestigator loop = investigator.getIfAvailable();
+        Investigator loop = investigator.getIfAvailable();
         if (loop == null) {
             throw new InvestigationNotEnabledException();
         }

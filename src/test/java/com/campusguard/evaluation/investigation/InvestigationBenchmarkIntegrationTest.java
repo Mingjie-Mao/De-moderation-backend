@@ -178,11 +178,11 @@ class InvestigationBenchmarkIntegrationTest extends AbstractIntegrationTest {
                 .orElseThrow();
     }
 
-    private CaseInvestigator investigator(ToolCallingPort port) {
+    private com.campusguard.moderation.investigation.Investigator investigator(ToolCallingPort port) {
         InvestigationPromptV1 v1 = new InvestigationPromptV1();
         return new CaseInvestigator(
                 port, tools, new InvestigationPromptV4(v1), parser, recorder, adminCases, cases,
-                new InvestigatorProperties(true, 5, 1, "bench-stub"));
+                new InvestigatorProperties(true, 5, 1, "bench-stub", 1));
     }
 
     /** Answers with the same recommendation every time, citing nothing. */

@@ -87,6 +87,8 @@ public class ScenarioFixture {
         User author = newUser();
         User moderator = newModerator();
 
+        retireEarlierSeeds(scenario.ruleCode());
+
         Set<UUID> priors = new LinkedHashSet<>();
         for (int i = 0; i < scenario.priorActions().size(); i++) {
             UUID priorCase = resolvedCase(
@@ -151,6 +153,32 @@ public class ScenarioFixture {
         moderationCase.resolve(moderator, action);
 
         return cases.saveAndFlush(moderationCase).getId();
+    }
+
+    /**
+     * Pushes every earlier case under this rule out of the ninety-day window.
+     *
+     * <p>Precedent and the dismissal rate are both global to a rule code, so
+     * without this a scenario is scored against whatever earlier scenarios in the
+     * same run happened to seed. The precedent list survived that by accident — it
+     * takes only the five most recent and each scenario seeds just before it runs
+     * — but the dismissal rate counts everything in the window, so it was
+     * measuring the benchmark's own history rather than the scenario's.
+     *
+     * <p>Aged out rather than deleted: they are still real rows with real audit
+     * trails, and a scenario that wants an old record can still make one.
+     */
+    private void retireEarlierSeeds(String ruleCode) {
+        if (ruleCode == null) {
+            return;
+        }
+
+        jdbcTemplate.update(
+                "update moderation_cases set decided_at = ? "
+                        + "where status = 'RESOLVED' and decided_at is not null "
+                        + "and rule_codes @> to_jsonb(cast(? as text))",
+                Timestamp.from(Instant.now().minus(400, ChronoUnit.DAYS)),
+                ruleCode);
     }
 
     private void backdate(UUID caseId, Instant decidedAt) {

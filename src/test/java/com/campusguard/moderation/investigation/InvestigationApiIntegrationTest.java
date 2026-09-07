@@ -70,7 +70,7 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
 
             return new CaseInvestigator(
                     MODEL, tools, new InvestigationPromptV1(), parser, recorder, cases, caseRepository,
-                    new InvestigatorProperties(true, 5, 1, InvestigationPromptV1.VERSION));
+                    new InvestigatorProperties(true, 5, 1, InvestigationPromptV1.VERSION, 1));
         }
     }
 

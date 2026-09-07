@@ -173,6 +173,52 @@ class ToolRegistryIntegrationTest extends AbstractIntegrationTest {
     }
 
     /**
+     * The number that stops the precedent list reading as unanimity.
+     *
+     * <p>Only cases that ended in an action are listed, by design, so without a
+     * dismissal rate a rule whose reports are usually wrong looks exactly like a
+     * rule whose reports are always right. The benchmark showed what that costs:
+     * ordinary student content recommended for takedown three times out of three.
+     */
+    @Test
+    void reportsHowOftenThisRuleGetsDismissed() throws Exception {
+        String code = uniqueRuleCode();
+        User author = newUser();
+
+        resolvedCase(author, code, FinalAction.HIDE);
+        resolvedCase(author, code, FinalAction.HIDE);
+        resolvedCase(author, code, FinalAction.NONE);
+        resolvedCase(author, code, FinalAction.NONE);
+
+        UUID caseId = awaitingReviewCase(author, code);
+
+        JsonNode payload = mapper.readTree(registry
+                .execute(caseId, call("similarResolvedCases", "{\"ruleCode\":\"" + code + "\"}"))
+                .content());
+
+        assertThat(payload.at("/dismissalRate/dismissed").asInt()).isEqualTo(2);
+        assertThat(payload.at("/dismissalRate/resolved").asInt()).isEqualTo(4);
+
+        // And the listed cases are still only the ones where something was done:
+        // a dismissal is evidence about a report, not a precedent for an outcome.
+        assertThat(payload.get("count").asInt()).isEqualTo(2);
+    }
+
+    /** A rule nobody has ever been reported under says so, rather than dividing by zero. */
+    @Test
+    void reportsAnEmptyBaseRateForARuleWithNoHistory() throws Exception {
+        UUID caseId = awaitingReviewCase(newUser(), "ABUSE");
+
+        JsonNode payload = mapper.readTree(registry
+                .execute(caseId, call("similarResolvedCases", "{\"ruleCode\":\"" + uniqueRuleCode() + "\"}"))
+                .content());
+
+        assertThat(payload.at("/dismissalRate/resolved").asInt()).isZero();
+        assertThat(payload.at("/dismissalRate/dismissed").asInt()).isZero();
+        assertThat(payload.get("count").asInt()).isZero();
+    }
+
+    /**
      * The read-only guarantee, checked at the database rather than by reading the
      * tools and taking their word for it.
      *

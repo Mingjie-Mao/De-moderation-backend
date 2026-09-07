@@ -212,14 +212,34 @@ campusguard:
       # still needs. The same split AiProperties makes between max-attempts and
       # rate-limit-retries.
       max-corrections: 1
-      # inv-v4. v2 taught the model what the four outcomes do, which is what let
-      # it reach NONE; v3 replaced the confidence number with a band, because
-      # seven briefs out of nine across v1 and v2 came back at exactly 0.85; v4
-      # fetches the author's record and the precedent before the first turn
-      # instead of leaving them to the model, which halved the tokens and took
-      # the average from 2.7 lookups to 1. Earlier versions stay registered, so
-      # going back is this line.
+      # inv-v4, and inv-v5 is registered but not chosen.
+      #
+      # v2 taught the model what the four outcomes do, which is what let it reach
+      # NONE; v3 replaced the confidence number with a band, because seven briefs
+      # out of nine across v1 and v2 came back at exactly 0.85; v4 fetches the
+      # author's record and the precedent before the first turn, which halved the
+      # tokens and took the average from 2.7 lookups to 1.
+      #
+      # v5 tells the model how to read the dismissal rate the precedent tool now
+      # returns. It was aimed at one repeatable failure — ordinary student
+      # content recommended for takedown three times out of three — and on the
+      # investigation set it did not move that scenario at all. Elsewhere it was
+      # a wash: agreement and stability identical, grounding a little better,
+      # exact match a little worse, all within one scenario of v4 on a set of
+      # sixteen. Not switched to, because a change that did not do what it was
+      # for should not be adopted on the strength of noise elsewhere.
       prompt-version: inv-v4
+
+      # One opinion per click.
+      #
+      # Above one, EvidenceStrength stops being the model's grade of its own
+      # certainty and becomes a count of how often repeated runs agreed, which is
+      # the honest version of that field. It is left at one because the effect
+      # has not been measured: the run that would have measured it exhausted the
+      # provider's quota, and three investigations per click is not a default to
+      # adopt on a plausible story. The set puts single-run stability at 0.938,
+      # so the ceiling is small.
+      runs: ${INVESTIGATOR_RUNS:1}
 
 management:
   endpoints:

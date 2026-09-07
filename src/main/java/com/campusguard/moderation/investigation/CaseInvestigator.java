@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * sentence saying the investigation did not finish, and the reviewer carries on
  * with what they had before — which is everything they have today.
  */
-public class CaseInvestigator {
+public class CaseInvestigator implements Investigator {
 
     private static final Logger log = LoggerFactory.getLogger(CaseInvestigator.class);
 
@@ -76,6 +76,7 @@ public class CaseInvestigator {
         this.properties = properties;
     }
 
+    @Override
     public InvestigationBrief investigate(UUID caseId) {
         requireAwaitingReview(caseId);
 

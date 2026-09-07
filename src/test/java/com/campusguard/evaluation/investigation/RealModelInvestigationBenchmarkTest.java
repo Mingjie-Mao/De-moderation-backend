@@ -3,7 +3,7 @@ package com.campusguard.evaluation.investigation;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.campusguard.AbstractIntegrationTest;
-import com.campusguard.moderation.investigation.CaseInvestigator;
+import com.campusguard.moderation.investigation.Investigator;
 import com.campusguard.moderation.investigation.InvestigatorProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -45,7 +45,9 @@ import org.springframework.test.context.TestPropertySource;
             "spring.ai.model.chat=google-genai",
             "campusguard.moderation.investigator.enabled=true",
             "campusguard.moderation.engine=keyword-v1",
-            "campusguard.moderation.investigator.prompt-version=${investigation.prompt:inv-v4}"
+            "campusguard.moderation.investigator.prompt-version=${investigation.prompt:inv-v5}",
+            // -Dinvestigation.runs=3 measures the consensus rather than one opinion.
+            "campusguard.moderation.investigator.runs=${investigation.runs:1}"
         })
 @EnabledIfEnvironmentVariable(named = "GEMINI_API_KEY", matches = ".+")
 class RealModelInvestigationBenchmarkTest extends AbstractIntegrationTest {
@@ -65,8 +67,15 @@ class RealModelInvestigationBenchmarkTest extends AbstractIntegrationTest {
     @Autowired
     private InvestigationScenarios scenarios;
 
+    /**
+     * The interface, not the loop.
+     *
+     * <p>With {@code runs} above one the bean is a {@link com.campusguard.moderation.investigation.ConsensusInvestigator}
+     * wrapping the loop, and asking for the concrete type would fail to start —
+     * which is exactly what it did the first time this was run at three.
+     */
     @Autowired
-    private CaseInvestigator investigator;
+    private Investigator investigator;
 
     @Autowired
     private InvestigatorProperties properties;
@@ -76,6 +85,9 @@ class RealModelInvestigationBenchmarkTest extends AbstractIntegrationTest {
 
     @Value("${campusguard.moderation.ai.models:unknown}")
     private String models;
+
+    @Value("${campusguard.moderation.investigator.runs:1}")
+    private int runs;
 
     @Test
     void scoresTheInvestigationSet() throws Exception {
@@ -106,7 +118,8 @@ class RealModelInvestigationBenchmarkTest extends AbstractIntegrationTest {
      * compared without anybody having to keep terminal output.
      */
     private void write(InvestigationBenchmarkReport report) throws Exception {
-        Path file = Path.of("docs", "investigation-benchmark-%s.json".formatted(report.promptVersion()));
+        Path file = Path.of("docs", "investigation-benchmark-%s%s.json".formatted(
+                report.promptVersion(), runs > 1 ? "-consensus" + runs : ""));
         Files.createDirectories(file.getParent());
 
         objectMapper.copy()

@@ -194,4 +194,37 @@ public interface ModerationCaseRepository extends JpaRepository<ModerationCase, 
                     """,
             nativeQuery = true)
     List<ModerationCase> findResolvedByRuleCode(@Param("code") String code, @Param("limit") int limit);
+
+    /**
+     * How often this rule ends in nothing happening.
+     *
+     * <p>The counterweight to {@link #findResolvedByRuleCode}, which by design
+     * shows only cases that ended in an action: a dismissal is evidence about a
+     * report, not a precedent for an outcome, and mixing the two would teach that
+     * doing nothing is a thing one does to content.
+     *
+     * <p>The consequence of that design was that nothing could ever tell a reader
+     * this rule is often reported wrongly. The precedent always read as unanimous
+     * agreement that the rule matters, because the disagreeing cases were
+     * filtered out before it was assembled. This returns them as a rate rather
+     * than as rows, which is the shape that says "and plenty of these reports
+     * were mistaken" without pretending a dismissal is a precedent.
+     *
+     * @return two rows at most: {@code [final_action = 'NONE', count]}. Written as
+     *     a grouped count rather than two queries so the two numbers cannot come
+     *     from different moments.
+     */
+    @Query(
+            value =
+                    """
+                    select (final_action = 'NONE') as dismissed, count(*) as total
+                    from moderation_cases
+                    where status = 'RESOLVED'
+                      and final_action is not null
+                      and decided_at >= :since
+                      and rule_codes @> to_jsonb(cast(:code as text))
+                    group by (final_action = 'NONE')
+                    """,
+            nativeQuery = true)
+    List<Object[]> countOutcomesByRuleCode(@Param("code") String code, @Param("since") Instant since);
 }

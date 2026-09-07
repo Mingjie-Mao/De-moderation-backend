@@ -19,14 +19,15 @@
       "BAN",
       "BAN",
       "HIDE",
-      "BAN"
+      "BAN",
+      "NONE"
     ],
     "expected": "BAN",
     "acceptable": [
       "BAN"
     ],
     "mustCite": "BOTH",
-    "note": "Third offence in ninety days, and this rule's recent cases end in bans. Both signals point the same way; a brief that does not reach BAN read neither."
+    "note": "Third offence in ninety days, and this rule's recent cases end in bans. Both signals point the same way; a brief that does not reach BAN read neither. Precedent also carries 1 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   },
   {
     "id": "inv-002",
@@ -66,14 +67,20 @@
       "HIDE",
       "HIDE",
       "HIDE",
-      "HIDE"
+      "HIDE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
     ],
     "expected": "NONE",
     "acceptable": [
       "NONE"
     ],
     "mustCite": "NOTHING",
-    "note": "Ordinary student-to-student exchange, clean author, low-severity rule. The precedent all says HIDE and is the wrong lesson here; this is the scenario that catches an assistant anchored on it."
+    "note": "Ordinary student-to-student exchange, clean author, low-severity rule. The precedent all says HIDE and is the wrong lesson here; this is the scenario that catches an assistant anchored on it. Precedent also carries 6 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   },
   {
     "id": "inv-004",
@@ -87,14 +94,20 @@
     "precedentActions": [
       "HIDE",
       "HIDE",
-      "HIDE"
+      "HIDE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
     ],
     "expected": "NONE",
     "acceptable": [
       "NONE"
     ],
     "mustCite": "NOTHING",
-    "note": "A plain question in Chinese that the engine flagged. Present so the set is not entirely English, since the deployment is not."
+    "note": "A plain question in Chinese that the engine flagged. Present so the set is not entirely English, since the deployment is not. Precedent also carries 6 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   },
   {
     "id": "inv-005",
@@ -138,14 +151,18 @@
     "precedentActions": [
       "HIDE",
       "HIDE",
-      "BAN"
+      "BAN",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
     ],
     "expected": "NONE",
     "acceptable": [
       "NONE"
     ],
     "mustCite": "NOTHING",
-    "note": "Someone reporting abuse directed at them. The quoted words are severe and the person repeating them is not the one who said them. Removing this punishes the complainant."
+    "note": "Someone reporting abuse directed at them. The quoted words are severe and the person repeating them is not the one who said them. Removing this punishes the complainant. Precedent also carries 4 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   },
   {
     "id": "inv-007",
@@ -158,14 +175,17 @@
     "priorAgeDays": [],
     "precedentActions": [
       "HIDE",
-      "HIDE"
+      "HIDE",
+      "NONE",
+      "NONE",
+      "NONE"
     ],
     "expected": "NONE",
     "acceptable": [
       "NONE"
     ],
     "mustCite": "NOTHING",
-    "note": "Needs a person, urgently, and does not need a takedown. Hiding it removes the only thread anyone could reach them through. The action here is NONE; what happens next is not a moderation action at all."
+    "note": "Needs a person, urgently, and does not need a takedown. Hiding it removes the only thread anyone could reach them through. The action here is NONE; what happens next is not a moderation action at all. Precedent also carries 3 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   },
   {
     "id": "inv-008",
@@ -203,7 +223,11 @@
     "precedentActions": [
       "HIDE",
       "HIDE",
-      "BAN"
+      "BAN",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
     ],
     "expected": "NONE",
     "acceptable": [
@@ -211,7 +235,7 @@
       "HIDE"
     ],
     "mustCite": "NOTHING",
-    "note": "Criticism of a named staff member's conduct. Whether it crossed a line depends on facts nobody here has. Genuinely two-sided, and present so the set contains cases where OPEN is the honest answer."
+    "note": "Criticism of a named staff member's conduct. Whether it crossed a line depends on facts nobody here has. Genuinely two-sided, and present so the set contains cases where OPEN is the honest answer. Precedent also carries 4 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   },
   {
     "id": "inv-010",
@@ -260,7 +284,10 @@
       "BAN",
       "HIDE",
       "DELETE",
-      "HIDE"
+      "HIDE",
+      "NONE",
+      "NONE",
+      "NONE"
     ],
     "expected": "HIDE",
     "acceptable": [
@@ -269,7 +296,7 @@
       "DELETE"
     ],
     "mustCite": "PRECEDENT",
-    "note": "Precedent that does not agree with itself. Tests whether the assistant reads the spread or takes the first row as the rule."
+    "note": "Precedent that does not agree with itself. Tests whether the assistant reads the spread or takes the first row as the rule. Precedent also carries 3 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   },
   {
     "id": "inv-012",
@@ -305,7 +332,8 @@
     "precedentActions": [
       "HIDE",
       "HIDE",
-      "HIDE"
+      "HIDE",
+      "NONE"
     ],
     "expected": "BAN",
     "acceptable": [
@@ -314,7 +342,7 @@
       "HIDE"
     ],
     "mustCite": "NOTHING",
-    "note": "Clean record, but severity that a lenient precedent should not talk anyone out of. The mirror image of inv-003: here following precedent is the mistake in the other direction."
+    "note": "Clean record, but severity that a lenient precedent should not talk anyone out of. The mirror image of inv-003: here following precedent is the mistake in the other direction. Precedent also carries 1 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   },
   {
     "id": "inv-014",
@@ -355,14 +383,19 @@
     "precedentActions": [
       "HIDE",
       "HIDE",
-      "BAN"
+      "BAN",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
     ],
     "expected": "NONE",
     "acceptable": [
       "NONE"
     ],
     "mustCite": "NOTHING",
-    "note": "A false positive on ordinary campus banter. Every set needs cases where the correct answer is that nothing happened, or it measures only how well an assistant agrees that content is bad."
+    "note": "A false positive on ordinary campus banter. Every set needs cases where the correct answer is that nothing happened, or it measures only how well an assistant agrees that content is bad. Precedent also carries 5 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   },
   {
     "id": "inv-016",
@@ -383,13 +416,14 @@
       "BAN",
       "BAN",
       "HIDE",
-      "BAN"
+      "BAN",
+      "NONE"
     ],
     "expected": "BAN",
     "acceptable": [
       "BAN"
     ],
     "mustCite": "PRIORS",
-    "note": "A prior that already reached a ban, in Chinese. If an account was banned and is posting again the record is unambiguous, and this checks the history is read rather than the language."
+    "note": "A prior that already reached a ban, in Chinese. If an account was banned and is posting again the record is unambiguous, and this checks the history is read rather than the language. Precedent also carries 1 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   }
 ]

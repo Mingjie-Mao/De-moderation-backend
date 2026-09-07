@@ -1,7 +1,7 @@
 package com.campusguard.evaluation.investigation;
 
 import com.campusguard.moderation.FinalAction;
-import com.campusguard.moderation.investigation.CaseInvestigator;
+import com.campusguard.moderation.investigation.Investigator;
 import com.campusguard.moderation.investigation.InvestigationBrief;
 import com.campusguard.moderation.engine.ai.AiInvocation;
 import com.campusguard.moderation.engine.ai.AiInvocationRepository;
@@ -46,7 +46,7 @@ public class InvestigationBenchmark {
     }
 
     public InvestigationBenchmarkReport run(
-            CaseInvestigator investigator,
+            Investigator investigator,
             List<InvestigationScenario> scenarios,
             int runsEach,
             String promptVersion,
@@ -63,7 +63,7 @@ public class InvestigationBenchmark {
     }
 
     private InvestigationBenchmarkReport.ScenarioOutcome score(
-            CaseInvestigator investigator, InvestigationScenario scenario, int runsEach) {
+            Investigator investigator, InvestigationScenario scenario, int runsEach) {
 
         List<FinalAction> recommendations = new ArrayList<>();
         List<String> briefs = new ArrayList<>();
