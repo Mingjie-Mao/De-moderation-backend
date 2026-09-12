@@ -55,10 +55,6 @@ public class InvestigationService {
         this.rateLimiter = rateLimiter;
     }
 
-    public boolean isEnabled() {
-        return investigator.getIfAvailable() != null;
-    }
-
     public Optional<InvestigationBriefView> existingBrief(UUID caseId) {
         return recorder.existing(caseId);
     }

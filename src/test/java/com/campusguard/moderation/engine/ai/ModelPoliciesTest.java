@@ -46,7 +46,6 @@ class ModelPoliciesTest {
         ModelPolicies policies = new ModelPolicies(properties("  ", "model-b"));
 
         assertThat(policies.primaryModel()).isEqualTo("model-b");
-        assertThat(policies.isEmpty()).isFalse();
     }
 
     /** Asking for a model nobody configured is a wiring mistake, and says so. */

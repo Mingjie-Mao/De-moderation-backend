@@ -169,8 +169,15 @@ Ordered by what is blocking what.
    five most recent under this rule". With a few hundred real decisions
    harvested it can mean "the five most similar", which is a far better signal
    and is the most plausible fix for the anchoring failure above.
-3. **Collect the corpus.** `--campusguard.corpus.export=true` writes every
-   decision a person has made, with how much they reconsidered it. It costs
-   nothing to run and cannot be done retroactively. Note that `ESCALATE` is not
+3. **Collect the corpus.** Writes every decision a person has made, with how
+   much they reconsidered it. It costs nothing to run and cannot be done
+   retroactively. The destination has no default, because the file holds student
+   content verbatim:
+
+   ```bash
+   java -jar app.jar --campusguard.corpus.export=true \
+        --campusguard.corpus.output-dir=/somewhere/outside/the/repo
+   ```
+ Note that `ESCALATE` is not
    derivable from a final action, so the export carries hardness signals as
    candidates for a person to label rather than inventing the class.

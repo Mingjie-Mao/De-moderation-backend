@@ -41,7 +41,17 @@ public class DecisionCorpusCommand implements ApplicationRunner {
     private final ObjectMapper objectMapper;
     private final ApplicationContext context;
 
-    @Value("${campusguard.corpus.output-dir:docs}")
+    /**
+     * Required, with no default, unlike the evaluation command this is modelled
+     * on.
+     *
+     * <p>That one writes aggregate metrics and defaulting it to {@code docs} is
+     * harmless. This one writes every student's post verbatim, and the same
+     * default would drop real content into a tracked directory, one
+     * {@code git add -A} away from being published by somebody who ran an export
+     * and forgot. Naming a destination is not a burden worth saving here.
+     */
+    @Value("${campusguard.corpus.output-dir:}")
     private String outputDir;
 
     @Value("${campusguard.corpus.limit:5000}")
@@ -56,6 +66,13 @@ public class DecisionCorpusCommand implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        if (outputDir == null || outputDir.isBlank()) {
+            log.error("Set --campusguard.corpus.output-dir to somewhere outside the repository. "
+                    + "This writes student content verbatim.");
+            System.exit(SpringApplication.exit(context, () -> 2));
+            return;
+        }
+
         List<DecisionSample> samples = exporter.export(limit);
 
         Path directory = Path.of(outputDir);

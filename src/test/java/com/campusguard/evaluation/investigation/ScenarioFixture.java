@@ -32,6 +32,14 @@ import org.springframework.transaction.annotation.Transactional;
  * only reads and can therefore be pointed at anything. Running this against a
  * real forum would invent moderation history for real people.
  *
+ * <p>And that is why it lives under test sources. It was written under
+ * {@code src/main}, which made it a live {@code @Service} in the production
+ * context: a bean able to fabricate a record for a real person, sitting in the
+ * shipped jar with nothing but the absence of a caller between it and doing so.
+ * The annotation still makes it a bean while tests run, because component
+ * scanning reads the classpath and test classes are on it; it is simply not on
+ * the classpath that gets deployed.
+ *
  * <p>Precedent is seeded immediately before the case under test, and never
  * earlier. The precedent query is global and ordered by decision time, so
  * whatever was written last is what the assistant will be shown; building all

@@ -11,6 +11,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import com.campusguard.moderation.investigation.InvestigationNotEnabledException;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -81,10 +82,14 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
      * <p>503 with a plain sentence, so the console can grey out the button and
      * say why. Any 4xx would read as the reviewer having done something wrong,
      * and a 500 would send an operator hunting for a break that is not there.
+     *
+     * <p>The first feature-specific exception this handler knows about, and it is
+     * imported rather than written out in full: a global handler does depend on
+     * the exceptions it translates, and spelling that dependency into the import
+     * list is better than hiding it in a qualified name.
      */
-    @ExceptionHandler(com.campusguard.moderation.investigation.InvestigationNotEnabledException.class)
-    public ProblemDetail handleFeatureDisabled(
-            com.campusguard.moderation.investigation.InvestigationNotEnabledException ex) {
+    @ExceptionHandler(InvestigationNotEnabledException.class)
+    public ProblemDetail handleFeatureDisabled(InvestigationNotEnabledException ex) {
         ProblemDetail problem =
                 ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
         problem.setTitle("Not enabled");

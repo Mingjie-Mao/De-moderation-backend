@@ -58,8 +58,4 @@ public class ModelPolicies {
 
         return primary;
     }
-
-    public boolean isEmpty() {
-        return byModel.isEmpty();
-    }
 }
