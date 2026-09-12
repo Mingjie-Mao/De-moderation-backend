@@ -16,6 +16,12 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  *     up an investigation is worth.
  * @param promptVersion recorded against every call, so briefs stay attributable
  *     to the wording that produced them.
+ * @param perReviewerPerHour how many investigations one reviewer may start in an
+ *     hour. The only action in this system where a click spends money directly:
+ *     a report costs a queue slot, a decision costs nothing, and this costs a
+ *     model call — several, with {@code runs} above one. Generous enough that a
+ *     reviewer working through a queue never meets it, low enough that a stuck
+ *     mouse button or a script cannot run up a bill overnight.
  * @param runs how many times the same case is investigated before a brief is
  *     returned. One is a single opinion and the assistant grades its own
  *     certainty; more than one makes {@code EvidenceStrength} a count of how
@@ -28,7 +34,8 @@ public record InvestigatorProperties(
         @DefaultValue("5") int maxSteps,
         @DefaultValue("1") int maxCorrections,
         @DefaultValue("inv-v1") String promptVersion,
-        @DefaultValue("1") int runs) {
+        @DefaultValue("1") int runs,
+        @DefaultValue("60") int perReviewerPerHour) {
 
     public InvestigatorProperties {
         if (runs < 1) {

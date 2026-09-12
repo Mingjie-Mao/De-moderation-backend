@@ -77,6 +77,8 @@ flowchart LR
     IN --> ADM
 ```
 
+设计、实测数字、成本查询和已知失败都在 [docs/investigation.md](docs/investigation.md)。
+
 四个工具是 `caseDetail`、`authorHistory`、`similarResolvedCases` 和 `ruleText`。
 被调查的案件由调用方传入，不走模型的参数，所以没有办法把任何一个工具指向别的案件。
 

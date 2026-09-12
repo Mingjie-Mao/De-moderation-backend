@@ -1,5 +1,7 @@
 package com.campusguard.moderation.investigation;
 
+import com.campusguard.auth.RequestRateLimiter;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,14 +42,17 @@ public class InvestigationService {
 
     private final InvestigationRecorder recorder;
     private final InvestigatorProperties properties;
+    private final RequestRateLimiter rateLimiter;
 
     public InvestigationService(
             ObjectProvider<Investigator> investigator,
             InvestigationRecorder recorder,
-            InvestigatorProperties properties) {
+            InvestigatorProperties properties,
+            RequestRateLimiter rateLimiter) {
         this.investigator = investigator;
         this.recorder = recorder;
         this.properties = properties;
+        this.rateLimiter = rateLimiter;
     }
 
     public boolean isEnabled() {
@@ -71,6 +76,19 @@ public class InvestigationService {
         if (loop == null) {
             throw new InvestigationNotEnabledException();
         }
+
+        // Counted after the cache check and before the call, so returning a brief
+        // somebody already paid for is free and only a real model call is
+        // charged. Counted per reviewer rather than per case: a case is capped at
+        // one investigation anyway unless it is forced, and forcing is exactly
+        // the path worth bounding.
+        rateLimiter.consume(
+                "investigate-admin",
+                String.valueOf(adminId),
+                properties.perReviewerPerHour(),
+                Duration.ofHours(1),
+                "You have started %d investigations in the last hour, which is the limit. Each one calls a model."
+                        .formatted(properties.perReviewerPerHour()));
 
         InvestigationBriefView view = InvestigationBriefView.of(
                 loop.investigate(caseId), properties.promptVersion(), Instant.now());

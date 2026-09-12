@@ -31,8 +31,16 @@ public class RequestRateLimiter {
                 Map.of("threshold", Timestamp.from(Instant.now().minus(Duration.ofDays(2)))));
     }
 
+    /**
+     * Counts an attempt against a bucket, and refuses once the bucket is full.
+     *
+     * <p>Lives in the auth package because that is where it was first needed, and
+     * is not about authentication: the bucket is whatever the caller names. What
+     * makes it the right tool outside auth is that it counts attempts rather than
+     * successes, which is what you want for anything that costs something to try.
+     */
     @Transactional
-    public void consume(String scope, String identity, int limit, Duration window) {
+    public void consume(String scope, String identity, int limit, Duration window, String message) {
         Instant now = Instant.now();
         String bucket = hash(scope + ":" + String.valueOf(identity).strip().toLowerCase(java.util.Locale.ROOT));
         Integer count = jdbc.queryForObject(
@@ -58,9 +66,15 @@ public class RequestRateLimiter {
                 Integer.class);
 
         if (count != null && count > limit) {
-            throw new TooManyRequestsException(
-                    "Too many authentication attempts. Try again after " + window + ".");
+            throw new TooManyRequestsException(message);
         }
+    }
+
+    /** The original signature, with the message the authentication call sites want. */
+    @Transactional
+    public void consume(String scope, String identity, int limit, Duration window) {
+        consume(scope, identity, limit, window,
+                "Too many authentication attempts. Try again after " + window + ".");
     }
 
     private String hash(String value) {

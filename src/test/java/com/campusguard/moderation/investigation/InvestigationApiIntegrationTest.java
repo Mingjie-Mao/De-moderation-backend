@@ -1,6 +1,7 @@
 package com.campusguard.moderation.investigation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -11,6 +12,7 @@ import com.campusguard.audit.AuditActorType;
 import com.campusguard.audit.AuditEntry;
 import com.campusguard.audit.AuditEntryRepository;
 import com.campusguard.common.TargetType;
+import com.campusguard.common.TooManyRequestsException;
 import com.campusguard.moderation.FinalAction;
 import com.campusguard.moderation.CaseStatus;
 import com.campusguard.moderation.ModerationCase;
@@ -30,6 +32,7 @@ import com.campusguard.moderation.engine.ai.AiInvocationRecorder;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -46,6 +49,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * is also the only way to get one without a model. It happens to test the part
  * most likely to rot: the round trip through a JSONB column.
  */
+@TestPropertySource(properties = "campusguard.moderation.investigator.per-reviewer-per-hour=4")
 class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
 
     /**
@@ -70,7 +74,7 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
 
             return new CaseInvestigator(
                     MODEL, tools, new InvestigationPromptV1(), parser, recorder, cases, caseRepository,
-                    new InvestigatorProperties(true, 5, 1, InvestigationPromptV1.VERSION, 1));
+                    new InvestigatorProperties(true, 5, 1, InvestigationPromptV1.VERSION, 1, LIMIT_PER_HOUR));
         }
     }
 
@@ -102,6 +106,16 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
                     """), 10, 5);
         }
     }
+
+    /**
+     * Small, and set as a property rather than by constructing the record.
+     *
+     * <p>The service reads the bean the context binds from configuration, not the
+     * properties handed to the loop, so a constructed record here would have left
+     * the limit at its production value and this test asserting nothing — which
+     * is what it did on the first run.
+     */
+    static final int LIMIT_PER_HOUR = 4;
 
     private final CountingModel stubModel = StubInvestigator.MODEL;
 
@@ -338,6 +352,46 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
         service.investigate(admin.getId(), caseId, true);
 
         assertThat(stubModel.calls()).isEqualTo(2);
+    }
+
+    /**
+     * The only click in this system that spends money directly.
+     *
+     * <p>A report costs a queue slot and a decision costs nothing; this calls a
+     * model, several times over with consensus on. A stuck mouse button should
+     * not be able to run up a bill overnight.
+     */
+    @Test
+    void stopsOneReviewerStartingUnboundedInvestigations() {
+        User admin = newAdmin();
+
+        for (int i = 0; i < LIMIT_PER_HOUR; i++) {
+            service.investigate(admin.getId(), awaitingReviewCase(newUser()), false);
+        }
+
+        assertThatThrownBy(() -> service.investigate(admin.getId(), awaitingReviewCase(newUser()), false))
+                .isInstanceOf(TooManyRequestsException.class)
+                .hasMessageContaining("investigations in the last hour");
+    }
+
+    /**
+     * A brief somebody already paid for is free to read again.
+     *
+     * <p>The limit is on calling a model, not on opening a case. Charging the
+     * cache would make a reviewer's own queue count against them for work
+     * already done.
+     */
+    @Test
+    void doesNotChargeForABriefThatWasAlreadyPaidFor() {
+        User admin = newAdmin();
+        UUID caseId = awaitingReviewCase(newUser());
+
+        service.investigate(admin.getId(), caseId, false);
+        for (int i = 0; i < LIMIT_PER_HOUR + 5; i++) {
+            service.investigate(admin.getId(), caseId, false);
+        }
+
+        assertThat(stubModel.calls()).isEqualTo(1);
     }
 
     private InvestigationBriefView view(String summary, FinalAction recommendation, Instant at) {

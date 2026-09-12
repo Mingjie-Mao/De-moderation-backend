@@ -241,6 +241,13 @@ campusguard:
       # so the ceiling is small.
       runs: ${INVESTIGATOR_RUNS:1}
 
+      # The only click in this system that spends money directly. A report costs
+      # a queue slot and a decision costs nothing; this calls a model, several
+      # times over with runs above one. Generous enough that a reviewer working
+      # a queue never meets it, low enough that a stuck mouse button cannot run
+      # up a bill overnight.
+      per-reviewer-per-hour: 60
+
 management:
   endpoints:
     web:

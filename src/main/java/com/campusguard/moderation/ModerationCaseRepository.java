@@ -180,6 +180,13 @@ public interface ModerationCaseRepository extends JpaRepository<ModerationCase, 
      * reviewer looked and decided nothing was wrong, which is evidence about the
      * report and not a precedent for what an outcome should be. The predicate
      * matches {@code idx_moderation_cases_rule_codes} exactly.
+     *
+     * <p>Bounded by {@code since}, and it has to be. Taking the five most recent
+     * with no floor means a rule nobody has enforced in two years returns
+     * two-year-old decisions presented exactly like last week's, and a reader has
+     * no way to tell. Worse, the dismissal rate beside this list is counted over
+     * a window; without one here the two halves of one answer described different
+     * periods.
      */
     @Query(
             value =
@@ -188,12 +195,14 @@ public interface ModerationCaseRepository extends JpaRepository<ModerationCase, 
                     where status = 'RESOLVED'
                       and final_action is not null
                       and final_action <> 'NONE'
+                      and decided_at >= :since
                       and rule_codes @> to_jsonb(cast(:code as text))
                     order by decided_at desc
                     limit :limit
                     """,
             nativeQuery = true)
-    List<ModerationCase> findResolvedByRuleCode(@Param("code") String code, @Param("limit") int limit);
+    List<ModerationCase> findResolvedByRuleCode(
+            @Param("code") String code, @Param("since") Instant since, @Param("limit") int limit);
 
     /**
      * How often this rule ends in nothing happening.

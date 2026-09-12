@@ -71,7 +71,7 @@ class InvestigationWiringTest {
                 .withBean(
                         "investigatorProperties",
                         InvestigatorProperties.class,
-                        () -> new InvestigatorProperties(true, 5, 1, "inv-v9", 1))
+                        () -> new InvestigatorProperties(true, 5, 1, "inv-v9", 1, 60))
                 .run(context -> assertThat(context)
                         .hasFailed()
                         .getFailure()
@@ -147,7 +147,7 @@ class InvestigationWiringTest {
 
         @Bean
         InvestigatorProperties investigatorProperties() {
-            return new InvestigatorProperties(true, 5, 1, InvestigationPromptV2.VERSION, 1);
+            return new InvestigatorProperties(true, 5, 1, InvestigationPromptV2.VERSION, 1, 60);
         }
     }
 }

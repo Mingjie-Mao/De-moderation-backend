@@ -182,7 +182,7 @@ class InvestigationBenchmarkIntegrationTest extends AbstractIntegrationTest {
         InvestigationPromptV1 v1 = new InvestigationPromptV1();
         return new CaseInvestigator(
                 port, tools, new InvestigationPromptV4(v1), parser, recorder, adminCases, cases,
-                new InvestigatorProperties(true, 5, 1, "bench-stub", 1));
+                new InvestigatorProperties(true, 5, 1, "bench-stub", 1, 60));
     }
 
     /** Answers with the same recommendation every time, citing nothing. */

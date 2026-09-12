@@ -219,6 +219,42 @@ class ToolRegistryIntegrationTest extends AbstractIntegrationTest {
     }
 
     /**
+     * Says there is no recent practice, rather than returning silence.
+     *
+     * <p>An empty list and "this rule has never been enforced" are different
+     * claims, and a reader handed nothing will assume the second.
+     */
+    @Test
+    void saysSoWhenARuleHasNoRecentPractice() throws Exception {
+        UUID caseId = awaitingReviewCase(newUser(), "ABUSE");
+
+        JsonNode payload = mapper.readTree(registry
+                .execute(caseId, call("similarResolvedCases", "{\"ruleCode\":\"" + uniqueRuleCode() + "\"}"))
+                .content());
+
+        assertThat(payload.get("count").asInt()).isZero();
+        assertThat(payload.get("note").asText()).contains("not the same as the rule never being enforced");
+        assertThat(payload.get("windowDays").asInt()).isEqualTo(90);
+    }
+
+    /** The listed cases and the rate beside them have to describe one period, or the answer contradicts itself. */
+    @Test
+    void reportsThePrecedentWindowAlongsideTheCases() throws Exception {
+        String code = uniqueRuleCode();
+        User author = newUser();
+        resolvedCase(author, code, FinalAction.HIDE);
+        UUID caseId = awaitingReviewCase(author, code);
+
+        JsonNode payload = mapper.readTree(registry
+                .execute(caseId, call("similarResolvedCases", "{\"ruleCode\":\"" + code + "\"}"))
+                .content());
+
+        assertThat(payload.get("windowDays").asInt())
+                .isEqualTo(payload.at("/dismissalRate/windowDays").asInt());
+        assertThat(payload.at("/cases/0/ageDays").asInt()).isZero();
+    }
+
+    /**
      * The read-only guarantee, checked at the database rather than by reading the
      * tools and taking their word for it.
      *

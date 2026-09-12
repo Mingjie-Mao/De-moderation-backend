@@ -53,9 +53,11 @@ public class SimilarResolvedCasesTool implements InvestigationTool {
     public Output run(UUID caseId, JsonNode arguments) {
         String ruleCode = ToolArguments.requiredString(arguments, "ruleCode").toUpperCase(java.util.Locale.ROOT);
 
+        Instant since = Instant.now().minus(WINDOW_DAYS, ChronoUnit.DAYS);
+
         // One extra row, so that dropping the case under investigation cannot
         // silently return four precedents where five were asked for.
-        List<ModerationCase> found = cases.findResolvedByRuleCode(ruleCode, LIMIT + 1);
+        List<ModerationCase> found = cases.findResolvedByRuleCode(ruleCode, since, LIMIT + 1);
 
         Set<UUID> disclosed = new LinkedHashSet<>();
         List<Precedent> precedents = new ArrayList<>();
@@ -74,11 +76,29 @@ public class SimilarResolvedCasesTool implements InvestigationTool {
                     other.getRuleCodes(),
                     other.getFinalAction() == null ? null : other.getFinalAction().name(),
                     other.getRationale(),
-                    other.getDecidedAt()));
+                    other.getDecidedAt(),
+                    other.getDecidedAt() == null
+                            ? null
+                            : ChronoUnit.DAYS.between(other.getDecidedAt(), Instant.now())));
         }
 
         return Output.of(
-                new Precedents(ruleCode, baseRate(ruleCode), precedents.size(), precedents), disclosed);
+                new Precedents(
+                        ruleCode,
+                        WINDOW_DAYS,
+                        baseRate(ruleCode),
+                        precedents.size(),
+                        precedents,
+                        precedents.isEmpty()
+                                // An empty list and "this rule has never been
+                                // enforced" are different claims, and a reader
+                                // given nothing will assume the second.
+                                ? "No case under this rule reached an outcome in the last %d days. That is not "
+                                        .formatted(WINDOW_DAYS)
+                                        + "the same as the rule never being enforced; it means there is no recent "
+                                        + "practice to follow, so decide on the content and this author's record."
+                                : null),
+                disclosed);
     }
 
     /**
@@ -121,10 +141,31 @@ public class SimilarResolvedCasesTool implements InvestigationTool {
     record DismissalRate(long dismissed, long resolved, int windowDays) {
     }
 
-    record Precedents(String ruleCode, DismissalRate dismissalRate, int count, List<Precedent> cases) {
+    /**
+     * @param windowDays stated rather than implied, so a reader knows the listed
+     *     cases and the dismissal rate beside them cover the same period
+     * @param note only set when there is no recent practice at all
+     */
+    record Precedents(
+            String ruleCode,
+            int windowDays,
+            DismissalRate dismissalRate,
+            int count,
+            List<Precedent> cases,
+            String note) {
     }
 
+    /**
+     * @param ageDays how long ago, in days. A date alone leaves the reader doing
+     *     arithmetic against a today it has to infer, and a decision from eleven
+     *     weeks ago carries different weight from one taken on Tuesday.
+     */
     record Precedent(
-            String caseId, List<String> ruleCodes, String finalAction, String rationale, Instant decidedAt) {
+            String caseId,
+            List<String> ruleCodes,
+            String finalAction,
+            String rationale,
+            Instant decidedAt,
+            Long ageDays) {
     }
 }

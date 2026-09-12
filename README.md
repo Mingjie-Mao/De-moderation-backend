@@ -96,6 +96,9 @@ flowchart LR
     IN --> ADM
 ```
 
+Design, measurements, cost queries and known failures are in
+[docs/investigation.md](docs/investigation.md).
+
 The four tools are `caseDetail`, `authorHistory`, `similarResolvedCases` and
 `ruleText`. Each takes the case under investigation from the caller rather than
 from the model's arguments, so there is no way to point one at a different case.

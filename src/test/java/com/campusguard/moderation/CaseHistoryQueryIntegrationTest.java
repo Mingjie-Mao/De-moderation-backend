@@ -130,7 +130,7 @@ class CaseHistoryQueryIntegrationTest extends AbstractIntegrationTest {
 
         UUID caseId = resolvedCase(TargetType.POST, post.getId(), List.of("SPAM", code), FinalAction.HIDE);
 
-        assertThat(cases.findResolvedByRuleCode(code, 5))
+        assertThat(cases.findResolvedByRuleCode(code, ninetyDaysAgo(), 5))
                 .extracting(ModerationCase::getId)
                 .containsExactly(caseId);
     }
@@ -149,7 +149,7 @@ class CaseHistoryQueryIntegrationTest extends AbstractIntegrationTest {
         UUID actedCase = resolvedCase(TargetType.POST, acted.getId(), code, FinalAction.HIDE);
         resolvedCase(TargetType.POST, dismissed.getId(), code, FinalAction.NONE);
 
-        assertThat(cases.findResolvedByRuleCode(code, 5))
+        assertThat(cases.findResolvedByRuleCode(code, ninetyDaysAgo(), 5))
                 .extracting(ModerationCase::getId)
                 .containsExactly(actedCase);
     }
@@ -164,7 +164,7 @@ class CaseHistoryQueryIntegrationTest extends AbstractIntegrationTest {
             resolvedCase(TargetType.POST, post.getId(), code, FinalAction.HIDE);
         }
 
-        assertThat(cases.findResolvedByRuleCode(code, 2)).hasSize(2);
+        assertThat(cases.findResolvedByRuleCode(code, ninetyDaysAgo(), 2)).hasSize(2);
     }
 
     /**
@@ -195,6 +195,34 @@ class CaseHistoryQueryIntegrationTest extends AbstractIntegrationTest {
                         String.class,
                         "idx_moderation_cases_target_resolved"))
                 .hasSize(1);
+    }
+
+    /**
+     * Precedent older than this is not practice any more.
+     *
+     * <p>The window matters enough to have its own test: without it a rule nobody
+     * has enforced in two years returns two-year-old decisions looking exactly
+     * like last week's.
+     */
+    @Test
+    void leavesOutPrecedentOlderThanTheWindow() {
+        String code = uniqueRuleCode();
+        User author = newUser();
+        Post recent = posts.saveAndFlush(new Post(uniqueForumKey(), author, "Recent", "body"));
+        Post ancient = posts.saveAndFlush(new Post(uniqueForumKey(), author, "Ancient", "body"));
+
+        UUID recentCase = resolvedCase(TargetType.POST, recent.getId(), code, FinalAction.HIDE);
+        UUID ancientCase = resolvedCase(TargetType.POST, ancient.getId(), code, FinalAction.HIDE);
+        backdateDecision(ancientCase, Instant.now().minus(400, ChronoUnit.DAYS));
+
+        assertThat(cases.findResolvedByRuleCode(code, ninetyDaysAgo(), 5))
+                .extracting(ModerationCase::getId)
+                .containsExactly(recentCase)
+                .doesNotContain(ancientCase);
+    }
+
+    private Instant ninetyDaysAgo() {
+        return Instant.now().minus(90, ChronoUnit.DAYS);
     }
 
     /**

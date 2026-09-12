@@ -30,11 +30,22 @@ function elapsed(value:string) {
 function errorText(error:unknown) { return error instanceof Error ? error.message : '请求失败，请稍后重试。'; }
 
 export default function Home() {
-  const [session, setSession] = useState<Session|null>(() => {
-    if (typeof window === 'undefined') return null;
-    try { const saved = sessionStorage.getItem('campusguard.admin.session'); return saved ? JSON.parse(saved) : null; }
-    catch { sessionStorage.removeItem('campusguard.admin.session'); return null; }
-  });
+  // Restored after the first paint, not during it. Reading sessionStorage in the
+  // initial state made the server render a logged-out page and the browser render
+  // a logged-in one from the same code, which is a hydration mismatch: React warns
+  // in development and, in production, silently keeps whichever tree it built
+  // first. The cost is one frame showing the login form to somebody already
+  // signed in, which `restoring` covers.
+  const [session, setSession] = useState<Session|null>(null);
+  const [restoring, setRestoring] = useState(true);
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('campusguard.admin.session');
+      if (saved) setSession(JSON.parse(saved));
+    } catch { sessionStorage.removeItem('campusguard.admin.session'); }
+    finally { setRestoring(false); }
+  }, []);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [tab, setTab] = useState<Tab>('queue');
@@ -157,6 +168,7 @@ export default function Home() {
     assigned:cases.filter(item => item.assignedTo).length,
   }), [cases]);
 
+  if (restoring) return <main className="login-shell"><div className="login-card"><div className="brand-mark large">D</div><p className="eyebrow">CampusGuard</p></div></main>;
   if (!session) return <main className="login-shell"><form className="login-card" onSubmit={login}>
     <div className="brand-mark large">D</div><p className="eyebrow">CampusGuard / 安全入口</p><h1>管理员登录</h1>
     <p className="login-copy">使用后端创建的管理员账号进入审核工作台。令牌仅保存在当前浏览器会话。</p>
