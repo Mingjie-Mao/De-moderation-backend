@@ -45,7 +45,7 @@ class EvaluationPacingTest {
     }
 
     private long timeRun(ModerationEngine engine, Duration interval) {
-        EvaluationProperties properties = new EvaluationProperties(Map.of(), 0, interval);
+        EvaluationProperties properties = new EvaluationProperties(Map.of(), 0, 1, interval);
         ModerationProperties moderation = new ModerationProperties(
                 engine.name(), engine.name(), 20, Duration.ofSeconds(2), Duration.ofMinutes(5));
         EvaluationRunner runner = new EvaluationRunner(
@@ -68,7 +68,7 @@ class EvaluationPacingTest {
 
     private LabelledSample sample(String id) {
         return new LabelledSample(
-                id, "NORMAL", ModerationDecision.ALLOW, "t", "ordinary", SampleProvenance.AUTHORED, null);
+                id, "NORMAL", ModerationDecision.ALLOW, "t", "ordinary", SampleProvenance.AUTHORED, null, null);
     }
 
     private ModerationEngine local(String name) {

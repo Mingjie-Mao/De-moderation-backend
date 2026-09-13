@@ -394,6 +394,99 @@ class InvestigationApiIntegrationTest extends AbstractIntegrationTest {
         assertThat(stubModel.calls()).isEqualTo(1);
     }
 
+    /**
+     * Through the endpoint rather than the service: the one path where the
+     * reviewer comes out of a signed token instead of being handed in by the
+     * test, and so the only one that shows the audit trail names the right
+     * person.
+     */
+    @Test
+    void runsAnInvestigationThroughTheEndpointAndRecordsWhoAskedForIt() throws Exception {
+        User admin = newAdmin();
+        UUID caseId = awaitingReviewCase(newUser());
+        ModerationCase subject = cases.findById(caseId).orElseThrow();
+
+        mockMvc.perform(post("/api/admin/moderation-cases/{id}/investigate", caseId)
+                        .header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.outcome").value("COMPLETE"))
+                .andExpect(jsonPath("$.recommendation").value("NONE"));
+
+        assertThat(auditEntries.findByTargetTypeAndTargetIdOrderByCreatedAtAsc(
+                        subject.getTargetType(), subject.getTargetId()))
+                .filteredOn(entry -> InvestigationRecorder.INVESTIGATION_RECORDED.equals(entry.getAction()))
+                .singleElement()
+                .satisfies(entry -> assertThat(entry.getActorId()).isEqualTo(admin.getId()));
+    }
+
+    /**
+     * The GET is refused above; this is the endpoint that spends money, and a
+     * member reaching it would be the costly half of that mistake.
+     */
+    @Test
+    void refusesAMemberWhoTriesToStartAnInvestigation() throws Exception {
+        UUID caseId = awaitingReviewCase(newUser());
+
+        mockMvc.perform(post("/api/admin/moderation-cases/{id}/investigate", caseId)
+                        .header("Authorization", bearer(newUser())))
+                .andExpect(status().isForbidden());
+
+        assertThat(stubModel.calls()).isZero();
+    }
+
+    /**
+     * A case somebody has already decided has nothing left for a brief to
+     * inform. 409 with the reason, so the console shows a sentence rather than a
+     * failure the reviewer would try again.
+     */
+    @Test
+    void answersConflictForACaseThatIsNoLongerAwaitingReview() throws Exception {
+        UUID caseId = resolvedCase(newUser());
+
+        mockMvc.perform(post("/api/admin/moderation-cases/{id}/investigate", caseId)
+                        .header("Authorization", bearer(newAdmin())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("awaiting review")));
+
+        assertThat(stubModel.calls()).isZero();
+    }
+
+    /**
+     * A refusal is not a model call, so it is not charged against the hour.
+     *
+     * <p>This failed when written. The limit was consumed before the loop looked
+     * at the case, so a reviewer clicking on a case a colleague had just resolved
+     * spent their allowance on 409s, and once it was gone was told they had
+     * started too many investigations, having started none.
+     */
+    @Test
+    void doesNotChargeTheLimitForACaseItRefuses() {
+        User admin = newAdmin();
+        UUID resolved = resolvedCase(newUser());
+
+        for (int i = 0; i < LIMIT_PER_HOUR + 1; i++) {
+            assertThatThrownBy(() -> service.investigate(admin.getId(), resolved, true))
+                    .isInstanceOf(com.campusguard.common.ConflictException.class);
+        }
+
+        for (int i = 0; i < LIMIT_PER_HOUR; i++) {
+            service.investigate(admin.getId(), awaitingReviewCase(newUser()), false);
+        }
+        assertThat(stubModel.calls()).isEqualTo(LIMIT_PER_HOUR);
+    }
+
+    private UUID resolvedCase(User author) {
+        UUID caseId = awaitingReviewCase(author);
+        User reviewer = newAdmin();
+
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            ModerationCase moderationCase = cases.findById(caseId).orElseThrow();
+            moderationCase.resolve(reviewer, FinalAction.NONE);
+            cases.saveAndFlush(moderationCase);
+        });
+        return caseId;
+    }
+
     private InvestigationBriefView view(String summary, FinalAction recommendation, Instant at) {
         return new InvestigationBriefView(
                 InvestigationBriefView.COMPLETE,

@@ -50,6 +50,17 @@ public class EvaluationRunner {
     }
 
     public EvaluationResult run(String engineName, EvaluationDataset.Loaded dataset) {
+        return run(engineName, dataset, true);
+    }
+
+    /**
+     * @param warmUp false for the second and later measurements of one engine.
+     *     The JVM is already warm by then, so the samples would buy nothing, and
+     *     for a model-backed engine each of them is a real billable call. Skipping
+     *     them is the difference between a three-run benchmark costing 3n calls
+     *     and costing 3n + 9.
+     */
+    public EvaluationResult run(String engineName, EvaluationDataset.Loaded dataset, boolean warmUp) {
         ModerationEngine engine;
         try {
             engine = engines.require(engineName);
@@ -61,7 +72,9 @@ public class EvaluationRunner {
             return EvaluationResult.unavailable(engineName, dataset.name(), ex.getMessage());
         }
 
-        warmUp(engine, dataset);
+        if (warmUp) {
+            warmUp(engine, dataset);
+        }
 
         List<SampleOutcome> outcomes = new ArrayList<>();
         long previousStart = 0;
@@ -189,6 +202,7 @@ public class EvaluationRunner {
 
         return new SampleOutcome(
                 sample.id(),
+                sample.pairId(),
                 sample.category(),
                 sample.provenance(),
                 sample.expected(),

@@ -93,3 +93,13 @@ h1,h2,p { margin-top:0; } h1 { margin-bottom:0; font-size:clamp(30px,4vw,48px); 
 .brief-against b { display:block; margin-bottom:4px; color:#7a5c1e; font-size:11px; letter-spacing:.04em; }
 .brief-meta { margin:12px 0 0; color:#8b958c; font-size:11px; }
 .brief-empty { margin:0; color:#788279; font-size:12px; line-height:1.7; }
+/* Every citation opens the case it cites. A brief whose evidence takes more
+   than a click to check is asking to be taken on trust. */
+.brief-cited { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:12px 0 0; }
+.brief-cited span { color:#6b766e; font-size:11px; font-weight:800; letter-spacing:.04em; }
+.cited-case { padding:3px 9px; border:1px solid #cbd5cb; border-radius:999px; background:#f4f7f2; color:#315f49;
+              font:600 11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; cursor:pointer; }
+.cited-case:hover:not(:disabled) { background:#e4eee2; }
+.cited-case:disabled { color:#8b958c; cursor:default; }
+.back-link { display:block; margin:0 0 8px; padding:0; border:0; background:none; color:#315f49; font-size:12px; font-weight:750; cursor:pointer; }
+.back-link:hover:not(:disabled) { text-decoration:underline; }

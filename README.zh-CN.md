@@ -16,7 +16,9 @@ Java 21 · Spring Boot 3.5 · PostgreSQL 16 · Spring AI (Gemini) · Testcontain
 
 ## 结果
 
-所有审核引擎均使用同一套评测流程，在同一份 192 条中英双语标注数据集上测试。
+所有审核引擎均使用同一套评测流程，在两份中英双语标注数据集上测试。
+
+**192 条数据集**，prompt 就是对着它写的：
 
 | 引擎 | Macro-F1 | ALLOW 召回 | REMOVE 召回 | ESCALATE 召回 | p50 延迟 | Token/样本 |
 |---|---|---|---|---|---|---|
@@ -24,9 +26,25 @@ Java 21 · Spring Boot 3.5 · PostgreSQL 16 · Spring AI (Gemini) · Testcontain
 | `gemini-3.5-flash-lite/v1` | 0.617 | 0.978 | 0.939 | 0.056 | 906 ms | 341 |
 | `gemini-3.5-flash-lite/v2` | **0.924** | 0.989 | 0.970 | **0.778** | 868 ms | 651 |
 
-v1 与 v2 使用相同模型和相同 Java 代码，仅修改了 prompt。改写后 Macro-F1 从 0.617 提升至 0.924，ESCALATE Recall 从 0.056 提升至 0.778；代价是平均 prompt token 使用量从 341 增加至 651。
+v1 与 v2 使用相同模型和相同 Java 代码，仅修改了 prompt。改写后 Macro-F1 从 0.617 提升至 0.924，ESCALATE 召回从 0.056 提升至 0.778；代价是平均 prompt token 从 341 增加到 651。
 
-**说明：** v2 的措辞是读完 v1 在同一份数据集上的错误之后写的，所以 0.924 不是留出测试集的无偏估计。逐样本分歧、中英拆分和其余限制都在[评测解读](docs/evaluation-notes.md)里。
+v2 的措辞是读完 v1 在这同一份数据上的错误之后写的，所以 0.924 是"在产生它的那份数据上被确认的诊断"，不是估计。
+
+**这张表每一行都只跑了一次，没有误差范围。** 下面那张留出集的表有，因为 72 条样本跑三次能塞进供应商一天的免费额度，而这张不能——每个引擎 579 次调用，上限 500。这是这张表实打实的缺口，但它动不了上面那个结论：v1 到 v2 是 0.307，而这套工具在任何引擎上测到过的最大运行间波动是 ±0.016。这里的小差距请当作"未测量"来读；仪器本身的精度在下面那张表里。
+
+**72 条留出集**，在 prompt 冻结之后才写，写任何 prompt 时都没有看过它。由 36 组**最小对**构成：同一篇帖子写两遍，只改一处，两半的正确答案不同。每个引擎跑三次，`±` 是观测极差的一半。
+
+| 引擎 | Macro-F1 | ESCALATE 召回 | 成对准确率 | 答案不稳定 |
+|---|---|---|---|---|
+| `keyword-v1` — 词表 | 0.217 ±0.000 | 0.000 | **0.000** | 0 / 72 |
+| `gemini-3.5-flash-lite/v1` | 0.597 ±0.016 | 0.067 | 0.457 | 2 / 72 |
+| `gemini-3.5-flash-lite/v2` | **0.984** ±0.003 | 1.000 | **0.972** | 0 / 72 |
+
+一组最小对只有两半都答对才算对。靠话题作答的引擎，每组白得一半——词表的 0.000 就是这么来的：36 组里它有 29 组两半给了同一个答案。
+
+**这两张表能说明什么，不能说明什么。** v1 的 ESCALATE 崩塌在五周后新写的数据上复现了（0.056 → 0.067），所以当初支撑改写 prompt 的那个失败是真实性质，不是数据的偶然。v2 在留出集上唯一的错误，正是它自己源码注释里预言过、并且明确留着没修的那一个。但 0.984 **不是**线上准确率的估计：留出集的标签是照着 v2 prompt 所陈述的同一套判定口径写的，所以它 ESCALATE 召回 1.000 接近于定义使然。两份数据集都不是真实流量。完整论证见[评测解读](docs/evaluation-notes.md)。
+
+**第三个 prompt `v3`** 在 v2 基础上只加一行，固定判定理由所用的语言——审核员读到的那段解释，此前在中文帖子下是英文的。隔天在同一批 72 条样本上跑三次，它的分类结果与 v2 **完全一致**：macro-F1 同为 0.986，配对准确率同为 0.972，72 条里没有一条被修好、也没有一条被弄坏，连唯一那条错都是同一条。而在这套集子的 28 条中文样本上（取各自报告所依据的那次运行），它 28 次都用中文写理由，v2 只有 3 次，代价是多 11.6% 的 prompt token。准确率上免费，prompt 体积上付费。那一场也把 v2 重测了一遍，0.986 对前一天的 0.984，差距落在前一天自身的波动范围内——[报告在此](docs/evaluation-heldout-v2v3.md)。
 
 ## 架构
 
@@ -52,7 +70,7 @@ flowchart LR
 
 同一目标的重复举报会合并为单个审核案件，并由数据库唯一约束保证只触发一次引擎调用。Worker 异常退出后，未完成案件会自动重新入队；所有状态流转、审核结果和管理员操作均写入只追加的审计日志。
 
-### 案件调查（进行中）
+### 案件调查
 
 上面的流水线一次判定一条内容。它没法告诉审核员的是：这是作者的第一次还是第四次，
 以及同一条规则以往是怎么执行的——案件按内容索引，从"人"到"他的历史"这条路并不存在。
@@ -112,7 +130,8 @@ flowchart LR
 - **可插拔审核引擎** —— 规则与 LLM 共用接口，并按模型和 Prompt 版本独立评测
 - **LLM 可靠性** —— 输出校验、超时、熔断、限流退避与规则降级
 - **Human-in-the-loop** —— 管理员认领、裁决、改判、申诉、通知与审计
-- **部署与可观测性** —— Docker、TLS、Prometheus/Grafana、备份脚本、CI，以及 Kubernetes 和 k6 配置模板
+- **持久化图片存储** —— 一层存储抽象下的本地目录与 S3 兼容后端（AWS、R2、GCS），以及只清理"任何内容都不再引用"的孤儿扫描：被隐藏或被删除的内容所用的图片一律不动，因为审核决定是可以撤销的
+- **部署与可观测性** —— Docker、TLS、Prometheus、按严重级路由的 Alertmanager、Grafana、带回读校验的异地备份、工作日也能安全执行的恢复演练、CI，以及 Kubernetes 和 k6 模板
 
 ## 快速开始
 
@@ -164,10 +183,10 @@ LLM 审核是可选的。未配置 `AI_CHAT_MODEL` 时，模型引擎不会注�
 在 `.env` 中加入：
 
 ```bash
-printf 'AI_CHAT_MODEL=google-genai\nGEMINI_MODELS=gemini-3.5-flash-lite\nMODERATION_ENGINE=gemini-3.5-flash-lite/v2\nGEMINI_API_KEY=...\n' >> .env
+printf 'AI_CHAT_MODEL=google-genai\nGEMINI_MODELS=gemini-3.5-flash-lite\nMODERATION_ENGINE=gemini-3.5-flash-lite/v3\nGEMINI_API_KEY=...\n' >> .env
 ```
 
-模型与 Prompt 版本共同构成审核引擎身份，例如 `gemini-3.5-flash-lite/v2`，因此不同 Prompt 可以独立注册、评测和比较。
+模型与 Prompt 版本共同构成审核引擎身份，例如 `gemini-3.5-flash-lite/v3`，因此不同 Prompt 可以独立注册、评测和比较。
 
 LLM 调用链包含：
 
@@ -190,13 +209,19 @@ De-discussion Android 客户端通过本 API 读写论坛内容；管理员审�
 mvn verify
 ```
 
-集成测试通过 Testcontainers 使用真实 PostgreSQL，覆盖并发举报聚合、会话轮换、图片、案件认领、申诉、队列恢复和模型降级。当前准确测试数由 `mvn verify` 输出，不再把容易过期的数字写死在说明中。
+集成测试通过 Testcontainers 使用**真实 PostgreSQL 和真实 MinIO**，因此 Docker 是前置条件。覆盖并发举报聚合、会话轮换、图片、案件认领、申诉、队列恢复、模型降级、对着脚本化模型跑的调查循环、孤儿扫描，以及两个存储后端必须同样满足的一份共享契约。
+
+有两个测试类在未设置 `GEMINI_API_KEY` 时跳过：它们会调用真实模型。
+
+当前准确测试数由 `mvn verify` 输出，不再把容易过期的数字写死在说明中。
 
 ## 数据集
 
-评测集包含 **192 条中英双语标注样本**，其中不包含真实生产流量。
+两份都不是真实生产流量，而且不会因为更难就变成真实流量。
 
-良性样本来自早期 ANU 团队项目 [De-discussion](https://github.com/Mingjie-Mao/De-discussion) 的论坛演示内容；违规与边界样本则专门为本次评测编写。
+**192 条**，prompt 是对着它写的。良性样本来自早期 ANU 团队项目 [De-discussion](https://github.com/Mingjie-Mao/De-discussion) 的论坛演示内容；违规与边界样本专门为本次评测编写。在那份数据里，样本来源几乎能完全预测标签——这正是第二份数据集要消除的缺陷。
+
+**72 条留出集**：在 prompt 冻结之后写，写 prompt 时从未看过，由 36 组最小对构成，作者、语域一致而三种标签齐全。每条样本都附有一条说明，写明改动了什么、标签依据判定口径的哪一条，因此有争议的标签靠读就能定，而不必听凭写的人说了算。它自身的不变量——每组成对完整、每组两半标签不同、与调参集零重叠——由 `HeldOutDatasetTest` 断言，而不是靠信任。
 
 
 ## 文档
@@ -205,7 +230,10 @@ mvn verify
 |---|---|
 | [architecture.md](docs/architecture.md) | 组件、数据模型、请求流转 |
 | [evaluation-notes.md](docs/evaluation-notes.md) | 这些数字意味着什么、又不意味着什么 |
-| [evaluation.md](docs/evaluation.md) | 自动生成的报告——指标、混淆矩阵、逐样本分歧 |
+| [evaluation.md](docs/evaluation.md) | 192 条数据集上自动生成的报告 |
+| [evaluation-heldout.md](docs/evaluation-heldout.md) | 留出集上自动生成的报告——成对得分与多次运行的离散度 |
+| [evaluation-heldout-v2v3.md](docs/evaluation-heldout-v2v3.md) | 隔天在同一套留出集上的报告，用 `v3` 替下 `v1`——判定理由改用内容语言的代价 |
+| [investigation.md](docs/investigation.md) | 案件调查助手：设计、测量、成本与已知失败 |
 | [reliability.md](docs/reliability.md) | 队列持久性、降级、各种上界 |
 | [security-decisions.md](docs/security-decisions.md) | 认证、暴露面、权限 |
 | [demo-script.md](docs/demo-script.md) | 三分钟走查 |

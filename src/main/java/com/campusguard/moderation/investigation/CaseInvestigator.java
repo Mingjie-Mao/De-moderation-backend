@@ -78,7 +78,7 @@ public class CaseInvestigator implements Investigator {
 
     @Override
     public InvestigationBrief investigate(UUID caseId) {
-        requireAwaitingReview(caseId);
+        requireAwaitingReview(caseRepository, caseId);
 
         // Distinguishes this run from any earlier one on the same case. Without
         // it the first step of a second investigation is byte-for-byte the first
@@ -266,7 +266,11 @@ public class CaseInvestigator implements Investigator {
                 failure.getMessage());
     }
 
-    private void requireAwaitingReview(UUID caseId) {
+    /**
+     * Package-visible and static so that {@link InvestigationService} can ask the
+     * same question, in the same words, before it charges a reviewer's limit.
+     */
+    static void requireAwaitingReview(ModerationCaseRepository caseRepository, UUID caseId) {
         ModerationCase moderationCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new com.campusguard.common.NotFoundException(
                         "No moderation case with id " + caseId));

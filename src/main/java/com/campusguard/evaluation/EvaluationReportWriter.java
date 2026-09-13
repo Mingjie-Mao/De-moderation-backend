@@ -37,6 +37,8 @@ public class EvaluationReportWriter {
 
         renderComposition(out, report);
         renderComparison(out, report);
+        renderPrecision(out, report);
+        renderPairs(out, report);
         renderDisagreements(out, report);
         report.results().forEach(result -> renderEngine(out, result));
         renderProduction(out, report);
@@ -60,6 +62,9 @@ public class EvaluationReportWriter {
             return;
         }
 
+        long seeded = all.stream().filter(outcome -> outcome.provenance() == SampleProvenance.SEEDED).count();
+        long paired = all.stream().filter(SampleOutcome::paired).count();
+
         out.append("## What this dataset is\n\n");
         out.append("| expected action | seeded | written for this | total |\n|---|---|---|---|\n");
 
@@ -73,6 +78,28 @@ public class EvaluationReportWriter {
                     .append(" | ").append(authored).append(" | ").append(real + authored).append(" |\n");
         }
         out.append('\n');
+
+        // The two-source prose below describes the 192-sample set, where the split
+        // is the most important thing about the data. A set with one source is a
+        // different object and the paragraphs would be false on it, so they are
+        // conditional rather than always printed.
+        if (seeded == 0) {
+            out.append("Every sample here was written for this evaluation. That removes the flaw the\n")
+                    .append("192-sample set has and cannot lose — there, the source of a sample almost\n")
+                    .append("perfectly predicts its label, so part of any good score is a reward for\n")
+                    .append("noticing which half a sample came from — and it removes the per-source\n")
+                    .append("comparison along with it. There is one source, so that breakdown says\n")
+                    .append("nothing and is not drawn.\n\n");
+            out.append("What replaces it is the pair structure. ").append(paired)
+                    .append(" of these samples are one half of a\n")
+                    .append("minimal pair: the same post, one deliberate difference, two different\n")
+                    .append("correct answers. Within a pair the author, the topic, the language and the\n")
+                    .append("register are held constant, so the only thing left to notice is the thing\n")
+                    .append("being measured. Pairs are scored as units further down.\n\n");
+            out.append("It is still not real traffic, and it never becomes real traffic by being\n")
+                    .append("harder.\n\n");
+            return;
+        }
 
         out.append("Neither column is real traffic. Both halves were written by somebody, and\n")
                 .append("what separates them is only whether the writer knew about this evaluation.\n\n");
@@ -135,6 +162,134 @@ public class EvaluationReportWriter {
                 .append("status column is there so those two are never confused.\n\n");
     }
 
+    /**
+     * The precision of every number above, stated as a range rather than left for
+     * the reader to assume there is none.
+     */
+    private void renderPrecision(StringBuilder out, BenchmarkReport report) {
+        if (!report.repeated()) {
+            out.append("## How much of this is noise\n\n");
+            out.append("Each engine ran once, so this report cannot say. A provider's model is not a\n")
+                    .append("pure function: an earlier run of `gemini-3.5-flash-lite/v1` on the\n")
+                    .append("192-sample set scored macro-F1 0.636 where the run in this file's history\n")
+                    .append("scored 0.617, with the same code, the same samples and `temperature: 0.0`.\n")
+                    .append("Two hundredths is therefore the least a single-run difference has to be\n")
+                    .append("before it means anything, and no number here is measured to that\n")
+                    .append("precision.\n\n");
+            out.append("Set `--campusguard.evaluation.runs=3` to replace that guess with a\n")
+                    .append("measurement. It costs three times the model calls.\n\n");
+            return;
+        }
+
+        out.append("## How much of this is noise\n\n");
+        out.append("Every engine measured ").append(report.runCount())
+                .append(" times on the same samples. `mean` is across runs and\n")
+                .append("`range` is the widest observed minus the narrowest, which is this harness's\n")
+                .append("own precision: **a gap between two engines narrower than their ranges is not\n")
+                .append("a finding.**\n\n");
+
+        out.append("| engine | runs | macro-F1 mean | range | ALLOW R | REMOVE R | ESCALATE R | changed answer |\n");
+        out.append("|---|---|---|---|---|---|---|---|\n");
+
+        for (EngineRuns runs : report.repeats()) {
+            if (runs.measured().isEmpty()) {
+                out.append("| `").append(runs.engineName()).append("` | 0 | — | — | — | — | — | — |\n");
+                continue;
+            }
+            EngineRuns.Instability instability = runs.instability();
+            out.append("| `").append(runs.engineName()).append("` | ").append(runs.measured().size())
+                    .append(" | ").append(decimal(runs.macroF1().mean()))
+                    .append(" | ").append(plusMinus(runs.macroF1()))
+                    .append(" | ").append(spread(runs.recall(ModerationDecision.ALLOW)))
+                    .append(" | ").append(spread(runs.recall(ModerationDecision.REMOVE)))
+                    .append(" | ").append(spread(runs.recall(ModerationDecision.ESCALATE)))
+                    .append(" | ").append(instability.unstable()).append(" / ").append(instability.samples())
+                    .append(" |\n");
+        }
+        out.append('\n');
+
+        out.append("`changed answer` counts samples the engine did not answer identically every\n")
+                .append("time. It is the same instability the range describes, at the granularity\n")
+                .append("where it can be acted on: a score that holds steady because the same\n")
+                .append("handful of samples flip in opposite directions is not the same thing as an\n")
+                .append("engine that is steady, and only this column separates them.\n\n");
+
+        for (EngineRuns runs : report.repeats()) {
+            EngineRuns.Instability instability = runs.instability();
+            if (instability.unstable() == 0 || !runs.repeated()) {
+                continue;
+            }
+            out.append("`").append(runs.engineName()).append("` was inconsistent on: ")
+                    .append(String.join(", ", instability.unstableSampleIds().stream()
+                            .limit(MAX_ROWS_PER_SECTION)
+                            .map(id -> "`" + id + "`")
+                            .toList()));
+            if (instability.unstable() > MAX_ROWS_PER_SECTION) {
+                out.append(" and ").append(instability.unstable() - MAX_ROWS_PER_SECTION).append(" more");
+            }
+            out.append("\n\n");
+        }
+
+        out.append("The representative run below is the median by macro-F1, not the best and not\n")
+                .append("the first. Every per-sample table, confusion matrix and comparison comes\n")
+                .append("from that one run, so they agree with each other; an average of three\n")
+                .append("matrices would correspond to no run that happened and could not be traced\n")
+                .append("to a row in the CSV.\n\n");
+    }
+
+    /**
+     * Pairs scored as units. Only drawn for a dataset that has them, because on
+     * one that does not the whole section would be a table of zeros.
+     */
+    private void renderPairs(StringBuilder out, BenchmarkReport report) {
+        boolean anyPairs = report.results().stream()
+                .anyMatch(result -> result.pairScore().scored() > 0);
+        if (!anyPairs) {
+            return;
+        }
+
+        out.append("## Can it tell two near-identical posts apart\n\n");
+        out.append("A minimal pair is one post written twice with a single deliberate difference,\n")
+                .append("where the policy gives the two halves different answers. A pair counts as\n")
+                .append("right only if both halves are.\n\n");
+        out.append("This is the question per-sample accuracy cannot ask. An engine that answers by\n")
+                .append("topic — anything about exams is suspicious, anything about lost keys is fine\n")
+                .append("— gets one half of every pair right for free. That reads as roughly 50%\n")
+                .append("accuracy on the samples and 0% on the pairs, and the second number is the\n")
+                .append("one that says whether it understood the rule.\n\n");
+
+        out.append("| engine | pairs | both right | one right | both wrong | pair accuracy |\n");
+        out.append("|---|---|---|---|---|---|\n");
+
+        for (EvaluationResult result : report.results()) {
+            if (result.status() == EngineRunStatus.UNAVAILABLE) {
+                continue;
+            }
+            EvaluationResult.PairScore score = result.pairScore();
+            out.append("| `").append(result.engineName()).append("` | ").append(score.scored())
+                    .append(" | ").append(score.bothRight())
+                    .append(" | ").append(score.oneRight())
+                    .append(" | ").append(score.bothWrong())
+                    .append(" | ").append(decimal(score.accuracy()))
+                    .append(" |\n");
+        }
+        out.append('\n');
+
+        out.append("`one right` is the diagnostic column: it is the engine giving both halves the\n")
+                .append("same answer, which is what keying on topic looks like from outside.\n\n");
+    }
+
+    private String spread(EngineRuns.Spread value) {
+        return value.single()
+                ? decimal(value.mean())
+                : decimal(value.mean()) + " " + plusMinus(value);
+    }
+
+    /** A range written as a half-width, which is how a precision is usually read. */
+    private String plusMinus(EngineRuns.Spread value) {
+        return value.single() ? "—" : "±" + decimal(value.range() / 2);
+    }
+
     private void renderDisagreements(StringBuilder out, BenchmarkReport report) {
         if (report.comparisons().isEmpty()) {
             return;
@@ -183,7 +338,7 @@ public class EvaluationReportWriter {
 
         if (deltas.size() > MAX_ROWS_PER_SECTION) {
             out.append("\n_").append(deltas.size() - MAX_ROWS_PER_SECTION)
-                    .append(" more in `evaluation-samples.csv`._\n");
+                    .append(" more in the per-sample CSV beside this file._\n");
         }
         out.append('\n');
     }
@@ -326,7 +481,7 @@ public class EvaluationReportWriter {
 
         if (misses.size() > MAX_ROWS_PER_SECTION) {
             out.append("\n_").append(misses.size() - MAX_ROWS_PER_SECTION)
-                    .append(" more in `evaluation-samples.csv`._\n");
+                    .append(" more in the per-sample CSV beside this file._\n");
         }
         out.append('\n');
     }
@@ -365,10 +520,14 @@ public class EvaluationReportWriter {
         out.append("  -Dspring-boot.run.arguments=\"--campusguard.evaluation.run=true \\\n");
         out.append("  --campusguard.evaluation.dataset=docs/evaluation-samples.json\"\n");
         out.append("```\n\n");
+        out.append("Add `--campusguard.evaluation.runs=3` to measure each engine three times and\n")
+                .append("get a range next to every mean. It costs three times the model calls, and it\n")
+                .append("is the difference between a comparison and an anecdote.\n\n");
         out.append("Omitting `--campusguard.evaluation.dataset` uses the bundled starter set. Every\n")
                 .append("registered engine runs; one that is unavailable is reported and skipped\n")
                 .append("rather than ending the run. Machine-readable output lands beside this file as\n")
-                .append("`evaluation.json` and `evaluation-samples.csv`.\n\n");
+                .append("a machine-readable report and every per-sample answer, under the same stem\n")
+                .append("(`--campusguard.evaluation.output-prefix`).\n\n");
         out.append("Token prices are not built in, because a plausible default would put a number\n")
                 .append("in this report that nobody checked. Configure them per engine under\n")
                 .append("`campusguard.evaluation.pricing` to fill in the cost column.\n");

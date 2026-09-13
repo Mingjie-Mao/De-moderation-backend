@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.metadata.EmptyUsage;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -80,11 +82,15 @@ public class SpringAiToolCompletion implements ToolCallingPort {
                     ? new Turn.CallTools(answer.getToolCalls().stream().map(this::toToolCall).toList())
                     : new Turn.Finished(answer.getText() == null ? "" : answer.getText());
 
+            // Spring AI stands in for a response that reported no usage with an
+            // EmptyUsage, which answers 0. Read as a count, that records the call
+            // as having cost nothing rather than as unknown.
             Integer promptTokens = null;
             Integer completionTokens = null;
-            if (response.getMetadata() != null && response.getMetadata().getUsage() != null) {
-                promptTokens = asInt(response.getMetadata().getUsage().getPromptTokens());
-                completionTokens = asInt(response.getMetadata().getUsage().getCompletionTokens());
+            Usage usage = response.getMetadata() == null ? null : response.getMetadata().getUsage();
+            if (usage != null && !(usage instanceof EmptyUsage)) {
+                promptTokens = asInt(usage.getPromptTokens());
+                completionTokens = asInt(usage.getCompletionTokens());
             }
 
             return new Response(turn, promptTokens, completionTokens);

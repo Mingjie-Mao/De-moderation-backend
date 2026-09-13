@@ -35,7 +35,17 @@ campusguard:
     # supplied deployment. Never publish it from the reverse proxy.
     expose-prometheus: true
   media:
+    # Still the filesystem by default, because a deployment with a real mounted
+    # volume is a correct use of it and changing the default would break those.
+    # Anywhere the container's disk does not survive a release, set
+    # MEDIA_BACKEND=S3 — the startup log says which backend is live, and that
+    # line is the cheapest way to catch this before users do.
+    backend: ${MEDIA_BACKEND:FILESYSTEM}
     storage-path: ${MEDIA_STORAGE_PATH:/data/media}
+    # Safe to leave on in production: it only ever deletes media that no post
+    # and no comment refers to, hidden and removed content included.
+    sweep:
+      enabled: ${MEDIA_SWEEP_ENABLED:true}
   mail:
     enabled: ${MAIL_ENABLED:true}
 

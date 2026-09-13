@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 class EvaluationRunnerFailureTest {
 
     private final EvaluationUsageCollector usageCollector = new EvaluationUsageCollector();
-    private final EvaluationProperties properties = new EvaluationProperties(Map.of(), 0, Duration.ZERO);
+    private final EvaluationProperties properties = new EvaluationProperties(Map.of(), 0, 1, Duration.ZERO);
     private final CostEstimator costEstimator = new CostEstimator(properties);
 
     @Test
@@ -99,10 +99,10 @@ class EvaluationRunnerFailureTest {
         return new EvaluationDataset.Loaded(
                 "test",
                 List.of(
-                        new LabelledSample("s1", "NORMAL", ModerationDecision.ALLOW, "t", "ordinary", SampleProvenance.AUTHORED, null),
-                        new LabelledSample("s2", "ABUSE", ModerationDecision.REMOVE, "t", "abusive", SampleProvenance.AUTHORED, null),
-                        new LabelledSample("s3", "NORMAL", ModerationDecision.ALLOW, "t", "also fine", SampleProvenance.AUTHORED, null),
-                        new LabelledSample("s4", "SPAM", ModerationDecision.REMOVE, "t", "buy now", SampleProvenance.AUTHORED, null)),
+                        new LabelledSample("s1", "NORMAL", ModerationDecision.ALLOW, "t", "ordinary", SampleProvenance.AUTHORED, null, null),
+                        new LabelledSample("s2", "ABUSE", ModerationDecision.REMOVE, "t", "abusive", SampleProvenance.AUTHORED, null, null),
+                        new LabelledSample("s3", "NORMAL", ModerationDecision.ALLOW, "t", "also fine", SampleProvenance.AUTHORED, null, null),
+                        new LabelledSample("s4", "SPAM", ModerationDecision.REMOVE, "t", "buy now", SampleProvenance.AUTHORED, null, null)),
                 false);
     }
 

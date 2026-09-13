@@ -34,15 +34,6 @@ public class InvestigationConfig {
     private static final Logger log = LoggerFactory.getLogger(InvestigationConfig.class);
 
     /**
-     * The assistant uses the model live traffic uses.
-     *
-     * <p>Not a default anyone should override lightly: the shared circuit only
-     * protects the queue if the assistant is calling the same endpoint. Pointed
-     * at a second model it would be outside the breaker that matters, and would
-     * be the largest single source of calls to a provider already known to be
-     * failing.
-     */
-    /**
      * The configured wording, chosen the way {@code MODERATION_ENGINE} chooses an
      * engine.
      *
@@ -77,6 +68,12 @@ public class InvestigationConfig {
             ObjectMapper objectMapper) {
 
         InvestigationPrompt prompt = select(prompts, properties.promptVersion());
+
+        // The model live traffic uses, and not a default to override lightly: the
+        // shared circuit only protects the queue if the assistant calls the same
+        // endpoint. Pointed at a second model it would sit outside the breaker
+        // that matters, and be the largest single source of calls to a provider
+        // already known to be failing.
         String model = policies.primaryModel();
         log.info("Case investigation is enabled, using {}, prompt {} and {} run(s) per case.",
                 model, prompt.version(), properties.runs());

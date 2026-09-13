@@ -12,12 +12,15 @@ import java.util.List;
  * decides whether a change is an improvement or a trade. Answering it needs the
  * per-sample record from both runs.
  *
+ * @param pairId carried through from the sample so pairs can be scored as units
+ *     after the run, without the runner having to know what a pair is
  * @param actual null when the call itself failed, which is distinct from the
  *     engine answering wrongly and must not be counted as a wrong answer
  * @param error null on success; set when the engine threw for this sample
  */
 public record SampleOutcome(
         String sampleId,
+        String pairId,
         String category,
         SampleProvenance provenance,
         ModerationDecision expected,
@@ -42,5 +45,9 @@ public record SampleOutcome(
 
     public boolean misjudged() {
         return !failed() && actual != expected;
+    }
+
+    public boolean paired() {
+        return pairId != null && !pairId.isBlank();
     }
 }

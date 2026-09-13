@@ -61,6 +61,12 @@ import org.springframework.stereotype.Component;
  *       leaves my body". Narrowing it is the obvious next change and the obvious
  *       next risk.
  * </ul>
+ *
+ * <p>{@link ModerationPromptV3} is the configured engine as of 13 September 2026.
+ * It copies the wording above without an edit and changes only the language the
+ * rationale is written in, so both entries in that list are still open and this
+ * version's numbers still describe the text in this file. Nothing here is stale;
+ * it is simply no longer the one judging live traffic.
  */
 @Component
 public class ModerationPromptV2 implements ModerationPrompt {

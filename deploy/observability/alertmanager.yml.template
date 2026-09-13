@@ -1,0 +1,63 @@
+# Where a firing alert actually goes.
+#
+# The rules in alerts.yml have existed for a while and were reaching nobody:
+# Prometheus evaluated them, marked them firing on its own status page, and
+# stopped there. An alert that only appears on a dashboard is a dashboard, and
+# nobody watches a dashboard at 3am. This file is the missing half.
+#
+# A template, not the config. Alertmanager does not expand environment variables
+# in its own configuration — unlike everything else in this deployment — so the
+# ${...} below are filled in by scripts/render-alertmanager.sh, which also runs
+# amtool over the result. Rendering it is a release step; the rendered file holds
+# an SMTP password and is gitignored.
+
+global:
+  # Alertmanager needs host:port here, unlike the application's mail settings.
+  smtp_smarthost: "${ALERT_SMTP_HOST}:${ALERT_SMTP_PORT}"
+  smtp_from: "${ALERT_FROM}"
+  smtp_auth_username: "${ALERT_SMTP_USERNAME}"
+  smtp_auth_password: "${ALERT_SMTP_PASSWORD}"
+  smtp_require_tls: true
+  # How long a resolved alert waits before it can fire again as new.
+  resolve_timeout: 5m
+
+route:
+  receiver: operators
+  # One notification per alert name, not per firing series. Without this, a rule
+  # that matches twenty series sends twenty emails and trains the recipient to
+  # filter the sender.
+  group_by: [alertname]
+  group_wait: 30s
+  group_interval: 5m
+  # A still-firing alert is repeated this often. Four hours is deliberately
+  # slow: anything faster becomes noise on an incident that is already known
+  # about, and the point of a repeat is to catch an alert that was dismissed
+  # rather than to keep pace with one being worked on.
+  repeat_interval: 4h
+
+  routes:
+    # Critical means the service is down or erroring for users, and it is worth
+    # interrupting somebody for. Told sooner and repeated sooner than the rest.
+    - matchers: [severity="critical"]
+      receiver: operators-critical
+      group_wait: 10s
+      repeat_interval: 1h
+
+receivers:
+  - name: operators
+    email_configs:
+      - to: "${ALERT_TO}"
+        send_resolved: true
+
+  - name: operators-critical
+    email_configs:
+      - to: "${ALERT_TO_CRITICAL}"
+        send_resolved: true
+
+# A backend that is down will also breach its SLA and grow its queue, and three
+# emails about one outage is two too many. Suppressing the consequences while the
+# cause is firing keeps the first email the useful one.
+inhibit_rules:
+  - source_matchers: [alertname="CampusGuardBackendDown"]
+    target_matchers: [severity="warning"]
+    equal: [job]

@@ -84,6 +84,11 @@ campusguard:
     # 5s paces a run to 12 requests a minute; raise the interval if the account's
     # limit is lower, lower it if higher.
     min-call-interval: ${EVAL_CALL_INTERVAL:5s}
+    # One measurement by default. Above one, every metric is reported as a mean
+    # with the observed range beside it, and the range is what stops a two-point
+    # gap being read as a result: v1 measured 0.636 and then 0.617 with nothing
+    # changed between the runs. Three runs cost three times the model calls.
+    runs: ${EVAL_RUNS:1}
 
   content:
     # A ceiling on flooding, not a throttle on enthusiasm: a person arguing at
@@ -144,9 +149,42 @@ campusguard:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
   media:
+    # FILESYSTEM or S3. The filesystem is the default so the project starts with
+    # no cloud account, and it is the wrong answer anywhere the container's disk
+    # is rebuilt on release: there it loses every uploaded image on every deploy,
+    # silently, while the database keeps every row describing them.
+    backend: ${MEDIA_BACKEND:FILESYSTEM}
     storage-path: ${MEDIA_STORAGE_PATH:${java.io.tmpdir}/campusguard-media}
     max-upload-size: 8MB
     max-pixels: 20000000
+
+    # Any bucket speaking the S3 API: AWS S3, Cloudflare R2, or GCS in its
+    # interoperability mode. One implementation covers all three; which one is
+    # live is the endpoint below.
+    s3:
+      bucket: ${MEDIA_S3_BUCKET:}
+      # R2 wants "auto"; AWS wants a real region.
+      region: ${MEDIA_S3_REGION:auto}
+      # Empty for AWS itself. R2: https://<account>.r2.cloudflarestorage.com
+      endpoint: ${MEDIA_S3_ENDPOINT:}
+      access-key: ${MEDIA_S3_ACCESS_KEY:}
+      secret-key: ${MEDIA_S3_SECRET_KEY:}
+      # Required by MinIO and by most S3-compatible servers that are not AWS.
+      path-style: ${MEDIA_S3_PATH_STYLE:true}
+      # A folder inside the bucket. Worth keeping even on a dedicated bucket:
+      # the sweep below deletes stored objects it can find no row for, and this
+      # prefix is the boundary of what it can reach.
+      prefix: ${MEDIA_S3_PREFIX:media/}
+
+    # Deletes media nothing refers to. Off by default because it deletes.
+    sweep:
+      enabled: ${MEDIA_SWEEP_ENABLED:false}
+      # The only thing between the sweep and an upload still in flight: between
+      # writing the bytes and committing the row a stored object legitimately has
+      # no row, and that window must be far shorter than this.
+      grace: 24h
+      batch-size: 200
+      interval: 1h
 
   auth-rate-limit:
     registrations-per-ip: 10

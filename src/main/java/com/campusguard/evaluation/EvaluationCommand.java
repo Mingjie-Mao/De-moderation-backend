@@ -43,6 +43,14 @@ public class EvaluationCommand implements ApplicationRunner {
     @Value("${campusguard.evaluation.engines:}")
     private String engineNames;
 
+    /**
+     * The stem of the three files written. Varies because there is more than one
+     * dataset now: a held-out run must not overwrite the report of the set the
+     * prompts were tuned on, or the comparison between them is gone.
+     */
+    @Value("${campusguard.evaluation.output-prefix:evaluation}")
+    private String outputPrefix;
+
     public EvaluationCommand(
             BenchmarkService benchmark,
             EvaluationReportWriter markdownWriter,
@@ -64,26 +72,29 @@ public class EvaluationCommand implements ApplicationRunner {
 
         BenchmarkReport report = benchmark.run(datasetPath, requested);
 
-        for (EvaluationResult result : report.results()) {
+        for (EngineRuns runs : report.repeats()) {
+            EvaluationResult result = runs.representative();
             if (result.status() == EngineRunStatus.UNAVAILABLE) {
                 log.warn("{}: unavailable ({})", result.engineName(), result.unavailableReason());
-            } else {
-                log.info(
-                        "{}: macro-F1 {} over {} judged samples ({} errors), p95 {} ms",
-                        result.engineName(),
-                        String.format("%.3f", result.matrix().macroF1()),
-                        result.judgedCount(),
-                        result.errorCount(),
-                        String.format("%.3f", result.percentileMillis(95)));
+                continue;
             }
+            log.info(
+                    "{}: macro-F1 {} (mean of {} run(s), range {}) over {} judged samples ({} errors), p95 {} ms",
+                    result.engineName(),
+                    String.format("%.3f", runs.macroF1().mean()),
+                    runs.measured().size(),
+                    String.format("%.3f", runs.macroF1().range()),
+                    result.judgedCount(),
+                    result.errorCount(),
+                    String.format("%.3f", result.percentileMillis(95)));
         }
 
         Path directory = Path.of(outputDir);
         Files.createDirectories(directory);
 
-        write(directory.resolve("evaluation.md"), markdownWriter.render(report));
-        write(directory.resolve("evaluation.json"), jsonWriter.render(report));
-        write(directory.resolve("evaluation-samples.csv"), csvWriter.render(report));
+        write(directory.resolve(outputPrefix + ".md"), markdownWriter.render(report));
+        write(directory.resolve(outputPrefix + ".json"), jsonWriter.render(report));
+        write(directory.resolve(outputPrefix + "-samples.csv"), csvWriter.render(report));
 
         if (report.starterDataset()) {
             log.warn(

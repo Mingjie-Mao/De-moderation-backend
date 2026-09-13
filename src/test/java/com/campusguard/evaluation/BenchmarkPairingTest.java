@@ -19,7 +19,9 @@ import org.junit.jupiter.api.Test;
 class BenchmarkPairingTest {
 
     private final BenchmarkService service =
-            new BenchmarkService(null, null, new EngineComparator(), null, null);
+            new BenchmarkService(
+                    null, null, new EngineComparator(), null, null,
+                    new EvaluationProperties(java.util.Map.of(), 0, 1, java.time.Duration.ZERO));
 
     @Test
     void comparesTheOnlyCandidateAgainstTheBaselineExactlyOnce() {
@@ -66,8 +68,8 @@ class BenchmarkPairingTest {
 
     private EvaluationResult named(String engine) {
         SampleOutcome outcome = new SampleOutcome(
-                "s1", "NORMAL", SampleProvenance.AUTHORED, REMOVE, ALLOW, 0.8, List.of(), "because", "excerpt", 100,
-                null, null, null);
+                "s1", null, "NORMAL", SampleProvenance.AUTHORED, REMOVE, ALLOW, 0.8, List.of(), "because",
+                "excerpt", 100, null, null, null);
         return new EvaluationResult(
                 engine, "dataset", EngineRunStatus.OK, new ConfusionMatrix(), List.of(outcome), null, null);
     }

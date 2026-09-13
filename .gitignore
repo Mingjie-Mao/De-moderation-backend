@@ -31,3 +31,15 @@ Thumbs.db
 # --- Logs / runtime ---
 *.log
 logs/
+
+# --- Backups ---
+# Database dumps and media tarballs: real student content, and the one kind of
+# file whose accidental commit cannot be undone by deleting it again.
+backups/
+
+# Rendered from alertmanager.yml.template by scripts/render-alertmanager.sh.
+# Holds an SMTP password.
+deploy/observability/alertmanager.yml
+
+# Written by load/k6-mixed.js after every run, for comparing one run with the next.
+load/k6-mixed-summary.json

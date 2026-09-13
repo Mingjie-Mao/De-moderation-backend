@@ -45,6 +45,6 @@ class CostEstimatorTest {
     }
 
     private CostEstimator estimatorWith(Map<String, EvaluationProperties.TokenPrice> pricing) {
-        return new CostEstimator(new EvaluationProperties(pricing, 0, java.time.Duration.ZERO));
+        return new CostEstimator(new EvaluationProperties(pricing, 0, 1, java.time.Duration.ZERO));
     }
 }

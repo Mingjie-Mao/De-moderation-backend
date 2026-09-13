@@ -61,8 +61,25 @@ import org.testcontainers.containers.PostgreSQLContainer;
         })
 public abstract class AbstractIntegrationTest {
 
+    /**
+     * One container for the whole suite, with room for every cached context to
+     * hold a connection pool at once.
+     *
+     * <p>The default of 100 is not a property of this application; it is a
+     * property of how many Spring contexts the suite keeps alive. Each distinct
+     * set of test properties is a separate cached context with its own Hikari
+     * pool, so the ceiling is reached by adding a test class rather than by any
+     * change in behaviour — which is exactly what happened, and the symptom was
+     * a context failing to start with "sorry, too many clients already" in a
+     * class that had nothing to do with connections.
+     *
+     * <p>Raising it here rather than shrinking the pools, because several tests
+     * exercise concurrent workers and report aggregation, and a pool too small
+     * for them would turn a contention test into a deadlock.
+     */
     @ServiceConnection
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
+            .withCommand("postgres", "-c", "max_connections=400");
 
     static {
         POSTGRES.start();

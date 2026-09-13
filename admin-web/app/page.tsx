@@ -42,6 +42,12 @@ export default function Home() {
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem('campusguard.admin.session');
+      // react-hooks/set-state-in-effect warns about exactly this line, and the
+      // comment above is the answer: sessionStorage does not exist on the server,
+      // so reading it anywhere but after mount is the hydration mismatch this
+      // effect was written to avoid. Reading an external system on mount is the
+      // case the rule itself lists as legitimate; it cannot tell that from here.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (saved) setSession(JSON.parse(saved));
     } catch { sessionStorage.removeItem('campusguard.admin.session'); }
     finally { setRestoring(false); }
@@ -57,13 +63,17 @@ export default function Home() {
   const [brief, setBrief] = useState<Brief|null>(null);
   const [briefBusy, setBriefBusy] = useState(false);
   const [briefOff, setBriefOff] = useState('');
+  // The cases a reviewer followed a citation away from, most recent last. A
+  // brief's evidence is only worth something if it can be read, and reading it
+  // should not lose the case it was evidence for.
+  const [trail, setTrail] = useState<string[]>([]);
   const [appealResponses, setAppealResponses] = useState<Record<string,string>>({});
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
   const logout = useCallback(() => {
     sessionStorage.removeItem('campusguard.admin.session');
-    setSession(null); setDetail(null); setBrief(null); setCases([]); setAppeals([]);
+    setSession(null); setDetail(null); setBrief(null); setTrail([]); setCases([]); setAppeals([]);
   }, []);
 
   const request = useCallback(async <T,>(path:string, init?:RequestInit):Promise<T> => {
@@ -119,10 +129,15 @@ export default function Home() {
     finally { setBusy(false); }
   };
 
-  const openCase = async (id:string) => {
-    setBusy(true); setMessage(''); setBrief(null);
+  // `from` is the trail to keep once this case is showing: empty when it was
+  // opened from a list, the path so far when it was reached through a citation.
+  // Swapped in only after the case has loaded, so a citation that fails to open
+  // leaves the reviewer on the case they were reading, brief and all.
+  const openCase = async (id:string, from:string[] = []) => {
+    setBusy(true); setMessage('');
     try {
-      setDetail(await request<CaseDetail>(`/api/admin/moderation-cases/${id}`)); setNote('');
+      const next = await request<CaseDetail>(`/api/admin/moderation-cases/${id}`);
+      setDetail(next); setNote(''); setBrief(null); setTrail(from);
       // Fetched, not run. Opening a case shows a brief somebody already paid for
       // and never starts one on its own.
       setBrief(await request<Brief|undefined>(`/api/admin/moderation-cases/${id}/investigation`) ?? null);
@@ -209,7 +224,9 @@ export default function Home() {
             <div className="actions"><button className="primary" onClick={()=>openCase(item.id)}>查看并处理 →</button></div>
           </article>;})}{!cases.length&&!busy&&<div className="empty">这个队列目前是空的。</div>}</div>}
         </section>
-        {detail?<aside className="detail-panel"><button className="detail-close" onClick={()=>setDetail(null)}>×</button><p className="eyebrow">案件 {detail.moderationCase.id.slice(0,8)}</p>
+        {detail?<aside className="detail-panel"><button className="detail-close" onClick={()=>setDetail(null)}>×</button>
+          {trail.length>0&&<button className="back-link" disabled={busy} onClick={()=>openCase(trail[trail.length-1],trail.slice(0,-1))}>← 返回案件 {trail[trail.length-1].slice(0,8)}</button>}
+          <p className="eyebrow">案件 {detail.moderationCase.id.slice(0,8)}</p>
           <h2>{detail.content?.title||(detail.moderationCase.targetType==='POST'?'举报帖子':'举报评论')}</h2><p className="content-body">{detail.content?.body||'原内容已不可用。'}</p>
           {detail.content?.mediaUrl&&<img className="evidence" src={`${API}${detail.content.mediaUrl}`} alt="举报内容附件" /> /* eslint-disable-line @next/next/no-img-element */}
           <dl><div><dt>建议</dt><dd>{detail.moderationCase.recommendedDecision||'—'}</dd></div><div><dt>置信度</dt><dd>{detail.moderationCase.confidence==null?'—':`${Math.round(detail.moderationCase.confidence*100)}%`}</dd></div><div><dt>规则</dt><dd>{detail.moderationCase.ruleCodes?.join(', ')||'—'}</dd></div></dl>
@@ -223,7 +240,11 @@ export default function Home() {
                   :<p className="brief-verdict incomplete">{brief.outcome==='PARTIAL'?'调查未完成':'助手没有得出结论'}</p>}
                 <p className="brief-summary">{brief.summary}</p>
                 {brief.counterEvidence&&<p className="brief-against"><b>反过来说</b>{brief.counterEvidence}</p>}
-                <p className="brief-meta">{brief.promptVersion} · 引用 {brief.citedCaseIds.length} 个案件 · {new Date(brief.producedAt).toLocaleString('zh-CN')}</p>
+                {brief.citedCaseIds.length>0&&<div className="brief-cited"><span>{brief.outcome==='COMPLETE'?'引用案件':'已读取案件'}</span>
+                  {brief.citedCaseIds.map(id=>id===detail.moderationCase.id
+                    ?<button key={id} className="cited-case" disabled title={id}>{id.slice(0,8)} · 本案</button>
+                    :<button key={id} className="cited-case" disabled={busy} title={id} onClick={()=>openCase(id,[...trail,detail.moderationCase.id])}>{id.slice(0,8)}</button>)}</div>}
+                <p className="brief-meta">{brief.promptVersion} · {brief.outcome==='COMPLETE'?'引用':'读取'} {brief.citedCaseIds.length} 个案件 · {new Date(brief.producedAt).toLocaleString('zh-CN')}</p>
               </>
               :<p className="brief-empty">尚未调查。助手会查作者过往处理记录与同规则先例，只读，不改变案件，最终处置仍由你决定。</p>}
           </section>

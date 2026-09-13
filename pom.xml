@@ -25,6 +25,10 @@
              requires Boot 4. -->
         <spring-ai.version>1.1.8</spring-ai.version>
         <resilience4j.version>2.4.0</resilience4j.version>
+        <!-- S3-compatible object storage: AWS S3, Cloudflare R2 and GCS in its
+             interoperability mode all speak this one API, so the choice of
+             provider is configuration rather than a second implementation. -->
+        <aws-sdk.version>2.46.7</aws-sdk.version>
     </properties>
 
     <dependencyManagement>
@@ -33,6 +37,13 @@
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
                 <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${aws-sdk.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -122,6 +133,29 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
+        <!-- Durable media storage. The SDK's own HTTP client is excluded in
+             favour of the URL-connection one: Netty pulls in an event loop and a
+             second connection pool to upload a handful of images per minute, and
+             this service already runs a servlet container. -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>url-connection-client</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -144,6 +178,14 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- MinIO speaks the S3 API, so the S3 storage backend is tested against
+             a real server rather than against a stub that agrees with whatever
+             the implementation happens to do. -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>minio</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

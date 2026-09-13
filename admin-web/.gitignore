@@ -35,6 +35,5 @@ next-env.d.ts
 *.tsbuildinfo
 *.zip
 /dist/
-/.wrangler/
 /outputs/
 /work/
