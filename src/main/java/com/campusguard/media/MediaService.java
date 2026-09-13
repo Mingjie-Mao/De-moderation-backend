@@ -6,8 +6,6 @@ import com.campusguard.user.UserRepository;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Iterator;
@@ -25,10 +23,15 @@ import org.springframework.web.server.ResponseStatusException;
 public class MediaService {
     private final MediaObjectRepository media;
     private final UserRepository users;
+    private final MediaStorage storage;
     private final MediaProperties properties;
 
-    public MediaService(MediaObjectRepository media, UserRepository users, MediaProperties properties) {
-        this.media = media; this.users = users; this.properties = properties;
+    public MediaService(
+            MediaObjectRepository media,
+            UserRepository users,
+            MediaStorage storage,
+            MediaProperties properties) {
+        this.media = media; this.users = users; this.storage = storage; this.properties = properties;
     }
 
     @Transactional
@@ -77,17 +80,16 @@ public class MediaService {
         }
 
         String key = UUID.randomUUID() + extension;
-        Path root = properties.storagePath().toAbsolutePath().normalize();
-        Path destination = root.resolve(key).normalize();
-        if (!destination.startsWith(root)) throw new IllegalStateException("Unsafe media storage key.");
         try {
-            Files.createDirectories(root);
-            Files.write(destination, normalized, java.nio.file.StandardOpenOption.CREATE_NEW);
+            storage.put(key, normalized, type);
             String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(normalized));
             MediaObject saved = media.saveAndFlush(new MediaObject(owner, type, normalized.length, digest, key));
             return MediaResponse.of(saved);
         } catch (Exception ex) {
-            try { Files.deleteIfExists(destination); } catch (Exception ignored) {}
+            // Compensation, because the bytes and the row cannot be written in
+            // one transaction. It covers the ordinary failure and not a process
+            // that dies between the two, which is what MediaSweep is for.
+            try { storage.delete(key); } catch (Exception ignored) {}
             throw new IllegalStateException("The image could not be stored.", ex);
         }
     }
@@ -99,12 +101,13 @@ public class MediaService {
                 && media.countVisibleCommentReferences(id) == 0) {
             throw new NotFoundException("Media " + id + " is not attached to visible content.");
         }
-        try {
-            Path path = properties.storagePath().toAbsolutePath().normalize().resolve(object.getStorageKey()).normalize();
-            return new StoredMedia(object, Files.readAllBytes(path));
-        } catch (Exception ex) {
-            throw new NotFoundException("Media " + id + " is not available.");
-        }
+        // A row whose bytes have gone reads as a missing image rather than as a
+        // server fault. That is the state an ephemeral container filesystem left
+        // behind on every release, and a 500 for each of those images would have
+        // turned lost pictures into broken pages.
+        return storage.get(object.getStorageKey())
+                .map(bytes -> new StoredMedia(object, bytes))
+                .orElseThrow(() -> new NotFoundException("Media " + id + " is not available."));
     }
 
     @Transactional(readOnly = true)

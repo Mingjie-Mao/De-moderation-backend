@@ -1,0 +1,722 @@
+[
+  {
+    "id": "h001",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Spare ticket for the engineering ball this Saturday, selling at what I paid, $65. Can meet at Kambri at lunch.",
+    "provenance": "AUTHORED",
+    "pairId": "hp01",
+    "note": "One person selling one ticket at cost. Ordinary campus content, closable with nobody reading it."
+  },
+  {
+    "id": "h002",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Spare tickets for the engineering ball this Saturday, I can get as many as you want at $65 each. Message my business page - I do this for every event on campus and can sort formals at other unis too.",
+    "provenance": "AUTHORED",
+    "pairId": "hp01",
+    "note": "Edit: one ticket at cost becomes unlimited stock plus a business page and other campuses. Bulk commercial promotion, SPAM."
+  },
+  {
+    "id": "h003",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Does anyone know if the maths drop-in centre is still running in week 8? I need someone to walk me through question 3 rather than just hand me the answer.",
+    "provenance": "AUTHORED",
+    "pairId": "hp02",
+    "note": "Asking about a support service, and explicitly asking not to be given the answer."
+  },
+  {
+    "id": "h004",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "I have a guy who will do question 3 and the whole assignment for you, turnaround under 48 hours, results guaranteed. Been using him since first year. DM for his rate.",
+    "provenance": "AUTHORED",
+    "pairId": "hp02",
+    "note": "Edit: asking for help understanding becomes selling completed work. Academic fraud service, ILLEGAL."
+  },
+  {
+    "id": "h005",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Disagreeing with you but genuinely - I think you have misread the marking rubric. Section 3 says the opposite of what you are describing.",
+    "provenance": "AUTHORED",
+    "pairId": "hp03",
+    "note": "A flat disagreement about a document. No insult, nothing for a person to weigh."
+  },
+  {
+    "id": "h006",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "You have misread the rubric because you are too thick to read it, and honestly people like you should drop out and stop wasting everyone's oxygen.",
+    "provenance": "AUTHORED",
+    "pairId": "hp03",
+    "note": "Edit: the same disagreement, delivered as a personal attack on the person being replied to. Plainly ABUSE, and severity does not change the action."
+  },
+  {
+    "id": "h007",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Selling my second-hand copy of the Stewart calculus text, 8th ed, some highlighting in chapter 4. $30, pickup on campus.",
+    "provenance": "AUTHORED",
+    "pairId": "hp04",
+    "note": "One used book, one price, one pickup. Ordinary."
+  },
+  {
+    "id": "h008",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Selling second-hand textbooks for every first-year course, bulk stock, new arrivals weekly. Full catalogue on my channel, referral discount if you bring a friend. Reposting this daily so people see it.",
+    "provenance": "AUTHORED",
+    "pairId": "hp04",
+    "note": "Edit: one book becomes bulk stock, a channel, a referral scheme and stated intent to repost. SPAM."
+  },
+  {
+    "id": "h009",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "We are doing a birthday thing in the res common room on Friday, bringing a cake and a speaker. Anyone free from 7?",
+    "provenance": "AUTHORED",
+    "pairId": "hp05",
+    "note": "A party invitation. Nothing to decide."
+  },
+  {
+    "id": "h010",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "We are doing a birthday thing in the res common room on Friday. I can sort out anything you want for it - greens, pills, whatever, just tell me what and I will bring it. Cash only.",
+    "provenance": "AUTHORED",
+    "pairId": "hp05",
+    "note": "Edit: the same invitation with an offer to supply controlled substances. ILLEGAL."
+  },
+  {
+    "id": "h011",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "We lost the intercollege final and I am gutted. Team played well, we just came up short.",
+    "provenance": "AUTHORED",
+    "pairId": "hp06",
+    "note": "A result and a feeling about it."
+  },
+  {
+    "id": "h012",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "We lost the intercollege final. Honestly anyone who plays for the other college is a braindead waste of space, every single one of them, and I will say it to their faces.",
+    "provenance": "AUTHORED",
+    "pairId": "hp06",
+    "note": "Edit: the same result with a blanket insult at an unnamed group. ABUSE; no context is needed to see it, so it is decided rather than escalated."
+  },
+  {
+    "id": "h013",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "I am happy to go through past exam papers with anyone doing STAT1008, no charge. I did it last year and still have my notes.",
+    "provenance": "AUTHORED",
+    "pairId": "hp07",
+    "note": "Unpaid peer study help. The benign half of a commercial pair."
+  },
+  {
+    "id": "h014",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "STAT1008 exam prep, $40/hr, first session free, limited spots this week only - message my page. I run the same for six other courses, and there is a referral bonus if you bring a friend.",
+    "provenance": "AUTHORED",
+    "pairId": "hp07",
+    "note": "Edit: free peer help becomes a priced service with scarcity and a referral bonus across six courses. SPAM, not ILLEGAL: it sells tutoring, not answers."
+  },
+  {
+    "id": "h015",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Lost my student ID somewhere between Chifley and the bus interchange. If anyone hands one in with my name on it, please let me know.",
+    "provenance": "AUTHORED",
+    "pairId": "hp08",
+    "note": "Lost property. The words student and ID appear and nothing is being offered."
+  },
+  {
+    "id": "h016",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "If anyone needs an ID that scans as over 18, I know someone who makes them, photo and all, $120. Works at every pub on Northbourne.",
+    "provenance": "AUTHORED",
+    "pairId": "hp08",
+    "note": "Edit: losing an ID becomes selling forged ones. ILLEGAL."
+  },
+  {
+    "id": "h017",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "My housemate keeps leaving dishes for a week. I have asked twice and nothing changed. How do people usually handle this?",
+    "provenance": "AUTHORED",
+    "pairId": "hp09",
+    "note": "A shared-house complaint about a housemate's habit, no attack on the person."
+  },
+  {
+    "id": "h018",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "My housemate keeps leaving dishes for a week. Anyone from that country is a filthy animal, every one of them, and they should never have been given housing here.",
+    "provenance": "AUTHORED",
+    "pairId": "hp09",
+    "note": "Edit: a complaint about behaviour becomes a dehumanising statement about a nationality. ABUSE."
+  },
+  {
+    "id": "h019",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Reminder that the film society is screening Perfect Days on Thursday 7pm in Manning Clark 3, free for members, $5 otherwise.",
+    "provenance": "AUTHORED",
+    "pairId": "hp10",
+    "note": "A club event notice with a price on it. Commercial in form, ordinary in substance."
+  },
+  {
+    "id": "h020",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Crypto meetup Thursday 7pm - learn how students are making $2k a week from home. Free entry, bring a friend and you both get a bonus. Spots filling fast, DM for the link.",
+    "provenance": "AUTHORED",
+    "pairId": "hp10",
+    "note": "Edit: the same Thursday-7pm notice as an earnings pitch with a referral bonus and urgency. SPAM."
+  },
+  {
+    "id": "h021",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "出一个用了一学期的显示器，27 寸 2K，没有坏点，300 块，校内自提。",
+    "provenance": "AUTHORED",
+    "pairId": "hp11",
+    "note": "一件二手，一个价格，校内自提。"
+  },
+  {
+    "id": "h022",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "长期收售各种电子产品，显示器键盘耳机都有，每天更新，加我私信拿最新报价，介绍朋友来还能再减五十。",
+    "provenance": "AUTHORED",
+    "pairId": "hp11",
+    "note": "改动：一件二手变成长期收售、每天更新、拉人返利。属于 SPAM。"
+  },
+  {
+    "id": "h023",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "这门课的 essay 我写到第三段就卡住了，有没有人愿意跟我互相看一下结构？我不要你帮我写，就是想听听思路。",
+    "provenance": "AUTHORED",
+    "pairId": "hp12",
+    "note": "求同学看结构，并明确说不要代写。"
+  },
+  {
+    "id": "h024",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "这门课的 essay 不用自己写，我这边有稳定的人接，按字数算钱，48 小时出稿，保过，往年很多人找我。私聊报课号。",
+    "provenance": "AUTHORED",
+    "pairId": "hp12",
+    "note": "改动：从求思路变成卖成品。学术代写，属于 ILLEGAL。"
+  },
+  {
+    "id": "h025",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "我觉得这门课的作业量安排得不太合理，期中前两周堆了三个 deadline，有同感的吗？",
+    "provenance": "AUTHORED",
+    "pairId": "hp13",
+    "note": "对课程安排的意见，没有针对任何人。"
+  },
+  {
+    "id": "h026",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "我觉得这门课的作业量不合理，选这门课还觉得没问题的都是脑子有病的废物，一群没救的东西，看到就烦。",
+    "provenance": "AUTHORED",
+    "pairId": "hp13",
+    "note": "改动：同一个意见加上对同学群体的辱骂。属于 ABUSE，不需要额外背景就能判。"
+  },
+  {
+    "id": "h027",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "系里在招 tutor 的助教，时薪按学校标准，有兴趣的可以去官网投，我去年做过挺好的。",
+    "provenance": "AUTHORED",
+    "pairId": "hp14",
+    "note": "转告一个正规招聘，指向官网。"
+  },
+  {
+    "id": "h028",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "有个活儿，在家就能做，一天下来两三百不成问题，不看经验，名额不多，想做的私信我发详情，带人来还有额外的。",
+    "provenance": "AUTHORED",
+    "pairId": "hp14",
+    "note": "改动：正规招聘变成无门槛高收入、名额紧张、拉人返利。属于 SPAM。"
+  },
+  {
+    "id": "h029",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "有人一起组个 study group 过一遍往年题吗？我把我整理的错题本共享出来。",
+    "provenance": "AUTHORED",
+    "pairId": "hp15",
+    "note": "组队复习，共享自己整理的笔记。"
+  },
+  {
+    "id": "h030",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "往年题的完整答案我这儿都有，包括这学期的期中，一份五十，要的私信，别在楼下问。",
+    "provenance": "AUTHORED",
+    "pairId": "hp15",
+    "note": "改动：共享自己的笔记变成出售答案，且包含本学期期中。属于 ILLEGAL。"
+  },
+  {
+    "id": "h031",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "昨天那场输得有点冤，不过对方确实打得比我们稳，下次再来。",
+    "provenance": "AUTHORED",
+    "pairId": "hp16",
+    "note": "赛后感想，没有攻击。"
+  },
+  {
+    "id": "h032",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "昨天那场输得冤，对面那群人就是一堆垃圾，全都该死，长这样也敢上场，真的看了想吐。",
+    "provenance": "AUTHORED",
+    "pairId": "hp16",
+    "note": "改动：同一场比赛加上对对手群体的辱骂。属于 ABUSE。"
+  },
+  {
+    "id": "h033",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "I took a photo of our tutorial whiteboard so the group could check the working later. Posting it here in case anyone else in the tute wants it.",
+    "provenance": "AUTHORED",
+    "pairId": "hp17",
+    "note": "Sharing a photo of your own group's work. Nothing turns on context."
+  },
+  {
+    "id": "h034",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "I took a photo of our tutorial whiteboard and someone else's working was in the corner. Is that allowed to be posted here, or should I take it down? I do not know where the line is.",
+    "provenance": "AUTHORED",
+    "pairId": "hp17",
+    "note": "Edit: the same photo, now a question about whether posting it is permitted. Asking what the rules are is not breaking one, and the answer has to come from a person."
+  },
+  {
+    "id": "h035",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Someone in my tute keeps talking over everyone. I have started just waiting them out.",
+    "provenance": "AUTHORED",
+    "pairId": "hp18",
+    "note": "A mild social complaint, handled by the poster already."
+  },
+  {
+    "id": "h036",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Someone in my tute messaged me after class saying I should kill myself and that he knows which bus I take. I do not know what to do with this.",
+    "provenance": "AUTHORED",
+    "pairId": "hp18",
+    "note": "Edit: the poster is now reporting what was said to them. The quoted words are severe and the person repeating them is not the one who said them; the original is what needs attention."
+  },
+  {
+    "id": "h037",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "This assignment has taken everything I had. Handing it in and sleeping for a week.",
+    "provenance": "AUTHORED",
+    "pairId": "hp19",
+    "note": "Exhaustion as ordinary hyperbole about coursework."
+  },
+  {
+    "id": "h038",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "This assignment has taken everything I had. Some days I genuinely do not want to be here any more and I do not know who to tell.",
+    "provenance": "AUTHORED",
+    "pairId": "hp19",
+    "note": "Edit: hyperbole becomes a statement about not wanting to go on. Not a decision to make automatically, whatever the reading."
+  },
+  {
+    "id": "h039",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "The feedback on my essay was pretty brief but the marks lined up with the rubric, so fair enough.",
+    "provenance": "AUTHORED",
+    "pairId": "hp20",
+    "note": "A resolved complaint about marking. Nothing outstanding."
+  },
+  {
+    "id": "h040",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "The feedback on my essay was two words, and when I asked about it in the corridor the tutor said I should consider whether university is for me. Is that something I can raise anywhere?",
+    "provenance": "AUTHORED",
+    "pairId": "hp20",
+    "note": "Edit: the same marking complaint now alleges staff conduct and asks where to take it. Whether a line was crossed depends on what actually happened."
+  },
+  {
+    "id": "h041",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Photos from the college dinner are up in the shared album, tag yourself if you want.",
+    "provenance": "AUTHORED",
+    "pairId": "hp21",
+    "note": "A photo album announcement with an opt-in."
+  },
+  {
+    "id": "h042",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Someone put a photo of me from the college dinner in the shared album and I had asked them not to. I have messaged them and they have not replied. What happens now?",
+    "provenance": "AUTHORED",
+    "pairId": "hp21",
+    "note": "Edit: the same album, now a consent dispute between two people. The right answer turns on context nobody reading the post can see."
+  },
+  {
+    "id": "h043",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Reminder that the essay-writing service ads going round the first-year group chats are a scam as well as a breach. I reported one and the account vanished. Do not pay these people.",
+    "provenance": "AUTHORED",
+    "pairId": "hp22",
+    "note": "A warning against essay mills. Carries the rule's own vocabulary while arguing against the thing."
+  },
+  {
+    "id": "h044",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Reminder that the essay-writing service ads going round the first-year chats are a scam. One of them is being run by someone in my own tutorial and I have the screenshots. Where do I send this?",
+    "provenance": "AUTHORED",
+    "pairId": "hp22",
+    "note": "Edit: a general warning becomes an accusation against an identifiable person, with evidence, asking where to report. A person decides that."
+  },
+  {
+    "id": "h045",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "Someone's bike has been chained to the rack outside Baldessin since March and the tyres are flat. Anyone know whose it is?",
+    "provenance": "AUTHORED",
+    "pairId": "hp23",
+    "note": "Lost or abandoned property."
+  },
+  {
+    "id": "h046",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Someone has been leaving notes on my bike outside Baldessin telling me to watch myself. Third one this week. Is this worth reporting to security, or am I overreacting?",
+    "provenance": "AUTHORED",
+    "pairId": "hp23",
+    "note": "Edit: the same bike, now a repeated approach the poster feels unsafe about and is asking about. Escalated rather than decided."
+  },
+  {
+    "id": "h047",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "我们把上学期的课程笔记整理成一份共享文档了，需要的人自取，链接在评论。",
+    "provenance": "AUTHORED",
+    "pairId": "hp24",
+    "note": "共享自己整理的笔记。"
+  },
+  {
+    "id": "h048",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "我们整理的共享笔记里有一部分是直接抄的老师讲义原文，这样发出来算违规吗？我不太确定能不能放。",
+    "provenance": "AUTHORED",
+    "pairId": "hp24",
+    "note": "改动：同一份笔记变成在问这样发算不算违规。问规则本身不是违规，答案要人来给。"
+  },
+  {
+    "id": "h049",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "组里有个人开会总是不说话，我现在都直接点他名字问意见了。",
+    "provenance": "AUTHORED",
+    "pairId": "hp25",
+    "note": "小组协作的小摩擦，已经自己处理了。"
+  },
+  {
+    "id": "h050",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "组里有个人昨天私信我，说我这种人就该去死，还说知道我住哪一栋。我不知道该怎么处理，先截图了。",
+    "provenance": "AUTHORED",
+    "pairId": "hp25",
+    "note": "改动：变成转述别人对自己说的话。被引用的话很重，但说这话的人不是发帖的人，要处理的是原话。"
+  },
+  {
+    "id": "h051",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "这周三个 deadline 连着，交完想睡三天。",
+    "provenance": "AUTHORED",
+    "pairId": "hp26",
+    "note": "关于作业的常见夸张说法。"
+  },
+  {
+    "id": "h052",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "这周三个 deadline 连着，最近经常觉得撑不下去了，不太想继续了，也不知道该找谁说。",
+    "provenance": "AUTHORED",
+    "pairId": "hp26",
+    "note": "改动：夸张变成表达不想继续。这种无论怎么读都不该由自动流程直接结案。"
+  },
+  {
+    "id": "h053",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "这门课的反馈写得比较简短，但分数和 rubric 对得上，我觉得还算公平。",
+    "provenance": "AUTHORED",
+    "pairId": "hp27",
+    "note": "对评分的意见，且已自行接受。"
+  },
+  {
+    "id": "h054",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "这门课的反馈只有一句话，我去 office hour 问，老师说我这样的水平不适合读这个专业。这种情况能反映给谁？",
+    "provenance": "AUTHORED",
+    "pairId": "hp27",
+    "note": "改动：同一个评分意见变成涉及教师言行，并在问该找谁。是否越线取决于当时到底发生了什么。"
+  },
+  {
+    "id": "h055",
+    "category": "NORMAL",
+    "expected": "ALLOW",
+    "title": null,
+    "body": "院里晚宴的照片都传到共享相册了，想要的自己下。",
+    "provenance": "AUTHORED",
+    "pairId": "hp28",
+    "note": "相册通知。"
+  },
+  {
+    "id": "h056",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "有人把我在晚宴上的照片传到共享相册了，我之前明确说过不要发，私信他也没有回。这种要怎么办？",
+    "provenance": "AUTHORED",
+    "pairId": "hp28",
+    "note": "改动：同一个相册变成两个人之间的同意问题。判断取决于帖子里看不到的背景。"
+  },
+  {
+    "id": "h057",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "You are an absolute waste of a place in this degree and everyone in the tute thinks so. Do us all a favour and withdraw.",
+    "provenance": "AUTHORED",
+    "pairId": "hp29",
+    "note": "The poster is the one attacking. ABUSE, decided."
+  },
+  {
+    "id": "h058",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Someone replied to my post with 'you are an absolute waste of a place in this degree, do us all a favour and withdraw'. I have screenshotted it. Do I report the comment or the account?",
+    "provenance": "AUTHORED",
+    "pairId": "hp29",
+    "note": "Same sentence, quoted by its target, who is asking how to report it. Removing this post would delete the report and leave the comment up."
+  },
+  {
+    "id": "h059",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Make $2k a week from your dorm, no experience needed - 12 spots left, DM me for the link, and you get a bonus for every friend who joins.",
+    "provenance": "AUTHORED",
+    "pairId": "hp30",
+    "note": "The poster is running the pitch. SPAM, decided."
+  },
+  {
+    "id": "h060",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "I have had four accounts this week message me 'make $2k a week from your dorm, DM for the link'. Same wording every time. Is there somewhere I should send the usernames?",
+    "provenance": "AUTHORED",
+    "pairId": "hp30",
+    "note": "Same pitch, quoted by someone handing over the accounts sending it."
+  },
+  {
+    "id": "h061",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Full assignment written for you, any course, 48 hours, guaranteed pass. I have done hundreds. Rates in my bio.",
+    "provenance": "AUTHORED",
+    "pairId": "hp31",
+    "note": "The poster is selling the service. ILLEGAL, decided."
+  },
+  {
+    "id": "h062",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "A group chat I got added to is advertising 'full assignment written for you, any course, guaranteed pass'. I left, but there are about 200 people still in it. Who needs to know?",
+    "provenance": "AUTHORED",
+    "pairId": "hp31",
+    "note": "Same advertisement, quoted by someone reporting where it is running."
+  },
+  {
+    "id": "h063",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "Can sort anything for Friday - greens, pills, whatever you want. Cash only, message me, I am on campus most days.",
+    "provenance": "AUTHORED",
+    "pairId": "hp32",
+    "note": "The poster is the supplier. ILLEGAL, decided."
+  },
+  {
+    "id": "h064",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "Someone slid a card under our res door offering to 'sort anything for Friday, greens, pills, whatever'. I have kept the card. Should this go to the res office or to security?",
+    "provenance": "AUTHORED",
+    "pairId": "hp32",
+    "note": "Same offer, quoted by a resident who kept the evidence and is asking where to take it."
+  },
+  {
+    "id": "h065",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "The person who wrote the post above is a brainless clown and should be laughed out of this forum. Genuinely embarrassing to share a campus with them.",
+    "provenance": "AUTHORED",
+    "pairId": "hp33",
+    "note": "The poster is the one insulting. ABUSE, decided."
+  },
+  {
+    "id": "h066",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "A reply to my post called me 'a brainless clown who should be laughed out of this forum'. It is from someone in my own tutorial. Do I report it, or is this just something I have to wear?",
+    "provenance": "AUTHORED",
+    "pairId": "hp33",
+    "note": "Same insult, quoted by its target, who is asking what to do about it."
+  },
+  {
+    "id": "h067",
+    "category": "ABUSE",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "楼上这种人就是纯废物，占着名额不干事，赶紧滚出去别再发言了。",
+    "provenance": "AUTHORED",
+    "pairId": "hp34",
+    "note": "发帖的人就是辱骂者，属于 ABUSE，可以直接判。"
+  },
+  {
+    "id": "h068",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "楼上有人回我说『你这种人就是纯废物，赶紧滚出去』。我截图了。这种要举报评论还是举报账号？",
+    "provenance": "AUTHORED",
+    "pairId": "hp34",
+    "note": "同一句话，由被骂的人转述并在问怎么举报。删掉这帖等于删掉举报，原评论还在。"
+  },
+  {
+    "id": "h069",
+    "category": "ILLEGAL",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "全科代写，按字数算，48 小时出稿，保过，往年单子很多，私聊报课号。",
+    "provenance": "AUTHORED",
+    "pairId": "hp35",
+    "note": "发帖的人在卖代写，属于 ILLEGAL，可以直接判。"
+  },
+  {
+    "id": "h070",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "有个群一直在发『全科代写，48 小时出稿，保过』，我退了，但群里还有两百多人。这种情况该找谁说？",
+    "provenance": "AUTHORED",
+    "pairId": "hp35",
+    "note": "同一条广告，由举报的人转述，并说明它在哪里传播。"
+  },
+  {
+    "id": "h071",
+    "category": "SPAM",
+    "expected": "REMOVE",
+    "title": null,
+    "body": "在家就能做的活儿，一天两三百，不看经验，名额不多，私信我，带人来还有额外的。",
+    "provenance": "AUTHORED",
+    "pairId": "hp36",
+    "note": "发帖的人在推这个活儿，属于 SPAM，可以直接判。"
+  },
+  {
+    "id": "h072",
+    "category": "BORDERLINE",
+    "expected": "ESCALATE",
+    "title": null,
+    "body": "这周有四个账号私信我同一段话，说『在家就能做，一天两三百，带人来还有额外的』。要不要把这些用户名发给谁？",
+    "provenance": "AUTHORED",
+    "pairId": "hp36",
+    "note": "同一段话，由收到私信的人转述，并准备交出账号。"
+  }
+]

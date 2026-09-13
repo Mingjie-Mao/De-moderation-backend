@@ -34,7 +34,9 @@ public class EvaluationJsonWriter {
         root.put("dataset", report.datasetName());
         root.put("sampleCount", report.sampleCount());
         root.put("starterDataset", report.starterDataset());
+        root.put("runs", report.runCount());
         root.put("engines", report.results().stream().map(this::engine).toList());
+        root.put("stability", report.repeats().stream().map(this::stability).toList());
         root.put("comparisons", report.comparisons().stream().map(this::comparison).toList());
         root.put("production", report.productionStats().stream().map(this::production).toList());
 
@@ -64,9 +66,67 @@ public class EvaluationJsonWriter {
                     result.totalCompletionTokens().isPresent() ? result.totalCompletionTokens().getAsInt() : null);
             node.put("estimatedCost", result.estimatedCost() == null ? null : result.estimatedCost().toPlainString());
             node.put("perDecision", perDecision(result));
+            node.put("pairs", pairs(result));
             node.put("confusion", confusion(result));
         }
 
+        return node;
+    }
+
+    private Map<String, Object> pairs(EvaluationResult result) {
+        EvaluationResult.PairScore score = result.pairScore();
+        Map<String, Object> node = new LinkedHashMap<>();
+        node.put("scored", score.scored());
+        node.put("bothRight", score.bothRight());
+        node.put("oneRight", score.oneRight());
+        node.put("bothWrong", score.bothWrong());
+        node.put("incomplete", score.incomplete());
+        node.put("accuracy", score.accuracy());
+        return node;
+    }
+
+    /**
+     * The spread across runs, kept in its own block rather than merged into the
+     * engine node. The engine node describes one run and has to stay traceable to
+     * the CSV; this describes the set of runs, and mixing the two would make it
+     * impossible to tell which of the numbers came from the representative run.
+     */
+    private Map<String, Object> stability(EngineRuns runs) {
+        Map<String, Object> node = new LinkedHashMap<>();
+        node.put("engine", runs.engineName());
+        node.put("runs", runs.measured().size());
+        node.put("macroF1", spread(runs.macroF1()));
+        node.put("accuracy", spread(runs.accuracy()));
+        node.put("pairAccuracy", spread(runs.pairAccuracy()));
+        node.put("meanLatencyMs", spread(runs.meanLatencyMillis()));
+        node.put("promptTokensPerSample", spread(runs.promptTokensPerSample()));
+
+        Map<String, Object> recall = new LinkedHashMap<>();
+        for (ModerationDecision decision : ModerationDecision.values()) {
+            recall.put(decision.name(), spread(runs.recall(decision)));
+        }
+        node.put("recall", recall);
+
+        EngineRuns.Instability instability = runs.instability();
+        Map<String, Object> changed = new LinkedHashMap<>();
+        changed.put("samples", instability.samples());
+        changed.put("unstable", instability.unstable());
+        changed.put("rate", instability.rate());
+        changed.put("sampleIds", instability.unstableSampleIds());
+        node.put("changedAnswer", changed);
+
+        return node;
+    }
+
+    private Map<String, Object> spread(EngineRuns.Spread value) {
+        if (value == null) {
+            return null;
+        }
+        Map<String, Object> node = new LinkedHashMap<>();
+        node.put("mean", value.mean());
+        node.put("min", value.min());
+        node.put("max", value.max());
+        node.put("observations", value.observations());
         return node;
     }
 

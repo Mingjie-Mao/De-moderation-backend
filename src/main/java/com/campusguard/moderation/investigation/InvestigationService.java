@@ -1,6 +1,7 @@
 package com.campusguard.moderation.investigation;
 
 import com.campusguard.auth.RequestRateLimiter;
+import com.campusguard.moderation.ModerationCaseRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -43,16 +44,19 @@ public class InvestigationService {
     private final InvestigationRecorder recorder;
     private final InvestigatorProperties properties;
     private final RequestRateLimiter rateLimiter;
+    private final ModerationCaseRepository cases;
 
     public InvestigationService(
             ObjectProvider<Investigator> investigator,
             InvestigationRecorder recorder,
             InvestigatorProperties properties,
-            RequestRateLimiter rateLimiter) {
+            RequestRateLimiter rateLimiter,
+            ModerationCaseRepository cases) {
         this.investigator = investigator;
         this.recorder = recorder;
         this.properties = properties;
         this.rateLimiter = rateLimiter;
+        this.cases = cases;
     }
 
     public Optional<InvestigationBriefView> existingBrief(UUID caseId) {
@@ -72,6 +76,13 @@ public class InvestigationService {
         if (loop == null) {
             throw new InvestigationNotEnabledException();
         }
+
+        // Asked here as well as in the loop, and before the limit rather than
+        // after it. The loop's own check comes too late for billing: by then the
+        // request has been counted, and a reviewer who clicks a case a colleague
+        // has just resolved would spend their hour on refusals that never reached
+        // a model.
+        CaseInvestigator.requireAwaitingReview(cases, caseId);
 
         // Counted after the cache check and before the call, so returning a brief
         // somebody already paid for is free and only a real model call is

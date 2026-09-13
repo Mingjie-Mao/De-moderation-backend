@@ -28,18 +28,21 @@ public class BenchmarkService {
     private final EngineComparator comparator;
     private final EngineRegistry engines;
     private final AiInvocationRepository invocations;
+    private final EvaluationProperties properties;
 
     public BenchmarkService(
             EvaluationDataset datasets,
             EvaluationRunner runner,
             EngineComparator comparator,
             EngineRegistry engines,
-            AiInvocationRepository invocations) {
+            AiInvocationRepository invocations,
+            EvaluationProperties properties) {
         this.datasets = datasets;
         this.runner = runner;
         this.comparator = comparator;
         this.engines = engines;
         this.invocations = invocations;
+        this.properties = properties;
     }
 
     @Transactional(readOnly = true)
@@ -47,13 +50,20 @@ public class BenchmarkService {
         EvaluationDataset.Loaded dataset = datasets.load(datasetPath);
         List<String> engineNames = resolveEngines(requestedEngines);
 
-        List<EvaluationResult> results = new ArrayList<>();
+        List<EngineRuns> repeats = new ArrayList<>();
         for (String engineName : engineNames) {
             // Each engine is independent. One that cannot run is recorded as such
             // and the rest of the benchmark continues, because a missing API key
             // should not cost the baseline numbers too.
-            results.add(runner.run(engineName, dataset));
+            repeats.add(measure(engineName, dataset));
         }
+
+        // One run stands for each engine everywhere a whole run is needed: the
+        // confusion matrix, the per-sample table, the comparison against another
+        // engine. Those have to be internally consistent with each other, which an
+        // average across runs would not be. The spread is reported separately, as
+        // the precision of the numbers rather than as more of them.
+        List<EvaluationResult> results = repeats.stream().map(EngineRuns::representative).toList();
 
         List<EngineComparator.Comparison> comparisons = comparePairs(results);
 
@@ -65,8 +75,31 @@ public class BenchmarkService {
                 dataset.samples().size(),
                 dataset.starter(),
                 results,
+                repeats,
                 comparisons,
                 production);
+    }
+
+    /**
+     * One engine, measured as many times as configured.
+     *
+     * <p>Stops early if the engine turns out to be unavailable. Three attempts at
+     * an engine with no API key produce three identical reasons and no
+     * measurement, and on a model engine that is a throttled account being asked
+     * to refuse the same request three times.
+     */
+    private EngineRuns measure(String engineName, EvaluationDataset.Loaded dataset) {
+        List<EvaluationResult> runs = new ArrayList<>();
+        for (int run = 0; run < properties.runs(); run++) {
+            // Warm up once. By the second run the JVM has seen every path, and for
+            // a model engine the discarded samples are billable calls.
+            EvaluationResult result = runner.run(engineName, dataset, run == 0);
+            runs.add(result);
+            if (result.status() == EngineRunStatus.UNAVAILABLE) {
+                break;
+            }
+        }
+        return new EngineRuns(engineName, runs);
     }
 
     /**

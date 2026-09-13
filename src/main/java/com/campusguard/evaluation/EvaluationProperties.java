@@ -19,6 +19,14 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  *     visibly nonsense and quietly wrong. Kept small because for a model-backed
  *     engine each warm-up sample is a real billable call, and there the network
  *     dominates anyway.
+ * @param runs how many times to measure each engine on the dataset. One by
+ *     default, because repeating a run multiplies a model engine's bill by the
+ *     same factor and the rule engine needs no repetition to be certain.
+ *     <p>Above one, every metric is reported as a mean with the observed range
+ *     beside it. That range is the harness's own precision, and without it a
+ *     two-point gap between two prompts cannot be distinguished from the same
+ *     prompt asked twice — which is exactly what happened to `v1`, measured at
+ *     0.636 and then at 0.617 with nothing changed between the runs.
  * @param minCallInterval the shortest gap between two samples. A benchmark is the
  *     one workload that will happily exceed a provider's requests-per-minute
  *     ceiling: two hundred samples back to back is a burst no real traffic
@@ -29,7 +37,14 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 public record EvaluationProperties(
         @DefaultValue Map<String, TokenPrice> pricing,
         @DefaultValue("3") int warmupSamples,
+        @DefaultValue("1") int runs,
         @DefaultValue("0s") Duration minCallInterval) {
+
+    public EvaluationProperties {
+        if (runs < 1) {
+            throw new IllegalArgumentException("campusguard.evaluation.runs must be at least 1.");
+        }
+    }
 
     /** Prices are quoted per million tokens because that is how providers publish them. */
     public record TokenPrice(

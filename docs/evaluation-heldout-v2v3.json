@@ -1,0 +1,1128 @@
+{
+  "schemaVersion" : 1,
+  "generatedAt" : "2026-09-13T09:39:30.513995Z",
+  "dataset" : "evaluation-heldout-samples.json",
+  "sampleCount" : 72,
+  "starterDataset" : false,
+  "runs" : 3,
+  "engines" : [ {
+    "engine" : "keyword-v1",
+    "status" : "OK",
+    "unavailableReason" : null,
+    "sampleCount" : 72,
+    "judgedCount" : 72,
+    "errorCount" : 0,
+    "accuracy" : 0.4027777777777778,
+    "macroF1" : 0.2171312205676467,
+    "macroPrecision" : 0.24637681159420288,
+    "macroRecall" : 0.34722222222222227,
+    "meanLatencyMs" : 0.12075,
+    "p50LatencyMs" : 0.121,
+    "p95LatencyMs" : 0.184,
+    "promptTokens" : null,
+    "completionTokens" : null,
+    "estimatedCost" : "0",
+    "perDecision" : [ {
+      "decision" : "ALLOW",
+      "support" : 28,
+      "truePositives" : 28,
+      "falsePositives" : 41,
+      "falseNegatives" : 0,
+      "precision" : 0.4057971014492754,
+      "recall" : 1.0,
+      "f1" : 0.577319587628866
+    }, {
+      "decision" : "REMOVE",
+      "support" : 24,
+      "truePositives" : 1,
+      "falsePositives" : 2,
+      "falseNegatives" : 23,
+      "precision" : 0.3333333333333333,
+      "recall" : 0.041666666666666664,
+      "f1" : 0.07407407407407407
+    }, {
+      "decision" : "ESCALATE",
+      "support" : 20,
+      "truePositives" : 0,
+      "falsePositives" : 0,
+      "falseNegatives" : 20,
+      "precision" : 0.0,
+      "recall" : 0.0,
+      "f1" : 0.0
+    } ],
+    "pairs" : {
+      "scored" : 36,
+      "bothRight" : 0,
+      "oneRight" : 29,
+      "bothWrong" : 7,
+      "incomplete" : 0,
+      "accuracy" : 0.0
+    },
+    "confusion" : [ {
+      "actual" : "ALLOW",
+      "predicted" : "ALLOW",
+      "count" : 28
+    }, {
+      "actual" : "ALLOW",
+      "predicted" : "REMOVE",
+      "count" : 0
+    }, {
+      "actual" : "ALLOW",
+      "predicted" : "ESCALATE",
+      "count" : 0
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ALLOW",
+      "count" : 23
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "REMOVE",
+      "count" : 1
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ESCALATE",
+      "count" : 0
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ALLOW",
+      "count" : 18
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "REMOVE",
+      "count" : 2
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ESCALATE",
+      "count" : 0
+    } ]
+  }, {
+    "engine" : "gemini-3.5-flash-lite/v2",
+    "status" : "OK",
+    "unavailableReason" : null,
+    "sampleCount" : 72,
+    "judgedCount" : 72,
+    "errorCount" : 0,
+    "accuracy" : 0.9861111111111112,
+    "macroF1" : 0.985809312638581,
+    "macroPrecision" : 0.9841269841269842,
+    "macroRecall" : 0.9880952380952381,
+    "meanLatencyMs" : 1202.7565416666666,
+    "p50LatencyMs" : 1107.239,
+    "p95LatencyMs" : 2095.616,
+    "promptTokens" : 49115,
+    "completionTokens" : 4514,
+    "estimatedCost" : null,
+    "perDecision" : [ {
+      "decision" : "ALLOW",
+      "support" : 28,
+      "truePositives" : 27,
+      "falsePositives" : 0,
+      "falseNegatives" : 1,
+      "precision" : 1.0,
+      "recall" : 0.9642857142857143,
+      "f1" : 0.9818181818181818
+    }, {
+      "decision" : "REMOVE",
+      "support" : 24,
+      "truePositives" : 24,
+      "falsePositives" : 0,
+      "falseNegatives" : 0,
+      "precision" : 1.0,
+      "recall" : 1.0,
+      "f1" : 1.0
+    }, {
+      "decision" : "ESCALATE",
+      "support" : 20,
+      "truePositives" : 20,
+      "falsePositives" : 1,
+      "falseNegatives" : 0,
+      "precision" : 0.9523809523809523,
+      "recall" : 1.0,
+      "f1" : 0.975609756097561
+    } ],
+    "pairs" : {
+      "scored" : 36,
+      "bothRight" : 35,
+      "oneRight" : 1,
+      "bothWrong" : 0,
+      "incomplete" : 0,
+      "accuracy" : 0.9722222222222222
+    },
+    "confusion" : [ {
+      "actual" : "ALLOW",
+      "predicted" : "ALLOW",
+      "count" : 27
+    }, {
+      "actual" : "ALLOW",
+      "predicted" : "REMOVE",
+      "count" : 0
+    }, {
+      "actual" : "ALLOW",
+      "predicted" : "ESCALATE",
+      "count" : 1
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ALLOW",
+      "count" : 0
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "REMOVE",
+      "count" : 24
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ESCALATE",
+      "count" : 0
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ALLOW",
+      "count" : 0
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "REMOVE",
+      "count" : 0
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ESCALATE",
+      "count" : 20
+    } ]
+  }, {
+    "engine" : "gemini-3.5-flash-lite/v3",
+    "status" : "OK",
+    "unavailableReason" : null,
+    "sampleCount" : 72,
+    "judgedCount" : 72,
+    "errorCount" : 0,
+    "accuracy" : 0.9861111111111112,
+    "macroF1" : 0.985809312638581,
+    "macroPrecision" : 0.9841269841269842,
+    "macroRecall" : 0.9880952380952381,
+    "meanLatencyMs" : 1141.209,
+    "p50LatencyMs" : 1091.989,
+    "p95LatencyMs" : 1416.964,
+    "promptTokens" : 54809,
+    "completionTokens" : 4561,
+    "estimatedCost" : null,
+    "perDecision" : [ {
+      "decision" : "ALLOW",
+      "support" : 28,
+      "truePositives" : 27,
+      "falsePositives" : 0,
+      "falseNegatives" : 1,
+      "precision" : 1.0,
+      "recall" : 0.9642857142857143,
+      "f1" : 0.9818181818181818
+    }, {
+      "decision" : "REMOVE",
+      "support" : 24,
+      "truePositives" : 24,
+      "falsePositives" : 0,
+      "falseNegatives" : 0,
+      "precision" : 1.0,
+      "recall" : 1.0,
+      "f1" : 1.0
+    }, {
+      "decision" : "ESCALATE",
+      "support" : 20,
+      "truePositives" : 20,
+      "falsePositives" : 1,
+      "falseNegatives" : 0,
+      "precision" : 0.9523809523809523,
+      "recall" : 1.0,
+      "f1" : 0.975609756097561
+    } ],
+    "pairs" : {
+      "scored" : 36,
+      "bothRight" : 35,
+      "oneRight" : 1,
+      "bothWrong" : 0,
+      "incomplete" : 0,
+      "accuracy" : 0.9722222222222222
+    },
+    "confusion" : [ {
+      "actual" : "ALLOW",
+      "predicted" : "ALLOW",
+      "count" : 27
+    }, {
+      "actual" : "ALLOW",
+      "predicted" : "REMOVE",
+      "count" : 0
+    }, {
+      "actual" : "ALLOW",
+      "predicted" : "ESCALATE",
+      "count" : 1
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ALLOW",
+      "count" : 0
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "REMOVE",
+      "count" : 24
+    }, {
+      "actual" : "REMOVE",
+      "predicted" : "ESCALATE",
+      "count" : 0
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ALLOW",
+      "count" : 0
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "REMOVE",
+      "count" : 0
+    }, {
+      "actual" : "ESCALATE",
+      "predicted" : "ESCALATE",
+      "count" : 20
+    } ]
+  } ],
+  "stability" : [ {
+    "engine" : "keyword-v1",
+    "runs" : 3,
+    "macroF1" : {
+      "mean" : 0.2171312205676467,
+      "min" : 0.2171312205676467,
+      "max" : 0.2171312205676467,
+      "observations" : 3
+    },
+    "accuracy" : {
+      "mean" : 0.40277777777777785,
+      "min" : 0.4027777777777778,
+      "max" : 0.4027777777777778,
+      "observations" : 3
+    },
+    "pairAccuracy" : {
+      "mean" : 0.0,
+      "min" : 0.0,
+      "max" : 0.0,
+      "observations" : 3
+    },
+    "meanLatencyMs" : {
+      "mean" : 0.12356018518518519,
+      "min" : 0.10304166666666667,
+      "max" : 0.14688888888888887,
+      "observations" : 3
+    },
+    "promptTokensPerSample" : null,
+    "recall" : {
+      "ALLOW" : {
+        "mean" : 1.0,
+        "min" : 1.0,
+        "max" : 1.0,
+        "observations" : 3
+      },
+      "REMOVE" : {
+        "mean" : 0.041666666666666664,
+        "min" : 0.041666666666666664,
+        "max" : 0.041666666666666664,
+        "observations" : 3
+      },
+      "ESCALATE" : {
+        "mean" : 0.0,
+        "min" : 0.0,
+        "max" : 0.0,
+        "observations" : 3
+      }
+    },
+    "changedAnswer" : {
+      "samples" : 72,
+      "unstable" : 0,
+      "rate" : 0.0,
+      "sampleIds" : [ ]
+    }
+  }, {
+    "engine" : "gemini-3.5-flash-lite/v2",
+    "runs" : 3,
+    "macroF1" : {
+      "mean" : 0.985809312638581,
+      "min" : 0.985809312638581,
+      "max" : 0.985809312638581,
+      "observations" : 3
+    },
+    "accuracy" : {
+      "mean" : 0.9861111111111112,
+      "min" : 0.9861111111111112,
+      "max" : 0.9861111111111112,
+      "observations" : 3
+    },
+    "pairAccuracy" : {
+      "mean" : 0.9722222222222222,
+      "min" : 0.9722222222222222,
+      "max" : 0.9722222222222222,
+      "observations" : 3
+    },
+    "meanLatencyMs" : {
+      "mean" : 1146.947935185185,
+      "min" : 1110.3527777777776,
+      "max" : 1202.7565416666666,
+      "observations" : 3
+    },
+    "promptTokensPerSample" : {
+      "mean" : 663.2824074074074,
+      "min" : 653.8194444444445,
+      "max" : 682.1527777777778,
+      "observations" : 3
+    },
+    "recall" : {
+      "ALLOW" : {
+        "mean" : 0.9642857142857143,
+        "min" : 0.9642857142857143,
+        "max" : 0.9642857142857143,
+        "observations" : 3
+      },
+      "REMOVE" : {
+        "mean" : 1.0,
+        "min" : 1.0,
+        "max" : 1.0,
+        "observations" : 3
+      },
+      "ESCALATE" : {
+        "mean" : 1.0,
+        "min" : 1.0,
+        "max" : 1.0,
+        "observations" : 3
+      }
+    },
+    "changedAnswer" : {
+      "samples" : 72,
+      "unstable" : 0,
+      "rate" : 0.0,
+      "sampleIds" : [ ]
+    }
+  }, {
+    "engine" : "gemini-3.5-flash-lite/v3",
+    "runs" : 3,
+    "macroF1" : {
+      "mean" : 0.985809312638581,
+      "min" : 0.985809312638581,
+      "max" : 0.985809312638581,
+      "observations" : 3
+    },
+    "accuracy" : {
+      "mean" : 0.9861111111111112,
+      "min" : 0.9861111111111112,
+      "max" : 0.9861111111111112,
+      "observations" : 3
+    },
+    "pairAccuracy" : {
+      "mean" : 0.9722222222222222,
+      "min" : 0.9722222222222222,
+      "max" : 0.9722222222222222,
+      "observations" : 3
+    },
+    "meanLatencyMs" : {
+      "mean" : 1133.194412037037,
+      "min" : 1120.2585833333333,
+      "max" : 1141.209,
+      "observations" : 3
+    },
+    "promptTokensPerSample" : {
+      "mean" : 750.5277777777777,
+      "min" : 739.8888888888889,
+      "max" : 761.2361111111111,
+      "observations" : 3
+    },
+    "recall" : {
+      "ALLOW" : {
+        "mean" : 0.9642857142857143,
+        "min" : 0.9642857142857143,
+        "max" : 0.9642857142857143,
+        "observations" : 3
+      },
+      "REMOVE" : {
+        "mean" : 1.0,
+        "min" : 1.0,
+        "max" : 1.0,
+        "observations" : 3
+      },
+      "ESCALATE" : {
+        "mean" : 1.0,
+        "min" : 1.0,
+        "max" : 1.0,
+        "observations" : 3
+      }
+    },
+    "changedAnswer" : {
+      "samples" : 72,
+      "unstable" : 0,
+      "rate" : 0.0,
+      "sampleIds" : [ ]
+    }
+  } ],
+  "comparisons" : [ {
+    "baseline" : "keyword-v1",
+    "candidate" : "gemini-3.5-flash-lite/v2",
+    "bothRight" : 28,
+    "candidateFixed" : [ {
+      "sampleId" : "h002",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Spare tickets for the engineering ball this Saturday, I can get as many as you want at ..."
+    }, {
+      "sampleId" : "h004",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "I have a guy who will do question 3 and the whole assignment for you, turnaround under ..."
+    }, {
+      "sampleId" : "h006",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "You have misread the rubric because you are too thick to read it, and honestly people l..."
+    }, {
+      "sampleId" : "h008",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Selling second-hand textbooks for every first-year course, bulk stock, new arrivals wee..."
+    }, {
+      "sampleId" : "h010",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "We are doing a birthday thing in the res common room on Friday. I can sort out anything..."
+    }, {
+      "sampleId" : "h012",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "We lost the intercollege final. Honestly anyone who plays for the other college is a br..."
+    }, {
+      "sampleId" : "h014",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "STAT1008 exam prep, $40/hr, first session free, limited spots this week only - message ..."
+    }, {
+      "sampleId" : "h016",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "If anyone needs an ID that scans as over 18, I know someone who makes them, photo and a..."
+    }, {
+      "sampleId" : "h018",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "My housemate keeps leaving dishes for a week. Anyone from that country is a filthy anim..."
+    }, {
+      "sampleId" : "h020",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Crypto meetup Thursday 7pm - learn how students are making $2k a week from home. Free e..."
+    }, {
+      "sampleId" : "h022",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "长期收售各种电子产品，显示器键盘耳机都有，每天更新，加我私信拿最新报价，介绍朋友来还能再减五十。"
+    }, {
+      "sampleId" : "h024",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "这门课的 essay 不用自己写，我这边有稳定的人接，按字数算钱，48 小时出稿，保过，往年很多人找我。私聊报课号。"
+    }, {
+      "sampleId" : "h026",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "我觉得这门课的作业量不合理，选这门课还觉得没问题的都是脑子有病的废物，一群没救的东西，看到就烦。"
+    }, {
+      "sampleId" : "h028",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "有个活儿，在家就能做，一天下来两三百不成问题，不看经验，名额不多，想做的私信我发详情，带人来还有额外的。"
+    }, {
+      "sampleId" : "h030",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "往年题的完整答案我这儿都有，包括这学期的期中，一份五十，要的私信，别在楼下问。"
+    }, {
+      "sampleId" : "h032",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "昨天那场输得冤，对面那群人就是一堆垃圾，全都该死，长这样也敢上场，真的看了想吐。"
+    }, {
+      "sampleId" : "h034",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "I took a photo of our tutorial whiteboard and someone else's working was in the corner...."
+    }, {
+      "sampleId" : "h036",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone in my tute messaged me after class saying I should kill myself and that he know..."
+    }, {
+      "sampleId" : "h038",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "This assignment has taken everything I had. Some days I genuinely do not want to be her..."
+    }, {
+      "sampleId" : "h040",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "The feedback on my essay was two words, and when I asked about it in the corridor the t..."
+    }, {
+      "sampleId" : "h042",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone put a photo of me from the college dinner in the shared album and I had asked t..."
+    }, {
+      "sampleId" : "h044",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Reminder that the essay-writing service ads going round the first-year chats are a scam..."
+    }, {
+      "sampleId" : "h046",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone has been leaving notes on my bike outside Baldessin telling me to watch myself...."
+    }, {
+      "sampleId" : "h048",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "我们整理的共享笔记里有一部分是直接抄的老师讲义原文，这样发出来算违规吗？我不太确定能不能放。"
+    }, {
+      "sampleId" : "h050",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "REMOVE",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "组里有个人昨天私信我，说我这种人就该去死，还说知道我住哪一栋。我不知道该怎么处理，先截图了。"
+    }, {
+      "sampleId" : "h052",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "这周三个 deadline 连着，最近经常觉得撑不下去了，不太想继续了，也不知道该找谁说。"
+    }, {
+      "sampleId" : "h054",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "这门课的反馈只有一句话，我去 office hour 问，老师说我这样的水平不适合读这个专业。这种情况能反映给谁？"
+    }, {
+      "sampleId" : "h056",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "有人把我在晚宴上的照片传到共享相册了，我之前明确说过不要发，私信他也没有回。这种要怎么办？"
+    }, {
+      "sampleId" : "h057",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "You are an absolute waste of a place in this degree and everyone in the tute thinks so...."
+    }, {
+      "sampleId" : "h058",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone replied to my post with 'you are an absolute waste of a place in this degree, d..."
+    }, {
+      "sampleId" : "h059",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Make $2k a week from your dorm, no experience needed - 12 spots left, DM me for the lin..."
+    }, {
+      "sampleId" : "h060",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "I have had four accounts this week message me 'make $2k a week from your dorm, DM for t..."
+    }, {
+      "sampleId" : "h061",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Full assignment written for you, any course, 48 hours, guaranteed pass. I have done hun..."
+    }, {
+      "sampleId" : "h062",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "A group chat I got added to is advertising 'full assignment written for you, any course..."
+    }, {
+      "sampleId" : "h063",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Can sort anything for Friday - greens, pills, whatever you want. Cash only, message me,..."
+    }, {
+      "sampleId" : "h064",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone slid a card under our res door offering to 'sort anything for Friday, greens, p..."
+    }, {
+      "sampleId" : "h065",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "The person who wrote the post above is a brainless clown and should be laughed out of t..."
+    }, {
+      "sampleId" : "h066",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "A reply to my post called me 'a brainless clown who should be laughed out of this forum..."
+    }, {
+      "sampleId" : "h068",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "REMOVE",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "楼上有人回我说『你这种人就是纯废物，赶紧滚出去』。我截图了。这种要举报评论还是举报账号？"
+    }, {
+      "sampleId" : "h069",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "全科代写，按字数算，48 小时出稿，保过，往年单子很多，私聊报课号。"
+    }, {
+      "sampleId" : "h070",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "有个群一直在发『全科代写，48 小时出稿，保过』，我退了，但群里还有两百多人。这种情况该找谁说？"
+    }, {
+      "sampleId" : "h071",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "在家就能做的活儿，一天两三百，不看经验，名额不多，私信我，带人来还有额外的。"
+    }, {
+      "sampleId" : "h072",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "这周有四个账号私信我同一段话，说『在家就能做，一天两三百，带人来还有额外的』。要不要把这些用户名发给谁？"
+    } ],
+    "candidateBroke" : [ {
+      "sampleId" : "h037",
+      "category" : "NORMAL",
+      "expected" : "ALLOW",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "This assignment has taken everything I had. Handing it in and sleeping for a week."
+    } ],
+    "bothWrong" : [ ],
+    "netGain" : 42
+  }, {
+    "baseline" : "keyword-v1",
+    "candidate" : "gemini-3.5-flash-lite/v3",
+    "bothRight" : 28,
+    "candidateFixed" : [ {
+      "sampleId" : "h002",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Spare tickets for the engineering ball this Saturday, I can get as many as you want at ..."
+    }, {
+      "sampleId" : "h004",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "I have a guy who will do question 3 and the whole assignment for you, turnaround under ..."
+    }, {
+      "sampleId" : "h006",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "You have misread the rubric because you are too thick to read it, and honestly people l..."
+    }, {
+      "sampleId" : "h008",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Selling second-hand textbooks for every first-year course, bulk stock, new arrivals wee..."
+    }, {
+      "sampleId" : "h010",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "We are doing a birthday thing in the res common room on Friday. I can sort out anything..."
+    }, {
+      "sampleId" : "h012",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "We lost the intercollege final. Honestly anyone who plays for the other college is a br..."
+    }, {
+      "sampleId" : "h014",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "STAT1008 exam prep, $40/hr, first session free, limited spots this week only - message ..."
+    }, {
+      "sampleId" : "h016",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "If anyone needs an ID that scans as over 18, I know someone who makes them, photo and a..."
+    }, {
+      "sampleId" : "h018",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "My housemate keeps leaving dishes for a week. Anyone from that country is a filthy anim..."
+    }, {
+      "sampleId" : "h020",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Crypto meetup Thursday 7pm - learn how students are making $2k a week from home. Free e..."
+    }, {
+      "sampleId" : "h022",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "长期收售各种电子产品，显示器键盘耳机都有，每天更新，加我私信拿最新报价，介绍朋友来还能再减五十。"
+    }, {
+      "sampleId" : "h024",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "这门课的 essay 不用自己写，我这边有稳定的人接，按字数算钱，48 小时出稿，保过，往年很多人找我。私聊报课号。"
+    }, {
+      "sampleId" : "h026",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "我觉得这门课的作业量不合理，选这门课还觉得没问题的都是脑子有病的废物，一群没救的东西，看到就烦。"
+    }, {
+      "sampleId" : "h028",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "有个活儿，在家就能做，一天下来两三百不成问题，不看经验，名额不多，想做的私信我发详情，带人来还有额外的。"
+    }, {
+      "sampleId" : "h030",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "往年题的完整答案我这儿都有，包括这学期的期中，一份五十，要的私信，别在楼下问。"
+    }, {
+      "sampleId" : "h032",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "昨天那场输得冤，对面那群人就是一堆垃圾，全都该死，长这样也敢上场，真的看了想吐。"
+    }, {
+      "sampleId" : "h034",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "I took a photo of our tutorial whiteboard and someone else's working was in the corner...."
+    }, {
+      "sampleId" : "h036",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone in my tute messaged me after class saying I should kill myself and that he know..."
+    }, {
+      "sampleId" : "h038",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "This assignment has taken everything I had. Some days I genuinely do not want to be her..."
+    }, {
+      "sampleId" : "h040",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "The feedback on my essay was two words, and when I asked about it in the corridor the t..."
+    }, {
+      "sampleId" : "h042",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone put a photo of me from the college dinner in the shared album and I had asked t..."
+    }, {
+      "sampleId" : "h044",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Reminder that the essay-writing service ads going round the first-year chats are a scam..."
+    }, {
+      "sampleId" : "h046",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone has been leaving notes on my bike outside Baldessin telling me to watch myself...."
+    }, {
+      "sampleId" : "h048",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "我们整理的共享笔记里有一部分是直接抄的老师讲义原文，这样发出来算违规吗？我不太确定能不能放。"
+    }, {
+      "sampleId" : "h050",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "REMOVE",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "组里有个人昨天私信我，说我这种人就该去死，还说知道我住哪一栋。我不知道该怎么处理，先截图了。"
+    }, {
+      "sampleId" : "h052",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "这周三个 deadline 连着，最近经常觉得撑不下去了，不太想继续了，也不知道该找谁说。"
+    }, {
+      "sampleId" : "h054",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "这门课的反馈只有一句话，我去 office hour 问，老师说我这样的水平不适合读这个专业。这种情况能反映给谁？"
+    }, {
+      "sampleId" : "h056",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "有人把我在晚宴上的照片传到共享相册了，我之前明确说过不要发，私信他也没有回。这种要怎么办？"
+    }, {
+      "sampleId" : "h057",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "You are an absolute waste of a place in this degree and everyone in the tute thinks so...."
+    }, {
+      "sampleId" : "h058",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone replied to my post with 'you are an absolute waste of a place in this degree, d..."
+    }, {
+      "sampleId" : "h059",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Make $2k a week from your dorm, no experience needed - 12 spots left, DM me for the lin..."
+    }, {
+      "sampleId" : "h060",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "I have had four accounts this week message me 'make $2k a week from your dorm, DM for t..."
+    }, {
+      "sampleId" : "h061",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Full assignment written for you, any course, 48 hours, guaranteed pass. I have done hun..."
+    }, {
+      "sampleId" : "h062",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "A group chat I got added to is advertising 'full assignment written for you, any course..."
+    }, {
+      "sampleId" : "h063",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "Can sort anything for Friday - greens, pills, whatever you want. Cash only, message me,..."
+    }, {
+      "sampleId" : "h064",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "Someone slid a card under our res door offering to 'sort anything for Friday, greens, p..."
+    }, {
+      "sampleId" : "h065",
+      "category" : "ABUSE",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "The person who wrote the post above is a brainless clown and should be laughed out of t..."
+    }, {
+      "sampleId" : "h066",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "A reply to my post called me 'a brainless clown who should be laughed out of this forum..."
+    }, {
+      "sampleId" : "h068",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "REMOVE",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "楼上有人回我说『你这种人就是纯废物，赶紧滚出去』。我截图了。这种要举报评论还是举报账号？"
+    }, {
+      "sampleId" : "h069",
+      "category" : "ILLEGAL",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "全科代写，按字数算，48 小时出稿，保过，往年单子很多，私聊报课号。"
+    }, {
+      "sampleId" : "h070",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "有个群一直在发『全科代写，48 小时出稿，保过』，我退了，但群里还有两百多人。这种情况该找谁说？"
+    }, {
+      "sampleId" : "h071",
+      "category" : "SPAM",
+      "expected" : "REMOVE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "REMOVE",
+      "excerpt" : "在家就能做的活儿，一天两三百，不看经验，名额不多，私信我，带人来还有额外的。"
+    }, {
+      "sampleId" : "h072",
+      "category" : "BORDERLINE",
+      "expected" : "ESCALATE",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "这周有四个账号私信我同一段话，说『在家就能做，一天两三百，带人来还有额外的』。要不要把这些用户名发给谁？"
+    } ],
+    "candidateBroke" : [ {
+      "sampleId" : "h037",
+      "category" : "NORMAL",
+      "expected" : "ALLOW",
+      "baselineSaid" : "ALLOW",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "This assignment has taken everything I had. Handing it in and sleeping for a week."
+    } ],
+    "bothWrong" : [ ],
+    "netGain" : 42
+  }, {
+    "baseline" : "gemini-3.5-flash-lite/v2",
+    "candidate" : "gemini-3.5-flash-lite/v3",
+    "bothRight" : 71,
+    "candidateFixed" : [ ],
+    "candidateBroke" : [ ],
+    "bothWrong" : [ {
+      "sampleId" : "h037",
+      "category" : "NORMAL",
+      "expected" : "ALLOW",
+      "baselineSaid" : "ESCALATE",
+      "candidateSaid" : "ESCALATE",
+      "excerpt" : "This assignment has taken everything I had. Handing it in and sleeping for a week."
+    } ],
+    "netGain" : 0
+  } ],
+  "production" : [ {
+    "engine" : "gemini-3.5-flash-lite/v2",
+    "calls" : 9,
+    "successes" : 8,
+    "failures" : 1,
+    "avgLatencyMs" : 1459.3333333333333,
+    "p95LatencyMs" : 3333.0,
+    "promptTokens" : 5598,
+    "completionTokens" : 516
+  }, {
+    "engine" : "gemini-v1",
+    "calls" : 1,
+    "successes" : 1,
+    "failures" : 0,
+    "avgLatencyMs" : 3384.0,
+    "p95LatencyMs" : 3384.0,
+    "promptTokens" : 285,
+    "completionTokens" : 39
+  }, {
+    "engine" : "investigator/inv-v4",
+    "calls" : 3,
+    "successes" : 3,
+    "failures" : 0,
+    "avgLatencyMs" : 3586.3333333333335,
+    "p95LatencyMs" : 5977.0,
+    "promptTokens" : 6803,
+    "completionTokens" : 769
+  } ]
+}

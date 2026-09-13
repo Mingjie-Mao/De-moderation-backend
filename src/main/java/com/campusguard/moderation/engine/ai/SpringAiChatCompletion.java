@@ -3,6 +3,8 @@ package com.campusguard.moderation.engine.ai;
 import java.util.List;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.metadata.EmptyUsage;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -69,11 +71,15 @@ public class SpringAiChatCompletion implements ChatCompletionPort {
 
             String text = response.getResult().getOutput().getText();
 
+            // An EmptyUsage is Spring AI's stand-in for no usage reported, and it
+            // answers 0. The port's contract is null for unknown; a zero would be
+            // summed into the token figures as a call that cost nothing.
             Integer promptTokens = null;
             Integer completionTokens = null;
-            if (response.getMetadata() != null && response.getMetadata().getUsage() != null) {
-                promptTokens = asInt(response.getMetadata().getUsage().getPromptTokens());
-                completionTokens = asInt(response.getMetadata().getUsage().getCompletionTokens());
+            Usage usage = response.getMetadata() == null ? null : response.getMetadata().getUsage();
+            if (usage != null && !(usage instanceof EmptyUsage)) {
+                promptTokens = asInt(usage.getPromptTokens());
+                completionTokens = asInt(usage.getCompletionTokens());
             }
 
             return new CompletionResult(text, promptTokens, completionTokens);

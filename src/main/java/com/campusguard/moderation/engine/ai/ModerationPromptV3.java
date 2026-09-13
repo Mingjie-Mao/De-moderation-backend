@@ -28,18 +28,39 @@ import org.springframework.stereotype.Component;
  * With the classification text held identical, a gap between v2 and v3 is
  * evidence about the language instruction and nothing else.
  *
- * <p>What this version has not yet been shown to do: the evaluation set is
- * English, so running it here measures whether asking for a language-matched
- * rationale costs anything on English content — the honest question for a change
- * that is meant to be free. It cannot say whether the Chinese rationales are any
- * good, because there is no labelled Chinese set to say it with. Both engines
- * are registered, so {@code EvaluationRunner} scores {@code <model>/v2} and
- * {@code <model>/v3} side by side on the same samples; treat a difference within
- * noise on 192 samples as what it is.
+ * <p><b>Measured on 13 September 2026</b>, three runs of each against the 72
+ * held-out samples — 44 English and 28 Chinese, which makes that set the right
+ * instrument for this change by accident rather than by design. v3 classifies
+ * <em>identically</em> to v2: macro-F1 0.986 for both, pair accuracy 0.972 for
+ * both, 71 samples right for both, nothing fixed, nothing broken, and the same
+ * single miss on {@code h037}. Every run of both agreed with itself, so that is
+ * an engine that did not move rather than a range too coarse to show it.
  *
- * <p>v2 remains the configured engine. Switching live traffic to this one is a
- * {@code MODERATION_ENGINE} change, and should follow the run rather than
- * precede it.
+ * <p>What it bought: on the 28 Chinese samples, v2 wrote a Chinese rationale 3
+ * times and v3 wrote one 28 times, with neither leaking Chinese into an English
+ * rationale. That count is over each engine's representative run, the only one
+ * whose per-sample rationales the harness keeps; the classification behind it
+ * was identical in all three. What it cost: +26 prompt tokens per sample, +11.6%, for the extra
+ * instruction. Free in accuracy, paid for in prompt size, which is exactly the
+ * trade this version was written to make.
+ *
+ * <p>Still not shown: whether the Chinese rationales are any <em>good</em>. The
+ * harness scores ALLOW/REMOVE/ESCALATE and has no opinion on prose. What has been
+ * established is that the rationale is in the right language and that demanding
+ * it cost no accuracy; judging the writing needs a person reading a sample of
+ * them, and that has not been done.
+ *
+ * <p><b>This is now the configured engine</b>, switched after that run rather
+ * than before it — {@code MODERATION_ENGINE=<model>/v3}. v2 stays registered and
+ * is one environment variable away, which is the point of versioning a prompt
+ * separately from the code that calls it. See {@code docs/evaluation-notes.md}.
+ *
+ * <p>Both of the failures {@link ModerationPromptV2} records as unfixed are
+ * inherited here unchanged, because the classification wording is copied from it
+ * without an edit: the {@code "ABUSE (HIGH)"} rule code that costs a corrective
+ * retry, and the escalation on idiomatic mentions of dying, which is the single
+ * miss on {@code h037} above. Switching to v3 buys the rationale's language and
+ * nothing else — it was not meant to, and the measurement says it did not.
  */
 @Component
 public class ModerationPromptV3 implements ModerationPrompt {

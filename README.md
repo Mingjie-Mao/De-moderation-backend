@@ -20,8 +20,10 @@ Java 21 · Spring Boot 3.5 · PostgreSQL 16 · Spring AI (Gemini) · Testcontain
 
 ## Results
 
-Every moderation engine is tested by the same evaluation pipeline, on the same
-192-sample bilingual labelled dataset.
+Every moderation engine is tested by the same evaluation pipeline, on two
+bilingual labelled datasets.
+
+**The 192-sample set**, which the prompts were written against:
 
 | Engine | Macro-F1 | ALLOW Recall | REMOVE Recall | ESCALATE Recall | p50 Latency | Tokens/sample |
 |---|---|---|---|---|---|---|
@@ -33,10 +35,44 @@ v1 and v2 use the same model and the same Java code; only the prompt changed.
 Rewriting it took Macro-F1 from 0.617 to 0.924 and ESCALATE Recall from 0.056 to
 0.778, at the cost of average prompt token usage rising from 341 to 651.
 
-**Note:** v2 was written after inspecting v1's errors on this same dataset, so
-0.924 is not an unbiased held-out estimate. Per-sample disagreements, the
-English/Chinese split and the remaining limits are in the
+v2 was written after inspecting v1's errors on this same data, so 0.924 is a
+diagnosis confirmed on the data that produced it, not an estimate.
+
+**The 72-sample held-out set**, written afterwards and never read while writing
+any prompt. 36 minimal pairs: one post written twice with a single deliberate
+difference, where the two halves get different correct answers. Each engine run
+three times; `±` is half the observed range.
+
+| Engine | Macro-F1 | ESCALATE Recall | Pair accuracy | Changed answer |
+|---|---|---|---|---|
+| `keyword-v1` — term list | 0.217 ±0.000 | 0.000 | **0.000** | 0 / 72 |
+| `gemini-3.5-flash-lite/v1` | 0.597 ±0.016 | 0.067 | 0.457 | 2 / 72 |
+| `gemini-3.5-flash-lite/v2` | **0.984** ±0.003 | 1.000 | **0.972** | 0 / 72 |
+
+A pair counts as right only if both halves are. An engine answering by topic gets
+one half of every pair for free — which is what the term list's 0.000 is, on 36
+pairs it answered 29 of identically.
+
+**What these two tables establish, and what they do not.** v1's ESCALATE collapse
+reproduces on data written five weeks later (0.056 → 0.067), so the failure that
+justified the rewrite was real and not an artefact. v2's single error on the
+held-out set is one its own source comments had predicted and left unfixed. But
+0.984 is **not** an estimate of live accuracy: the held-out labels were written
+from the same policy v2's prompt states, so its perfect ESCALATE recall is close
+to definitional. Neither set is real traffic. The full argument is in the
 [evaluation notes](docs/evaluation-notes.md).
+
+**A third prompt, `v3`,** adds one line to `v2` fixing the language the rationale
+is written in — the explanation a reviewer reads, which was arriving in English
+under Chinese threads. Measured against the same 72 samples a day later, three
+runs, it classifies *identically* to `v2`: macro-F1 0.986 for both, pair accuracy
+0.972 for both, nothing fixed and nothing broken across all 72, and the same
+single miss. On the set's 28 Chinese samples — in the run each report is drawn
+from — it wrote a Chinese rationale 28 times against `v2`'s 3, for 11.6% more
+prompt tokens. Free in accuracy, paid for
+in prompt size. That session also re-measured `v2` at 0.986 against the previous
+day's 0.984, a gap inside the first day's own range —
+[the report](docs/evaluation-heldout-v2v3.md).
 
 ## Architecture
 
@@ -69,7 +105,7 @@ a worker that exited abnormally are automatically requeued; every state
 transition, verdict and administrator action is written to an append-only audit
 log.
 
-### Case investigation (in progress)
+### Case investigation
 
 The pipeline above decides one piece of content at a time. What it cannot tell a
 reviewer is whether this is the author's first offence or their fourth, or how
@@ -116,9 +152,12 @@ one. The brief is written to the audit trail against the administrator who asked
 for it.
 
 **Status.** Working end to end and off by default. Measured against
-`gemini-3.5-flash-lite` on three cases with deliberately different evidence:
-briefs converged in two to four lookups of a budget of five, at roughly four
-times the tokens of a verdict, with no fabricated citations.
+`gemini-3.5-flash-lite` over 16 scenarios run three times each: a moderator could
+defend the recommendation in 0.875 of them, the answer was the same every time in
+0.938, and it cited what the case turns on in 0.813 — at roughly 3.6 times the
+tokens of a verdict. Two failures are reproducible and documented rather than
+patched: it will not be the first to escalate, and it anchors on precedent even
+when the dismissal rate argues the other way.
 
 The author's record and the precedent for the flagged rules are fetched before
 the model is asked anything, rather than left to it to request. That was a fix
@@ -150,8 +189,12 @@ always shown. That is a real trade, not a free win.
   rate-limit backoff and deterministic fallback
 - **Human-in-the-loop review** — claim, evidence, decisions, correction, appeal,
   notifications and an append-only audit trail
-- **Deployment and observability** — Docker, TLS, Prometheus/Grafana, backup
-  scripts and CI, plus Kubernetes and k6 configuration templates
+- **Durable media** — one storage seam with a filesystem and an S3-compatible
+  backend (AWS, R2, GCS), and an orphan sweep that never touches media belonging
+  to content a moderator might reinstate
+- **Deployment and observability** — Docker, TLS, Prometheus, Alertmanager with
+  severity routing, Grafana, verified off-site backup, a restore drill that is
+  safe to run on a working day, CI, and Kubernetes and k6 templates
 
 ## Quick start
 
@@ -206,11 +249,11 @@ registered and everything else runs normally.
 Add to `.env`:
 
 ```bash
-printf 'AI_CHAT_MODEL=google-genai\nGEMINI_MODELS=gemini-3.5-flash-lite\nMODERATION_ENGINE=gemini-3.5-flash-lite/v2\nGEMINI_API_KEY=...\n' >> .env
+printf 'AI_CHAT_MODEL=google-genai\nGEMINI_MODELS=gemini-3.5-flash-lite\nMODERATION_ENGINE=gemini-3.5-flash-lite/v3\nGEMINI_API_KEY=...\n' >> .env
 ```
 
 The model and the prompt version together form an engine's identity — for
-example `gemini-3.5-flash-lite/v2` — so different prompts are registered,
+example `gemini-3.5-flash-lite/v3` — so different prompts are registered,
 evaluated and compared independently.
 
 The LLM call chain includes:
@@ -241,19 +284,36 @@ Run the full suite:
 mvn verify
 ```
 
-The suite runs its integration tests against real PostgreSQL through
-Testcontainers, covering concurrent aggregation, session rotation, media,
-assignment, appeals, queue recovery and model degradation. The current test count
-is printed by `mvn verify` and is kept out of prose so it cannot silently go stale.
+The suite runs its integration tests against real PostgreSQL **and real MinIO**
+through Testcontainers, so Docker is a prerequisite. It covers concurrent
+aggregation, session rotation, media, assignment, appeals, queue recovery, model
+degradation, the investigation loop against a scripted model, the orphan sweep,
+and one storage contract that both media backends have to satisfy identically.
 
-## Dataset
+Two suites are skipped unless `GEMINI_API_KEY` is set: they call a real model.
 
-The evaluation set is **192 bilingual labelled samples**, and contains no real
-production traffic.
+The current test count is printed by `mvn verify` and is kept out of prose so it
+cannot silently go stale.
 
-The benign samples come from the forum demo content of an earlier ANU team
-project, [De-discussion](https://github.com/Mingjie-Mao/De-discussion); the
-violating and borderline samples were written specifically for this evaluation.
+## Datasets
+
+Neither set is real production traffic, and neither becomes real traffic by being
+harder.
+
+**192 samples**, the set the prompts were written against. The benign samples come
+from the forum demo content of an earlier ANU team project,
+[De-discussion](https://github.com/Mingjie-Mao/De-discussion); the violating and
+borderline samples were written specifically for this evaluation. Provenance
+almost perfectly predicts the label there, which is the flaw the second set
+exists to remove.
+
+**72 samples**, held out: written after the prompts were frozen, never read while
+writing one, and arranged as 36 minimal pairs with one author, one register and
+all three labels. Every sample carries a note saying what the edit was and which
+clause of the policy the label follows from, so a disputed label is settleable by
+reading. Its own invariants — every pair complete, every pair's halves
+disagreeing, no overlap with the tuning set — are asserted by `HeldOutDatasetTest`
+rather than trusted.
 
 ## Documentation
 
@@ -261,7 +321,10 @@ violating and borderline samples were written specifically for this evaluation.
 |---|---|
 | [architecture.md](docs/architecture.md) | components, data model, request flow |
 | [evaluation-notes.md](docs/evaluation-notes.md) | what the numbers mean, and what they do not |
-| [evaluation.md](docs/evaluation.md) | the generated report — metrics, confusion matrices, per-sample disagreements |
+| [evaluation.md](docs/evaluation.md) | the generated report on the 192-sample set |
+| [evaluation-heldout.md](docs/evaluation-heldout.md) | the generated report on the held-out set — pair scores and run-to-run spread |
+| [evaluation-heldout-v2v3.md](docs/evaluation-heldout-v2v3.md) | the same set a day later, with `v3` in place of `v1` — what the rationale-language change cost |
+| [investigation.md](docs/investigation.md) | the case-investigation assistant: design, measurements, cost and known failures |
 | [reliability.md](docs/reliability.md) | queue durability, degradation, bounds |
 | [security-decisions.md](docs/security-decisions.md) | authentication, exposure, privilege |
 | [demo-script.md](docs/demo-script.md) | a three-minute walkthrough |

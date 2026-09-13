@@ -62,6 +62,19 @@ public class EngineRegistry {
             log.error(
                     "Configured engine '{}' is not registered; falling back to '{}'. Available: {}",
                     configuredPrimary, fallbackName, byName.keySet());
+        } else {
+            // Said on the way up, and not only when it goes wrong.
+            //
+            // Which engine judges live traffic is a deployment decision with a
+            // silent failure mode: MODERATION_ENGINE that never reached the
+            // process leaves the queue running on term matching, every case still
+            // gets a verdict, and nothing anywhere says the model was not asked.
+            // The same argument as MediaConfig's startup line, which the runbook
+            // already tells an operator to read on every release, and there was
+            // no equivalent for the thing that actually decides the cases.
+            log.info(
+                    "Moderation engine is {}, degrading to {}. Registered: {}",
+                    configuredPrimary, fallbackName, byName.keySet());
         }
     }
 

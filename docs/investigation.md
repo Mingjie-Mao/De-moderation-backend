@@ -178,6 +178,20 @@ Ordered by what is blocking what.
    java -jar app.jar --campusguard.corpus.export=true \
         --campusguard.corpus.output-dir=/somewhere/outside/the/repo
    ```
- Note that `ESCALATE` is not
-   derivable from a final action, so the export carries hardness signals as
-   candidates for a person to label rather than inventing the class.
+
+   Note that `ESCALATE` is not derivable from a final action, so the export
+   carries hardness signals as candidates for a person to label rather than
+   inventing the class.
+
+   Run once on 13 September 2026 against the development database, which is the
+   only thing here with decisions in it: 8 records, 6 `ROUTINE` and 2 `REVISED`,
+   the engine overruled on one, three flagged as candidates for an `ESCALATE`
+   label a person would have to add, and two decided against an author who
+   already had a resolved case. Each record carries a hashed `authorKey`, the
+   engine's decision and confidence beside the human's final action, and
+   `priorResolvedCases` — which are exactly the fields the retrieval change above
+   needs. So the mechanism is verified and the corpus is not: 8 is three orders
+   of magnitude short of the few hundred that would make `similarResolvedCases`
+   mean "most similar" instead of "most recent", and no amount of work in this
+   repository produces them. They come from a deployment that people actually
+   moderate on, which is the argument for running one.

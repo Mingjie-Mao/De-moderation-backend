@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class EvaluationCsvWriter {
 
     private static final String HEADER =
-            "engine,sample_id,category,expected,actual,outcome,confidence,rule_codes,"
+            "engine,sample_id,pair_id,category,expected,actual,outcome,confidence,rule_codes,"
                     + "latency_us,prompt_tokens,completion_tokens,error,excerpt,rationale";
 
     public String render(BenchmarkReport report) {
@@ -34,6 +34,7 @@ public class EvaluationCsvWriter {
                 ",",
                 quote(engineName),
                 quote(outcome.sampleId()),
+                quote(outcome.pairId()),
                 quote(outcome.category()),
                 quote(name(outcome.expected())),
                 quote(name(outcome.actual())),

@@ -78,7 +78,7 @@ class EvaluationResultTest {
 
     private SampleOutcome outcome(String id, long latencyMicros, String error) {
         return new SampleOutcome(
-                id, "NORMAL", SampleProvenance.AUTHORED, ALLOW, error == null ? ALLOW : null, 0.9, List.of(), "ok", "excerpt",
-                latencyMicros, null, null, error);
+                id, null, "NORMAL", SampleProvenance.AUTHORED, ALLOW, error == null ? ALLOW : null, 0.9, List.of(),
+                "ok", "excerpt", latencyMicros, null, null, error);
     }
 }
