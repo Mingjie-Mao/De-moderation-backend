@@ -144,7 +144,8 @@ them; three engines over 192 samples costs 390 model calls.
 
 ## Why a second set exists
 
-The 192-sample set has two flaws that no amount of care in reading it can remove.
+The 192-sample set has two flaws that no amount of care in reading it can remove,
+and a third that money would fix.
 
 **The prompts were written against it.** `v2`'s wording was chosen after
 inspecting `v1`'s mistakes on those exact samples. Its 0.924 is a diagnosis
@@ -156,6 +157,22 @@ diagnosis was right — and it is not an estimate of anything.
 learned nothing except how demo seed content reads would score well. The report
 detects this and refuses to present the per-source gap as a finding, which is the
 correct response and leaves the question unanswered.
+
+**Every figure in it is a single run.** The held-out numbers below are means over
+three runs with the observed range beside them; these are one measurement each,
+reported to three decimal places, which is exactly the practice `EngineRuns`
+exists to stop. The reason is arithmetic rather than principle: three runs of 192
+samples is 579 model calls per engine and the provider's free tier allows 500 a
+day, so the one set that cannot be measured three times in a day is this one.
+
+It is worth being precise about what that costs, because it is less than it
+sounds. The conclusion this table carries is `v1` to `v2`, a gap of 0.307, and
+the widest run-to-run spread this harness has measured on any engine anywhere is
+±0.016 — nineteen times smaller. What is unmeasured here is the small
+differences: a two-hundredth between neighbouring prompt versions on this set is
+not a finding, and nothing in this file should be read as if it were. The
+instrument's precision is established below, on the set where it could be
+afforded.
 
 ## What replaced them
 

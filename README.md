@@ -38,6 +38,14 @@ Rewriting it took Macro-F1 from 0.617 to 0.924 and ESCALATE Recall from 0.056 to
 v2 was written after inspecting v1's errors on this same data, so 0.924 is a
 diagnosis confirmed on the data that produced it, not an estimate.
 
+**Every row here is a single run, and carries no range.** The held-out table
+below does carry one, because three runs of a 72-sample set fit inside a day of
+the provider's free quota and three runs of this one do not — 579 calls per
+engine against a ceiling of 500. That is a real gap in this table and it does not
+touch the claim above it: v1 to v2 is 0.307, and the widest run-to-run spread
+this harness has ever measured on any engine is ±0.016. Read small differences
+here as unmeasured; the precision of the instrument is in the table below.
+
 **The 72-sample held-out set**, written afterwards and never read while writing
 any prompt. 36 minimal pairs: one post written twice with a single deliberate
 difference, where the two halves get different correct answers. Each engine run
