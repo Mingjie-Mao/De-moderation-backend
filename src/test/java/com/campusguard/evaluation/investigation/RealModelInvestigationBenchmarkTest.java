@@ -9,19 +9,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.convert.DurationStyle;
 import org.springframework.test.context.TestPropertySource;
 
 /**
  * The investigation set against a real model.
  *
  * <p>Skipped unless {@code GEMINI_API_KEY} is in the environment. Run it
- * deliberately, and expect it to cost something — sixteen scenarios times three
- * runs is forty-eight investigations:
+ * deliberately, and expect it to cost something — thirty-two scenarios times
+ * three runs is ninety-six investigations, and with {@code -Dinvestigation.runs=3}
+ * each of those is three calls:
  *
  * <pre>
  * export $(grep -E '^(GEMINI_API_KEY|GEMINI_MODELS)=' .env | xargs)
@@ -89,22 +92,42 @@ class RealModelInvestigationBenchmarkTest extends AbstractIntegrationTest {
     @Value("${campusguard.moderation.investigator.runs:1}")
     private int runs;
 
+    /**
+     * Start to start, between investigations. Five seconds a call is the pacing
+     * {@code EVAL_CALL_INTERVAL} gives the engine benchmark, which keeps a
+     * free-tier key under fifteen requests a minute; at runs=3 an investigation is
+     * three calls at once, so the default grows with it. Pass
+     * {@code -Dinvestigation.interval=0s} on a key without that ceiling.
+     */
+    @Value("${investigation.interval:}")
+    private String interval;
+
+    /** Where the report goes, so a run from a separate worktree can still write into the main checkout. */
+    @Value("${investigation.output-dir:docs}")
+    private String outputDir;
+
     @Test
     void scoresTheInvestigationSet() throws Exception {
         List<InvestigationScenario> set = scenarios.load();
 
+        Duration pacing = interval == null || interval.isBlank()
+                ? Duration.ofSeconds(5L * runs)
+                : DurationStyle.detectAndParse(interval);
+
         InvestigationBenchmarkReport report = benchmark.run(
-                investigator, set, RUNS_EACH, properties.promptVersion(), models);
+                investigator, set, RUNS_EACH, properties.promptVersion(), models, pacing);
 
         System.out.println("\n" + report.summary());
         report.outcomes().forEach(outcome -> System.out.printf(
-                "  %-8s %-22s expected %-6s got %-24s stability %.2f %s%n",
+                "  %-8s %-30s expected %-6s got %-24s bands %-28s stability %.2f grounded %d/%d%n",
                 outcome.id(),
                 outcome.shape(),
                 outcome.expected(),
                 outcome.recommendations(),
+                outcome.evidence(),
                 outcome.stability(),
-                outcome.grounded() ? "grounded" : "UNGROUNDED"));
+                outcome.groundedRuns(),
+                RUNS_EACH));
 
         write(report);
 
@@ -116,10 +139,14 @@ class RealModelInvestigationBenchmarkTest extends AbstractIntegrationTest {
     /**
      * Written to a file as well as printed, so two prompt versions can be
      * compared without anybody having to keep terminal output.
+     *
+     * <p>The scenario count is part of the name because the set grows, and a
+     * report over sixteen scenarios must not be overwritten by one over
+     * thirty-two: the figures quoted in the documentation came from the first.
      */
     private void write(InvestigationBenchmarkReport report) throws Exception {
-        Path file = Path.of("docs", "investigation-benchmark-%s%s.json".formatted(
-                report.promptVersion(), runs > 1 ? "-consensus" + runs : ""));
+        Path file = Path.of(outputDir, "investigation-benchmark-%s%s-%d-scenarios.json".formatted(
+                report.promptVersion(), runs > 1 ? "-consensus" + runs : "", report.scenarios()));
         Files.createDirectories(file.getParent());
 
         objectMapper.copy()

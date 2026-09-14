@@ -188,6 +188,8 @@ printf 'AI_CHAT_MODEL=google-genai\nGEMINI_MODELS=gemini-3.5-flash-lite\nMODERAT
 
 模型与 Prompt 版本共同构成审核引擎身份，例如 `gemini-3.5-flash-lite/v3`，因此不同 Prompt 可以独立注册、评测和比较。
 
+**复现上面的表格需要显式指定模型。** `GEMINI_MODELS` 的默认值是别名 `gemini-flash-latest`，而不是固定版本号：固定版本是真实接触时最先坏掉的东西——`gemini-2.5-flash` 曾以 404 回应"已不向新用户提供"。而结果表格是专门针对 `gemini-3.5-flash-lite` 测量的，别名指向什么又会不打招呼地变化，所以沿用默认值的一次运行，测的是那一周别名恰好指向的模型，并且记在另一个引擎名下。
+
 LLM 调用链包含：
 
 - **统一引擎接口** —— 规则引擎与 LLM 使用相同接口，将模型实现与核心审核流程解耦
@@ -211,7 +213,7 @@ mvn verify
 
 集成测试通过 Testcontainers 使用**真实 PostgreSQL 和真实 MinIO**，因此 Docker 是前置条件。覆盖并发举报聚合、会话轮换、图片、案件认领、申诉、队列恢复、模型降级、对着脚本化模型跑的调查循环、孤儿扫描，以及两个存储后端必须同样满足的一份共享契约。
 
-有两个测试类在未设置 `GEMINI_API_KEY` 时跳过：它们会调用真实模型。
+有两个测试类在未设置 `GEMINI_API_KEY` 时跳过，另有一个在未设置 `MEDIA_S3_BUCKET` 时跳过：它们会调用真实模型和真实存储桶。存储桶那个跑的是 MinIO 同样要满足的那份契约，写在自己的前缀下并在结束后删除——MinIO 查不出的是，部署真正指向的那家服务商在 region 命名和 path-style 寻址上是否也这么认为。
 
 当前准确测试数由 `mvn verify` 输出，不再把容易过期的数字写死在说明中。
 

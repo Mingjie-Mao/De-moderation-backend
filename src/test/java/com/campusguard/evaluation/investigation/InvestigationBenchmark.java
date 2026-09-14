@@ -1,10 +1,12 @@
 package com.campusguard.evaluation.investigation;
 
 import com.campusguard.moderation.FinalAction;
+import com.campusguard.moderation.investigation.EvidenceStrength;
 import com.campusguard.moderation.investigation.Investigator;
 import com.campusguard.moderation.investigation.InvestigationBrief;
 import com.campusguard.moderation.engine.ai.AiInvocation;
 import com.campusguard.moderation.engine.ai.AiInvocationRepository;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -51,21 +53,45 @@ public class InvestigationBenchmark {
             int runsEach,
             String promptVersion,
             String model) {
+        return run(investigator, scenarios, runsEach, promptVersion, model, Duration.ZERO);
+    }
 
+    /**
+     * @param minInterval the shortest time from the start of one investigation to
+     *     the start of the next, for the reason {@code EvaluationRunner} paces its
+     *     samples: a set asked back to back is a burst no reviewer produces, and a
+     *     free-tier key answers it by spending retries on the per-minute ceiling.
+     *     With runs above one every investigation is that many calls at once.
+     */
+    public InvestigationBenchmarkReport run(
+            Investigator investigator,
+            List<InvestigationScenario> scenarios,
+            int runsEach,
+            String promptVersion,
+            String model,
+            Duration minInterval) {
+
+        Pacer pacer = new Pacer(minInterval);
+        Map<EvidenceStrength, InvestigationBenchmarkReport.BandTally> bands = InvestigationBenchmarkReport.emptyBands();
         List<InvestigationBenchmarkReport.ScenarioOutcome> outcomes = new ArrayList<>();
 
         for (InvestigationScenario scenario : scenarios) {
-            outcomes.add(score(investigator, scenario, runsEach));
+            outcomes.add(score(investigator, scenario, runsEach, pacer, bands));
             log.info("scenario {} done ({})", scenario.id(), outcomes.getLast().modal());
         }
 
-        return aggregate(outcomes, scenarios, runsEach, promptVersion, model);
+        return aggregate(outcomes, scenarios, runsEach, promptVersion, model, bands);
     }
 
     private InvestigationBenchmarkReport.ScenarioOutcome score(
-            Investigator investigator, InvestigationScenario scenario, int runsEach) {
+            Investigator investigator,
+            InvestigationScenario scenario,
+            int runsEach,
+            Pacer pacer,
+            Map<EvidenceStrength, InvestigationBenchmarkReport.BandTally> bands) {
 
         List<FinalAction> recommendations = new ArrayList<>();
+        List<EvidenceStrength> evidence = new ArrayList<>();
         List<String> briefs = new ArrayList<>();
         List<Integer> steps = new ArrayList<>();
         List<Integer> tokens = new ArrayList<>();
@@ -73,6 +99,8 @@ public class InvestigationBenchmark {
 
         for (int run = 0; run < runsEach; run++) {
             ScenarioFixture.Built built = fixture.build(scenario);
+
+            pacer.await();
             InvestigationBrief brief = investigator.investigate(built.caseId());
 
             List<AiInvocation> rows = invocations.findAll().stream()
@@ -87,7 +115,14 @@ public class InvestigationBenchmark {
 
             if (brief instanceof InvestigationBrief.Complete complete) {
                 recommendations.add(complete.recommendation());
+                evidence.add(complete.evidenceStrength());
                 briefs.add(complete.summary());
+
+                // Per run rather than per scenario: the question is whether a brief
+                // that says SETTLED is right more often than one that says LEANING,
+                // and a modal answer has no band of its own.
+                boolean defensible = scenario.acceptable().contains(complete.recommendation());
+                bands.computeIfPresent(complete.evidenceStrength(), (band, tally) -> tally.plus(defensible));
 
                 Set<UUID> required = built.required(scenario.mustCite());
                 if (complete.citedCaseIds().containsAll(required)) {
@@ -98,6 +133,7 @@ public class InvestigationBenchmark {
                 // it is not a right one either, and averaging it away would flatter
                 // a run where the provider was struggling.
                 recommendations.add(null);
+                evidence.add(null);
                 briefs.add(brief.summary());
             }
         }
@@ -110,9 +146,11 @@ public class InvestigationBenchmark {
                 scenario.shape(),
                 scenario.expected(),
                 recommendations,
+                evidence,
                 modal,
                 modal != null && scenario.acceptable().contains(modal),
                 grounded == runsEach,
+                grounded,
                 (double) matchingModal / runsEach,
                 steps.stream().mapToInt(Integer::intValue).average().orElse(0),
                 tokens.stream().mapToInt(Integer::intValue).average().orElse(0),
@@ -145,7 +183,8 @@ public class InvestigationBenchmark {
             List<InvestigationScenario> scenarios,
             int runsEach,
             String promptVersion,
-            String model) {
+            String model,
+            Map<EvidenceStrength, InvestigationBenchmarkReport.BandTally> bands) {
 
         Map<FinalAction, Integer> recommended = InvestigationBenchmarkReport.emptyTally();
         Map<FinalAction, Integer> expected = InvestigationBenchmarkReport.emptyTally();
@@ -177,6 +216,7 @@ public class InvestigationBenchmark {
                 fraction(outcomes.stream().filter(InvestigationBenchmarkReport.ScenarioOutcome::grounded).count(), total),
                 outcomes.stream().mapToDouble(InvestigationBenchmarkReport.ScenarioOutcome::averageSteps).average().orElse(0),
                 outcomes.stream().mapToDouble(InvestigationBenchmarkReport.ScenarioOutcome::averagePromptTokens).average().orElse(0),
+                bands,
                 recommended,
                 expected,
                 List.copyOf(outcomes));
@@ -184,5 +224,30 @@ public class InvestigationBenchmark {
 
     private double fraction(long matched, int total) {
         return total == 0 ? 0 : (double) matched / total;
+    }
+
+    /** Holds investigations a minimum interval apart, measured start to start. */
+    private static final class Pacer {
+
+        private final long intervalNanos;
+        private long lastStart;
+
+        Pacer(Duration interval) {
+            this.intervalNanos = interval.toNanos();
+        }
+
+        void await() {
+            if (intervalNanos > 0 && lastStart != 0) {
+                long wait = intervalNanos - (System.nanoTime() - lastStart);
+                if (wait > 0) {
+                    try {
+                        Thread.sleep(Duration.ofNanos(wait));
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+            lastStart = System.nanoTime();
+        }
     }
 }

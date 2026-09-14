@@ -277,7 +277,7 @@ Integration tests use Testcontainers with real PostgreSQL 16 rather than H2. The
 | AI failure handling | Timeout, HTTP 429, circuit breaking, invalid output, correction retry and fallback |
 | Appeals and notifications | Appeal permissions, reversal, state restoration and notifications |
 | Media | Format, pixel count, re-encoding, ownership and access control |
-| Media storage | One shared contract both backends must satisfy, run against a directory and against a real S3 server |
+| Media storage | One shared contract both backends must satisfy, run against a directory, against a real S3 server, and — when the S3 block of `.env` is filled in — against the deployment's own bucket |
 | Media sweep | What the orphan sweep deletes, and — the assertions that matter — what it refuses to delete |
 | Case investigation | Tool whitelist, read-only transactions, the step budget, citation checking, the shared circuit, endpoint access and limits, and the tool-calling adapter itself |
 | Evaluation harness | Pair scoring, multi-run spread, instability, and the held-out set's own invariants |
@@ -359,21 +359,29 @@ Opening the API root returns 401 by design because the policy denies unspecified
 |---|---|---|
 | Evaluation | Neither dataset is real traffic. The held-out set removes the tuning leak but its labels were written from the same policy the prompt states, so it cannot be read as an estimate of live accuracy | Harvest decided cases into a corpus and score against what reviewers actually did |
 | Investigation | Will not be the first to escalate, and anchors on precedent even when the dismissal rate argues against it | Retrieval over decided cases, once there are enough of them |
-| Production infrastructure | Free instances sleep, domains are platform-owned and Kubernetes remains a template | Use an always-on instance, owned domain, Secret Manager and cluster-specific values |
-| Alerting and off-site backup | Configured and checked with the vendors' own tools, but never exercised against a real SMTP account or a real bucket | Supply credentials and confirm one alert and one off-site copy end to end |
+| Production infrastructure | Free instances sleep and domains are platform-owned. The Kubernetes manifest is no longer unverified — all ten resources are accepted by a real v1.37 API server — but no pod has ever run from it, and its image references and hostnames are placeholders | Use an always-on instance, owned domain, Secret Manager and cluster-specific values |
+| Alert delivery | Exercised end to end against a local SMTP capture server: a warning reached the operators address, a critical reached the on-call one, and a firing `CampusGuardBackendDown` inhibited the warning sharing its job. Never sent through a real provider, so SMTP authentication, TLS negotiation against one and external deliverability remain untested | Supply `ALERT_SMTP_*` and confirm one alert arrives in a real inbox |
+| Off-site backup | Never exercised. The media bucket is verified now, but `OFFSITE_*` is unset, so no copy has ever been written off-site | Supply `OFFSITE_*` and confirm one copy and its checksum |
 | Comment fan-out | Top-level comments are paginated; one root comment can still have a wide reply tree | Page replies within a thread |
 | Media atomicity | Bytes and row are written in two steps and cannot share a transaction | Already bounded: compensation covers the ordinary failure, the sweep covers a process that dies between them |
-| Investigation measurement | 16 scenarios rather than the 30–50 planned, and consensus mode (`INVESTIGATOR_RUNS=3`) unmeasured because its run exhausted the quota | Grow the scenario set, then measure consensus when quota allows |
+| Load coverage | Seven of the mixed workload's eight thresholds pass against a local process: browse p95 7 ms, write 18 ms, report 22 ms, admin 71 ms, upload 432 ms, no failed requests on admin or browse. The eighth cannot pass as written — `sign-in` allows under 1% failures, while the application's own ceiling of 30 logins per IP per 15 minutes guarantees about 92% at the script's two requests a second | Decide whether a 429 counts as a failure for this workload, since it is the limiter working as designed, or pace the workload beneath the ceiling. Then run it against a deployed stack rather than a local process |
+| Investigation measurement | The set is 32 scenarios now, but no run against a real model has finished one: the day's quota was exhausted after two. Consensus mode (`INVESTIGATOR_RUNS=3`) is implemented, unit-tested and unmeasured for the same reason. The figures in §6.3 come from the sixteen-scenario set and are no longer reproducible — a different set, and a grounding count that was under-reporting | Run the 32-scenario set on a fresh quota (~98 calls), then consensus (~294), against a ceiling of 500 a day |
 | Evaluation variance | The 192-sample table is still a single run; the held-out set now has three runs of keyword-v1, v1, v2 and v3, but v1 and v3 were measured in different sessions | Re-run the 192-sample set three times; a single session covering all four engines needs more than one day of free-tier quota |
 | Demo configuration | The public demo still runs the August build: filesystem media, no alert receiver and no investigation assistant | Deploy this revision with `MEDIA_BACKEND=S3`, a rendered Alertmanager config and, if wanted, `INVESTIGATOR_ENABLED=true` |
 
 Closed since the previous revision: media durability (an S3-compatible backend
-behind a storage seam, with an orphan sweep), alert delivery (Alertmanager with
-severity routing), off-site backup (an optional verified copy), restore
-confidence (a drill that has been run and that fails on a corrupt dump), load
-coverage (a six-workload k6 script with a budget per workload, run locally but
-not yet against staging) and the
+behind a storage seam with an orphan sweep, and a storage contract that now runs
+against the deployment's own bucket as well as against MinIO), alert delivery
+(Alertmanager with severity routing, exercised end to end including one
+inhibition), restore confidence (a drill that has been run and that fails on a
+corrupt dump), the Kubernetes manifest (accepted by a real API server) and the
 deprecated GitHub Actions versions.
+
+Two items moved the other way, and are in the table above rather than here. The
+off-site copy was described as verified and is not: nothing has ever been written
+off-site. The load script was described as run locally, which it now has been —
+and one of its eight thresholds turns out to be unsatisfiable against this
+application's own rate limiter.
 
 ---
 

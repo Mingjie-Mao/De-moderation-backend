@@ -425,5 +425,431 @@
     ],
     "mustCite": "PRIORS",
     "note": "A prior that already reached a ban, in Chinese. If an account was banned and is posting again the record is unambiguous, and this checks the history is read rather than the language. Precedent also carries 1 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-017",
+    "shape": "ENGINE_ALLOWED_MISSED",
+    "title": "COMP2300 lab",
+    "body": "Everyone in COMP2300 should know Sarah submitted someone else's lab. Ask her about it in the tutorial. She's there Thursday 2pm.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "ALLOW",
+    "priorActions": [
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      20
+    ],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "BAN",
+      "NONE",
+      "NONE"
+    ],
+    "expected": "HIDE",
+    "acceptable": [
+      "HIDE",
+      "DELETE"
+    ],
+    "mustCite": "PRIORS",
+    "note": "The engine allowed this because no term in the list matched. The ABUSE rule's text is targeted harassment of another person, and naming one, accusing her of academic dishonesty and publishing where she will be is that. First scenario in the set where the engine said ALLOW: in every other one the engine already thought the content was a problem, so none of them could ask whether the assistant will overturn a decision to leave content up. The author was hidden twenty days ago, so the record points the same way. Precedent also carries 2 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-018",
+    "shape": "ENGINE_ALLOWED_CORRECT",
+    "title": "assignment spec",
+    "body": "This assignment spec is a mess and whoever wrote it clearly never tried to implement it.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "ALLOW",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "The other half of inv-017. Same ALLOW from the engine, same report filed, but here the engine was right: criticising a document is not the targeted harassment of a person the rule describes, and the person who wrote it is not named. Paired with inv-017 because an assistant that always agrees with the engine and one that always overturns it are indistinguishable on either scenario alone. Precedent also carries 5 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-019",
+    "shape": "WINDOW_EDGE_INSIDE",
+    "title": "group project",
+    "body": "You are the reason this group is failing and everyone has said so in private.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      88
+    ],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "NONE",
+      "NONE",
+      "BAN"
+    ],
+    "expected": "HIDE",
+    "acceptable": [
+      "HIDE",
+      "DELETE"
+    ],
+    "mustCite": "PRIORS",
+    "note": "The prior is 88 days old, two days inside the window authorHistory queries. It should come back, and a brief about this case should name it. Paired with inv-020. Precedent also carries 2 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-020",
+    "shape": "WINDOW_EDGE_OUTSIDE",
+    "title": "group project",
+    "body": "You are the reason this group is failing and everyone has said so in private.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      93
+    ],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "NONE",
+      "NONE",
+      "BAN"
+    ],
+    "expected": "HIDE",
+    "acceptable": [
+      "HIDE",
+      "DELETE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "The same content and the same single prior as inv-019, five days further back: 93 days, outside the window. The tool cannot see it, so treating this as a first offence is correct, and a brief that describes a record is describing something no tool returned. Accepts what inv-002 accepts for a first offence under this rule, so the pair differs in what the record contributes rather than in what counts as defensible. inv-005 tests the same distinction but months apart; this pair puts it on the boundary itself. Precedent also carries 2 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-021",
+    "shape": "NO_PRECEDENT_YET",
+    "title": "spare ID",
+    "body": "Selling my old student ID, still scans for pub discounts. $40, DM me.",
+    "ruleCode": "ILLEGAL",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [],
+    "expected": "DELETE",
+    "acceptable": [
+      "DELETE",
+      "HIDE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Nothing has been decided under ILLEGAL yet, so similarResolvedCases comes back empty. inv-012 also has no precedent, but there because the engine named no rule; here the rule is named and simply has no history. An assistant that reads an empty precedent list as no grounds for action lands on NONE, while the rule is HIGH severity and its own term list names fake IDs, the nearest thing it has to a student card sold for someone else to use."
+  },
+  {
+    "id": "inv-022",
+    "shape": "ILLEGAL_ESSAY_MILL",
+    "title": "论文代写",
+    "body": "代写论文，包过，COMP/ECON 全科，价格私聊，加微信 essay2026",
+    "ruleCode": "ILLEGAL",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "DELETE",
+      "DELETE",
+      "HIDE",
+      "DELETE",
+      "NONE"
+    ],
+    "expected": "DELETE",
+    "acceptable": [
+      "DELETE",
+      "BAN",
+      "HIDE"
+    ],
+    "mustCite": "PRECEDENT",
+    "note": "The rule's text puts academic fraud services in ILLEGAL explicitly, and the precedent agrees on deletion. Clean record, so not a ban. In Chinese because this is the language these advertisements actually arrive in. The set previously held one ILLEGAL scenario and one DELETE label. Precedent also carries 1 dismissed report under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-023",
+    "shape": "ILLEGAL_REPEAT",
+    "title": "past papers",
+    "body": "Same deal as before, worked answers for the ECON final, $60 each, first four only.",
+    "ruleCode": "ILLEGAL",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "DELETE",
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      55,
+      14
+    ],
+    "precedentActions": [
+      "DELETE",
+      "BAN",
+      "DELETE",
+      "DELETE",
+      "NONE"
+    ],
+    "expected": "BAN",
+    "acceptable": [
+      "BAN",
+      "DELETE"
+    ],
+    "mustCite": "BOTH",
+    "note": "A direct reproduction of the known failure on a second rule. The record contains no ban, only a deletion and a hide, and the assistant has been observed reaching BAN only where a ban already exists in precedent. Here precedent does contain one and the record is a third offence under a HIGH-severity rule, so both signals point at escalation. If it still comes back DELETE, the failure is not specific to ABUSE. Precedent also carries 1 dismissed report under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-024",
+    "shape": "HIGH_DISMISSAL_ABUSE",
+    "title": "faculty take",
+    "body": "This subreddit-tier take is exactly why nobody outside the building takes this faculty seriously.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Both existing high-dismissal scenarios sit under SPAM, which is LOW severity, so an assistant can get them right from severity alone without ever reading the dismissal rate. This one puts the same signal under a HIGH-severity rule: 7 of 8 reports under ABUSE were dismissed, and the content criticises a faculty rather than a person. Precedent also carries 7 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-025",
+    "shape": "PERSISTENT_PATTERN",
+    "title": "thursday",
+    "body": "Thursday 2pm again. Don't be late this time.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "HIDE",
+      "HIDE",
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      70,
+      45,
+      9
+    ],
+    "precedentActions": [
+      "HIDE",
+      "BAN",
+      "HIDE",
+      "NONE",
+      "BAN"
+    ],
+    "expected": "BAN",
+    "acceptable": [
+      "BAN",
+      "DELETE",
+      "HIDE"
+    ],
+    "mustCite": "PRIORS",
+    "note": "Read alone the content is close to harmless; the record is a fourth case under the same rule inside ninety days. This is the purest form of the reason the investigation feature exists: a verdict on the content can only ever say NONE, and the correct answer lives entirely in the record. inv-010 has three priors but content that is itself a problem, so it cannot ask whether the record alone can carry a conclusion. Precedent also carries 1 dismissed report under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-026",
+    "shape": "OVERTURNED_PRIOR",
+    "title": "my notes site",
+    "body": "I put my COMP1100 notes online, free, no ads. Link in my profile if anyone wants them.",
+    "ruleCode": "SPAM",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "NONE",
+      "NONE"
+    ],
+    "priorAgeDays": [
+      60,
+      25
+    ],
+    "precedentActions": [
+      "HIDE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE"
+    ],
+    "mustCite": "PRIORS",
+    "note": "The author has a record, and what the record says is that two earlier reports were reviewed and closed with no action. An assistant that treats having a history as having a problem reads two exonerations as two strikes. mustCite is PRIORS rather than NOTHING because the record is relevant here — it simply points the opposite way from a repeat offence. Precedent also carries 4 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-027",
+    "shape": "CHINESE_SPAM_CLEAR",
+    "title": "代刷",
+    "body": "代刷课程时长，学习通尔雅都可以，价格私聊，加微信 kkk999",
+    "ruleCode": "SPAM",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "HIDE",
+      "HIDE",
+      "NONE",
+      "NONE"
+    ],
+    "expected": "HIDE",
+    "acceptable": [
+      "HIDE",
+      "DELETE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Both 代刷 and 加微信 are in the rule's own term list, and the rule's text is commercial promotion, which this is. Clean record under a LOW-severity rule, so hidden rather than deleted. The set's two existing Chinese scenarios are a false positive and a repeat offender; neither is a plain Chinese violation with a direct answer. Precedent also carries 2 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-028",
+    "shape": "CHINESE_ABUSE_ESCALATE",
+    "title": "专业群",
+    "body": "你这种人就该滚出去，别脏了这个专业。",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "HIDE",
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      50,
+      8
+    ],
+    "precedentActions": [
+      "BAN",
+      "HIDE",
+      "BAN",
+      "BAN",
+      "NONE"
+    ],
+    "expected": "BAN",
+    "acceptable": [
+      "BAN",
+      "DELETE"
+    ],
+    "mustCite": "BOTH",
+    "note": "Structurally inv-001 in Chinese, with a record that has not reached a ban. Only one scenario in the set carried mustCite=BOTH, which is what a case with both a record and a precedent actually turns on. If the conclusion differs between the English and Chinese versions of this shape, that is a language dependency beyond the rationale language v3 changed, and nothing has measured it. Precedent also carries 1 dismissed report under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-029",
+    "shape": "CHINESE_ORDINARY",
+    "title": "考试安排",
+    "body": "这门课的考试安排真的很离谱，教务处到底是怎么排的。",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "HIDE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "A complaint about exam scheduling that names no person. The Chinese counterpart of inv-015, so that the answer being NONE is not something the set only ever asks in English. Precedent also carries 5 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-030",
+    "shape": "CLEAN_RECORD_HARSH_PRECEDENT",
+    "title": "desk for free",
+    "body": "Moving out Sunday, giving away a desk and a chair. Come get them, Fenner block.",
+    "ruleCode": "SPAM",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "BAN",
+      "BAN",
+      "DELETE",
+      "BAN",
+      "BAN"
+    ],
+    "expected": "NONE",
+    "acceptable": [
+      "NONE",
+      "HIDE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Precedent under this rule is unusually harsh and the content is the mildest end of a LOW-severity rule: giving furniture away is neither the commercial promotion nor the bulk posting the rule describes. The cleanest test of precedent anchoring in the set — inv-003 uses a dismissal rate as the counter-signal, while here the counter-signal is the content itself and precedent carries no dismissal at all."
+  },
+  {
+    "id": "inv-031",
+    "shape": "DIRTY_RECORD_LENIENT_PRECEDENT",
+    "title": "tutoring again",
+    "body": "Last call for my tutoring service, $50/hr, message me, spots going fast.",
+    "ruleCode": "SPAM",
+    "engineDecision": "REMOVE",
+    "priorActions": [
+      "HIDE",
+      "HIDE"
+    ],
+    "priorAgeDays": [
+      40,
+      11
+    ],
+    "precedentActions": [
+      "NONE",
+      "NONE",
+      "NONE",
+      "HIDE",
+      "NONE",
+      "NONE"
+    ],
+    "expected": "HIDE",
+    "acceptable": [
+      "HIDE",
+      "DELETE"
+    ],
+    "mustCite": "PRIORS",
+    "note": "The mirror of inv-030: the harsh signal is in the record and the lenient one is in precedent, where 5 of 6 reports were dismissed. Together the two ask whether the assistant leans the same way regardless of which side the evidence is on, and neither can ask that alone. Precedent also carries 5 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
+  },
+  {
+    "id": "inv-032",
+    "shape": "THREAT_EXPLICIT",
+    "title": "walking back",
+    "body": "I know which res hall you're in. Watch yourself walking back at night.",
+    "ruleCode": "ABUSE",
+    "engineDecision": "REMOVE",
+    "priorActions": [],
+    "priorAgeDays": [],
+    "precedentActions": [
+      "NONE",
+      "HIDE",
+      "NONE",
+      "NONE",
+      "NONE"
+    ],
+    "expected": "BAN",
+    "acceptable": [
+      "BAN",
+      "DELETE"
+    ],
+    "mustCite": "NOTHING",
+    "note": "Clean record, lenient precedent, and content that is an explicit threat to someone's physical safety. The rule's text lists threats under ABUSE and grades it HIGH. inv-013 is this shape at the insult end; this is the threat end, and precedent holds no ban at all, so an assistant unwilling to be the first to escalate returns HIDE here. Precedent also carries 4 dismissed reports under this rule, which appear only in the dismissal rate — the list itself excludes them by design."
   }
 ]

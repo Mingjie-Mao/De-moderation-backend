@@ -5,19 +5,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.campusguard.AbstractIntegrationTest;
 import com.campusguard.moderation.FinalAction;
 import com.campusguard.moderation.ModerationCaseRepository;
+import com.campusguard.moderation.ModerationDecision;
 import com.campusguard.moderation.admin.AdminModerationService;
 import com.campusguard.moderation.engine.ai.AiInvocationRecorder;
 import com.campusguard.moderation.investigation.BriefParser;
 import com.campusguard.moderation.investigation.CaseInvestigator;
+import com.campusguard.moderation.investigation.EvidenceStrength;
 import com.campusguard.moderation.investigation.InvestigationPromptV1;
 import com.campusguard.moderation.investigation.InvestigationPromptV4;
 import com.campusguard.moderation.investigation.InvestigatorProperties;
+import com.campusguard.moderation.investigation.ToolCall;
 import com.campusguard.moderation.investigation.ToolCallingPort;
 import com.campusguard.moderation.investigation.ToolRegistry;
 import com.campusguard.moderation.investigation.ToolSpec;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,13 +69,18 @@ class InvestigationBenchmarkIntegrationTest extends AbstractIntegrationTest {
     void theBundledSetLoadsAndCoversTheShapesItClaimsTo() throws Exception {
         List<InvestigationScenario> loaded = scenarios.load();
 
-        assertThat(loaded).hasSize(16);
+        assertThat(loaded).hasSize(32);
         assertThat(loaded).extracting(InvestigationScenario::id).doesNotHaveDuplicates();
 
         // Every expected outcome appears. A set that never expects NONE would
         // measure only how well an assistant agrees that content is bad.
         assertThat(loaded).extracting(InvestigationScenario::expected)
                 .contains(FinalAction.NONE, FinalAction.HIDE, FinalAction.DELETE, FinalAction.BAN);
+
+        // And at least one case the engine let through. Without it the set can
+        // only ask whether the assistant agrees with a takedown, never whether it
+        // would act on something the engine left up.
+        assertThat(loaded).extracting(InvestigationScenario::engineDecision).contains(ModerationDecision.ALLOW);
 
         // The expected answer must itself be defensible, or the set contradicts
         // its own scoring.
@@ -80,14 +91,57 @@ class InvestigationBenchmarkIntegrationTest extends AbstractIntegrationTest {
     @Test
     void materialisesTheHistoryAndThePrecedentAScenarioDescribes() throws Exception {
         InvestigationScenario scenario = scenarioNamed("inv-001");
+        int dismissals = (int) scenario.precedentActions().stream()
+                .filter(action -> action == FinalAction.NONE)
+                .count();
+        assertThat(dismissals).as("inv-001 is used because its precedent carries a dismissal").isPositive();
 
         ScenarioFixture.Built built = fixture.build(scenario);
 
         assertThat(built.priorCaseIds()).hasSize(scenario.priorActions().size());
-        assertThat(built.precedentCaseIds()).hasSize(scenario.precedentActions().size());
+        assertThat(built.precedentCaseIds()).hasSize(scenario.precedentActions().size() - dismissals);
+        assertThat(built.dismissedCaseIds()).hasSize(dismissals);
         assertThat(cases.findById(built.caseId())).isPresent();
+        // A dismissal is never something a brief must cite: the precedent lookup
+        // does not list it, so no brief could.
         assertThat(built.required(InvestigationScenario.MustCite.BOTH))
-                .hasSize(scenario.priorActions().size() + scenario.precedentActions().size());
+                .hasSize(built.priorCaseIds().size() + built.precedentCaseIds().size())
+                .doesNotContainAnyElementsOf(built.dismissedCaseIds());
+    }
+
+    /**
+     * Grounding can only be earned by citing what a tool returned, so every case a
+     * scenario requires has to be one the tools actually disclose.
+     *
+     * <p>The check that was missing while precedent counted dismissed reports: five
+     * scenarios required a citation the precedent lookup leaves out by design,
+     * their grounding could never be anything but zero, and that zero read as a
+     * failure of the assistant.
+     */
+    @Test
+    void everyCaseAScenarioRequiresCitingIsOneTheToolsDisclose() throws Exception {
+        for (InvestigationScenario scenario : scenarios.load()) {
+            ScenarioFixture.Built built = fixture.build(scenario);
+
+            Set<UUID> disclosed = new LinkedHashSet<>(
+                    tools.execute(built.caseId(), new ToolCall("history", "authorHistory", null)).disclosedCaseIds());
+            if (scenario.ruleCode() != null) {
+                disclosed.addAll(tools.execute(built.caseId(), new ToolCall(
+                                "precedent",
+                                "similarResolvedCases",
+                                objectMapper.createObjectNode().put("ruleCode", scenario.ruleCode())))
+                        .disclosedCaseIds());
+            }
+
+            assertThat(disclosed)
+                    .as("%s requires citing a case no tool returns", scenario.id())
+                    .containsAll(built.required(scenario.mustCite()));
+
+            // Thirty-two cases left awaiting review would fill the admin list's
+            // first page, which is paged at fifty and shared with every other
+            // test here.
+            fixture.retire(built);
+        }
     }
 
     /** An assistant that answers the same way every time should score 1.0, and nothing else should. */
@@ -137,6 +191,7 @@ class InvestigationBenchmarkIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(report.agreement()).isEqualTo(1.0);
         assertThat(report.grounding()).isZero();
+        assertThat(report.outcomes().getFirst().groundedRuns()).isZero();
     }
 
     /** An investigation that never concluded is neither right nor wrong, and must not be averaged away. */
@@ -151,6 +206,30 @@ class InvestigationBenchmarkIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(report.outcomes().getFirst().modal()).isNull();
         assertThat(report.agreement()).isZero();
+        assertThat(report.evidence().values()).allSatisfy(tally -> assertThat(tally.runs()).isZero());
+    }
+
+    /**
+     * The band a brief carried, counted against whether what it recommended was
+     * defensible. With runs above one that count is what consensus mode exists to
+     * produce, so the counting is pinned here rather than trusted.
+     */
+    @Test
+    void countsDefensibleRunsByTheBandTheirBriefCarried() throws Exception {
+        // inv-001 accepts only BAN and inv-002 does not accept it at all. The stub
+        // always answers BAN, graded LEANING.
+        InvestigationBenchmarkReport report = benchmark.run(
+                investigator(always("BAN")),
+                List.of(scenarioNamed("inv-001"), scenarioNamed("inv-002")),
+                2,
+                "stub",
+                "stub-model");
+
+        assertThat(report.evidence().get(EvidenceStrength.LEANING))
+                .isEqualTo(new InvestigationBenchmarkReport.BandTally(4, 2));
+        assertThat(report.evidence().get(EvidenceStrength.SETTLED).runs()).isZero();
+        assertThat(report.outcomes()).allSatisfy(outcome ->
+                assertThat(outcome.evidence()).containsOnly(EvidenceStrength.LEANING));
     }
 
     @Test
@@ -166,7 +245,7 @@ class InvestigationBenchmarkIntegrationTest extends AbstractIntegrationTest {
         assertThat(report.expected())
                 .containsEntry(FinalAction.BAN, 1)
                 .containsEntry(FinalAction.HIDE, 1);
-        assertThat(report.summary()).contains("agreement").contains("stability");
+        assertThat(report.summary()).contains("agreement").contains("stability").contains("evidence");
     }
 
     // --- harness -------------------------------------------------------------

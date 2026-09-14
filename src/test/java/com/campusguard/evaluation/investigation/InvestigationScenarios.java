@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
  * Loads the investigation set.
  *
  * <p>Bundled rather than external, like the engine's starter samples, so the
- * benchmark runs on a fresh checkout with nothing to fetch. The sixteen are a
- * starter, chosen to cover the shapes an investigation meets rather than to be a
- * representative sample of a real queue.
+ * benchmark runs on a fresh checkout with nothing to fetch. The thirty-two are
+ * still a starter, chosen to cover the shapes an investigation meets rather than
+ * to be a representative sample of a real queue.
  */
 @Component
 public class InvestigationScenarios {

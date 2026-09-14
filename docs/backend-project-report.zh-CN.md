@@ -276,7 +276,7 @@ JWT 密钥没有默认值且至少 32 字节，没有配置时程序直接启动
 | AI failure handling | 超时、429、断路器、错误输出、纠正重试和降级 |
 | Appeals and notifications | 申诉权限、撤销、状态恢复和通知 |
 | Media | 格式、像素、重新编码、归属和访问控制 |
-| Media storage | 两个存储后端必须同样满足的一份共享契约，分别对本地目录和真实 S3 服务运行 |
+| Media storage | 两个存储后端必须同样满足的一份共享契约，分别对本地目录、真实 S3 服务运行，以及——在 `.env` 的 S3 段填好时——对部署自己的存储桶运行 |
 | Media sweep | 孤儿扫描会删除什么，以及——真正要紧的断言——它拒绝删除什么 |
 | Case investigation | 工具白名单、只读事务、步数预算、引用校验、共享熔断、端点权限与限流，以及工具调用适配器本身 |
 | Evaluation harness | 成对评分、多次运行离散度、答案不稳定，以及留出集自身的不变量 |
@@ -346,13 +346,15 @@ Neon PostgreSQL
 |---|---|---|
 | Evaluation | 两份数据集都不是真实流量。留出集消除了调参泄漏，但标签是按 prompt 里写明的同一套口径写的，不能当作线上准确率的估计 | 把已裁决案件导出为语料，按审核员的真实决定评分 |
 | Investigation | 不会率先建议封禁；即使驳回率显示应当相反，仍会被先例带偏 | 已裁决案件足够多之后，对它们做相似检索 |
-| Investigation measurement | 只有 16 个场景，没有达到计划的 30–50 个；共识模式（`INVESTIGATOR_RUNS=3`）那次运行耗尽了额度，至今未测 | 扩充场景集，额度允许时再测共识模式 |
+| Investigation measurement | 场景集已扩到 32 个，但还没有任何一次真实模型运行跑完：当天额度在跑完两个场景后耗尽。共识模式（`INVESTIGATOR_RUNS=3`）已实现、已单测，仍因同一原因未测。§6.3 引用的数字来自 16 个场景的那次运行，现在已无法复现——场景集不同，而且当时的 grounding 计数偏低 | 在新额度上跑 32 个场景（约 98 次调用），再跑共识模式（约 294 次），日上限 500 次 |
 | Evaluation variance | 192 条数据集的表格仍是单次运行；留出集上 keyword-v1、v1、v2、v3 都已各跑三次，但 v1 与 v3 分属不同场次 | 192 条数据集补跑三次；四个引擎同场跑完需要不止一天的免费额度 |
 | Demo configuration | 公开演示仍运行 8 月的版本：本地目录存图、没有告警接收端、没有调查助手 | 用 `MEDIA_BACKEND=S3` 和渲染好的 Alertmanager 配置部署当前版本，需要时再设 `INVESTIGATOR_ENABLED=true` |
-| Production infrastructure | 免费实例会休眠，平台域名不自有，Kubernetes 仍是模板 | 使用不休眠实例、自有域名、Secret Manager 和真实集群参数 |
-| Alerting and off-site backup | 已配置，并用厂商自带工具校验，但从未用真实 SMTP 账号或真实存储桶端到端验证 | 提供凭据，端到端确认一次告警和一次异地备份 |
+| Production infrastructure | 免费实例会休眠，平台域名不自有。Kubernetes 清单不再是未经验证的了——十个资源全部被真实的 v1.37 API server 接受——但还从未由它跑起过任何 Pod，镜像地址和主机名仍是占位符 | 使用不休眠实例、自有域名、Secret Manager 和真实集群参数 |
+| Alert delivery | 已对本地 SMTP 捕获服务器端到端验证：warning 进了 operators 地址，critical 进了 on-call 地址，且一条 firing 的 `CampusGuardBackendDown` 抑制了同 job 的 warning。从未经过真实服务商，所以 SMTP 认证、与服务商的 TLS 协商和外网可达性仍未验证 | 提供 `ALERT_SMTP_*`，确认一封告警真正到达邮箱 |
+| Off-site backup | 从未验证。媒体存储桶现在验证过了，但 `OFFSITE_*` 未设置，所以从未有任何副本被写到异地 | 提供 `OFFSITE_*`，确认一次副本及其校验和 |
 | Comment fan-out | 顶层评论已分页，但单个根评论的回复树仍可能很宽 | 在线程内对回复分页 |
 | Media atomicity | 图片字节和数据库记录分两步写入，无法放进同一个事务 | 已有边界：补偿逻辑处理常规失败，孤儿扫描处理两步之间进程崩溃的情况 |
+| Load coverage | 混合负载脚本的八个阈值中有七个在本地进程上通过：browse p95 7 ms、write 18 ms、report 22 ms、admin 71 ms、upload 432 ms，admin 与 browse 零失败请求。第八个按现在的写法不可能通过——`sign-in` 要求失败率低于 1%，而应用自身每 IP 每 15 分钟 30 次登录的上限，在脚本每秒两次请求下保证了约 92% 的失败率 | 决定 429 对这个负载算不算失败（它是限流器在按设计工作），或者把该负载压到上限以下；然后对真正部署的一套栈跑，而不是本地进程 |
 
 自上一版以来已补上：媒体持久化（存储接口背后的 S3 兼容后端，加孤儿扫描）、告警投递（按严重级路由的 Alertmanager）、异地备份（可选、回读校验的副本）、恢复信心（一个实际跑过、并且遇到损坏 dump 会失败的演练）、负载覆盖（六类负载、每类单独延迟预算的 k6 脚本，已在本地跑过，尚未在预发布环境跑），以及已弃用的 GitHub Actions 版本。
 

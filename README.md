@@ -264,6 +264,14 @@ The model and the prompt version together form an engine's identity — for
 example `gemini-3.5-flash-lite/v3` — so different prompts are registered,
 evaluated and compared independently.
 
+**Name the model to reproduce the tables above.** `GEMINI_MODELS` defaults to the
+alias `gemini-flash-latest`, not to a pinned version: a pinned one was the first
+thing to break on real contact, when `gemini-2.5-flash` answered 404 with "no
+longer available to new users". The results tables were measured against
+`gemini-3.5-flash-lite` specifically, and what an alias resolves to changes
+without notice — so a run that takes the default is measuring whatever the alias
+points at that week, under a different engine name.
+
 The LLM call chain includes:
 
 - **One engine interface** — the rule engine and the LLM share it, decoupling the
@@ -298,7 +306,12 @@ aggregation, session rotation, media, assignment, appeals, queue recovery, model
 degradation, the investigation loop against a scripted model, the orphan sweep,
 and one storage contract that both media backends have to satisfy identically.
 
-Two suites are skipped unless `GEMINI_API_KEY` is set: they call a real model.
+Two suites are skipped unless `GEMINI_API_KEY` is set, and one unless
+`MEDIA_S3_BUCKET` is: they call a real model and a real bucket. The bucket one
+runs the same storage contract MinIO satisfies, under a prefix of its own that
+it deletes afterwards — what MinIO cannot check is whether the provider a
+deployment is actually pointed at agrees about region naming and path-style
+addressing.
 
 The current test count is printed by `mvn verify` and is kept out of prose so it
 cannot silently go stale.

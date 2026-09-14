@@ -71,11 +71,24 @@ public class ScenarioFixture {
     /**
      * @param caseId the case an investigation will be asked about
      * @param priorCaseIds this author's earlier decisions
-     * @param precedentCaseIds the cases the precedent lookup will return
+     * @param precedentCaseIds the cases the precedent lookup will return: those
+     *     under this rule that ended in an action
+     * @param dismissedCaseIds reports under this rule that ended in nothing. The
+     *     assistant only ever sees them as a count inside the dismissal rate, so
+     *     none of them can be cited.
      */
-    public record Built(UUID caseId, Set<UUID> priorCaseIds, Set<UUID> precedentCaseIds) {
+    public record Built(
+            UUID caseId, Set<UUID> priorCaseIds, Set<UUID> precedentCaseIds, Set<UUID> dismissedCaseIds) {
 
-        /** What a brief has to cite for this scenario to count as grounded. */
+        /**
+         * What a brief has to cite for this scenario to count as grounded.
+         *
+         * <p>Only cases a tool can disclose. Precedent used to include the
+         * dismissals seeded beside it, which {@code similarResolvedCases} leaves
+         * out of its list by design, and the parser rejects a citation no tool
+         * returned — so every scenario that required precedent and also carried a
+         * dismissal scored ungrounded whatever the brief said.
+         */
         public Set<UUID> required(InvestigationScenario.MustCite mustCite) {
             return switch (mustCite) {
                 case NOTHING -> Set.of();
@@ -112,9 +125,11 @@ public class ScenarioFixture {
         }
 
         Set<UUID> precedent = new LinkedHashSet<>();
+        Set<UUID> dismissed = new LinkedHashSet<>();
         for (FinalAction action : scenario.precedentActions()) {
-            precedent.add(resolvedCase(
-                    newUser(), moderator, "A past case under this rule.", scenario.ruleCode(), action));
+            UUID seeded = resolvedCase(
+                    newUser(), moderator, "A past case under this rule.", scenario.ruleCode(), action);
+            (action == FinalAction.NONE ? dismissed : precedent).add(seeded);
         }
 
         // Last, and it matters that it is last: precedent is queried most-recent
@@ -122,7 +137,7 @@ public class ScenarioFixture {
         // the precedent this scenario is about.
         UUID caseId = openCase(author, scenario);
 
-        return new Built(caseId, priors, precedent);
+        return new Built(caseId, priors, precedent, dismissed);
     }
 
     /** The case under test: analysed, awaiting a person, which is the only state an investigation runs in. */
@@ -143,6 +158,24 @@ public class ScenarioFixture {
                         scenario.ruleCode() == null ? List.of() : List.of(scenario.ruleCode())));
 
         return cases.saveAndFlush(moderationCase).getId();
+    }
+
+    /**
+     * Closes a built scenario's case and ages it out.
+     *
+     * <p>For a test that builds every scenario in the set rather than one of
+     * them. The admin case list is paged at fifty and ordered oldest first, and
+     * every test in this module shares one database, so thirty-two scenarios left
+     * awaiting review push another test's case off the first page — which is how
+     * this was found. Aged out as well as closed, so the case does not then
+     * become precedent for a scenario that runs after it.
+     */
+    @Transactional
+    public void retire(Built built) {
+        ModerationCase moderationCase = cases.findById(built.caseId()).orElseThrow();
+        moderationCase.resolve(newModerator(), FinalAction.NONE);
+        cases.saveAndFlush(moderationCase);
+        backdate(built.caseId(), Instant.now().minus(400, ChronoUnit.DAYS));
     }
 
     private UUID resolvedCase(User author, User moderator, String body, String ruleCode, FinalAction action) {
